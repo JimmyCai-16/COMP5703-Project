@@ -1,0 +1,36 @@
+.embed-pdf-container {
+    width: 100%;
+    height: 100%; /* Set height to viewport height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* Needed for positioning the spinner */
+    overflow-y: hidden;
+}
+
+.embed-pdf-viewer {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.embed-pdf-spinner {
+    position: absolute;
+    color: var(--ofx-orange);
+    top: 50%;
+    left: 50%;
+}
+
+.embed-pdf-toolbar {
+    position: absolute;
+    background-color: var(--ofx-light);
+    border-radius: 25%;
+    padding: 10px;
+    bottom: 5%;
+    right: 5%;
+}
+
+.embed-pdf-modal-body {
+    padding: 0;
+    margin: 0;
+}

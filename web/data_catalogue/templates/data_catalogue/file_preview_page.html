@@ -1,0 +1,79 @@
+{% extends 'appboard/base.html' %}
+{% load static %}
+{% load modal_tags %}
+
+{% block head_title %}
+    [File] Preview
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/django_autocomplete_light.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/project.css' %}"/>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid  mb-4 content-margin-top-offest">
+
+    <div class="container">
+
+        <div class="breadcrumb">
+            <a href="#" class="breadcrumb-item text-ofx-blue-light">[My projects]</a>
+            <a href="#" class="breadcrumb-item text-ofx-blue-light">[Project Name] - Data Catalogue</a>
+            <a href="#" class="breadcrumb-item text-ofx-blue-light">[Dataset title/name]</a>
+            <span class="breadcrumb-item">[File name] preview</span>
+        </div>
+
+        <div id="title-divider" class="mb-4"></div>
+
+        <h4>[File name] - Preview</h4>
+
+        <div class="row data-catalogue-row">
+
+            <div class="file-preview-button-section">
+                <a href="#"><button class="dc-secondary-cta-btn">Download</button></a>
+                <a href="#"><button class="dc-primary-cta-btn">Add to KMS</button></a>
+            </div>
+
+            <div class="file-preview-module">
+                <h5>File content goes here (height should automatically adjust based on the selected files height)</h5>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="details-section">
+                <h5 class="details-title">File Details</h5>
+
+                <table id="dataset-details-table" class="table table-sm dt-responsive w-100">
+                    
+                    <tr>
+                        <th>[Last updates]</th>
+                        <td>[value]</td>
+                    </tr>
+                    <tr>
+                        <th>[Created]</th>
+                        <td>[value]</td>
+                    </tr>
+                    <tr>
+                        <th>[License]</th>
+                        <td>[value]</td>
+                    </tr>
+                    <tr>
+                        <th>[Description]</th>
+                        <td>[value]</td>
+                    </tr>
+                    <tr>
+                        <th>[Format]</th>
+                        <td>[value]</td>
+                    </tr>
+                </table>
+
+            </div>
+       </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

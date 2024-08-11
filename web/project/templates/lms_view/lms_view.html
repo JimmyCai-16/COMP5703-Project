@@ -1,0 +1,261 @@
+{% extends 'appboard/base.html' %}
+{% load static %}
+{% load modal_tags %}
+
+{% block head_title %}
+Project Landowner Management System
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/django_autocomplete_light.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+{% csrf_token %}
+<div id="flash-message" class="text-sm ms-4">
+    {% if messages %}
+    {% for message in messages %}
+    {% if message.level == 25 %}
+    <span class="alert alert-success text-center p-2"> {{ message }}
+    </span>
+    {% endif %} {% endfor %} {% endif %}
+</div>
+<div class="container-fluid content-margin-top-offest mb-4">
+    <div class="container">
+        <div class="form-outline mb-4">
+            <h4 class="text-ofx-blue mb-2">Project Landowner Management System</h4>
+            <div id="title-divider" class="mb-4"></div>
+            <div class="row">
+                <div class="col-12 my-3">
+                    <div class="card shadow mb-2">
+                        
+                        <div class="card-body tab-content overflow-auto" id="nav-tabContent">
+                            <table id="project-table" class="table table-sm dt-responsive w-100">
+                                <thead>
+                                    <tr>
+                                        <th>Project Name</th>
+                                        <th>Permissions</th>
+                                        <th>Tenement(s)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# CREATE PROJECT MODAL #}
+    {% modalform id='createProject' title='Create Project' submit_text='Create' %}
+    {% csrf_token %}
+    {{createProjectForm.as_p}}
+    {% endmodalform %}
+    {% modalform id='inviteUser' title='Invite Member' submit_text='Send Invite' dynamic="true" %}
+    {% csrf_token %}
+    <p>Invite a member to the project <b id="name"></b></p>
+    {% comment %} <p><i>Inviting non-registered users coming soon.</i></p> {% endcomment %}
+    {{ inviteUserForm.as_p }}
+    {% endmodalform %}
+
+    {% modalform id='addTenement' title='Add Tenement' submit_text='Add'%}
+    {% csrf_token %}
+    <span class="text-ofx-blue fa fa-question-circle" data-bs-toggle="tooltip" data-html="true"
+        title='Only unclaimed tenements will be shown'>
+    </span>
+    {{ addTenementForm.as_p }}
+    {% endmodalform %}
+
+    {% modalform id='leaveProject' title='Leave Project' submit_text='Leave' submit_class='btn-ofx-red' dynamic="true"%}
+    {% csrf_token %}
+    {{ leaveProjectForm.as_p }}
+    <p>Do you wish to Leave <b id="name"></b>?
+    </p>
+    <p>If you wish to re-join the project you will need to be re-invited by a project administrator.</p>
+    {% endmodalform %}
+
+    {% modalform id='deleteProject' title='Delete Project' submit_text='Delete' submit_class='btn-ofx-red' dynamic="true" %}
+    {% csrf_token %}
+    {{ deleteProjectForm.as_p }}
+    <p>Permanently delete <b id="name"></b>?</p>
+    <p>This action will <strong class="text-ofx-red">permanently</strong> delete the following:</p>
+    <ul>
+        <li><b id="name"></b> will be permanently deleted.</li>
+        <li>All Tenements assigned to the project will be relinquished.</li>
+        <li>All Tasks and associated files.</li>
+        <li>All Targets and associated files.</li>
+        <li>All Datasets and associated files.</li>
+        <li>All Models and associated files.</li>
+        <li>All Reports and associated files.</li>
+    </ul>
+    {% endmodalform %}
+
+    {% modalform id='deleteTenement' title='Relinquish Tenement' submit_text='Relinquish' submit_class='btn-ofx-red' dynamic="true" %}
+    {% csrf_token %}
+    {{ deleteTenementForm.as_p }}
+    <p>Relinquish ownership of <b id='permit[type]'></b><b id='permit[number]'></b> from this
+        project?
+    </p>
+    <p>This action will <strong class="text-ofx-red">permanently</strong> delete the following:</p>
+    <ul>
+        <li>All Tasks and associated files.</li>
+        <li>All Targets within the Tenement.</li>
+        <li>Tenement Work Program information.</li>
+    </ul>
+    {% endmodalform %}
+
+    {% modalform id='deleteReport' title='Delete Report' submit_text='Delete' submit_class='btn-ofx-red' dynamic="true"%}
+    {% csrf_token %}
+    {{ deleteReportForm.as_p }}
+    <p>Delete report <b id="report-label"></b> from this project?
+    </p>
+    <p>This action will <strong class="text-ofx-blue">not</strong> delete any of the following:</p>
+    <ul>
+        <li>Parent Dataset.</li>
+        <li>Any associated Cleaner reports.</li>
+    </ul>
+    {% endmodalform %}
+</div>
+
+    {% endblock %}
+
+    {% block extra_body %}
+
+    {{ deleteProjectForm.media }}
+    {{ leaveProjectForm.media }}
+    {{ addTenementForm.media }}
+    {{ deleteTenementForm.media }}
+    {{ deleteReportForm.media }}
+
+    <script type="text/javascript" src="{% static 'project/js/project_index.js' %}"></script>
+    <script>
+        /*
+        document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            const tabCon = urlParams.get('tabContent');
+            if (tab && tabCon) {
+                // Assuming you are using Bootstrap tabs
+                const tabElement = document.getElementById(tab);
+                const tabContent = document.getElementById(tabCon);
+                if (tabElement && tabContent) {
+                    tabElement.classList.add('active');
+                    tabContent.classList.add("active")
+                    tabContent.classList.add("show")
+                    tabElement.click()
+                }
+            }
+            else {
+                // $('#nav-projects-tab').addClass('active');
+                // document.getElementById("nav-projects-tab").classList.add("active");
+                // document.getElementById("nav-projects").classList.add("active")
+                // document.getElementById("nav-projects").classList.add("show")
+            }
+        });
+        */
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $("#addTenementModal").attr("data-bs-focus", "false")
+
+            /*
+            $('#project-table tbody').on('click', 'tr', function () {
+                let data = $('#project-table').DataTable().row(this).data();
+                console.log(data);
+            })*/
+
+            // $.ajax({
+            //     url: "{% url 'project:get_projects' %}",
+            //     type: 'GET',
+            //     contentType: 'application/json',
+            //     data: function (response) {
+            //         console.log(response);
+            //         return response.data;
+            //     },
+            //     success: function (data) {
+            //         console.log("AYO WE WIN");
+            //         console.log(data);
+            //     },
+            //     error: function (data) {
+            //         console.log("AYO LOSE");
+            //     }
+            // });
+
+            const url = "/lms/"
+
+            let projectTable = $('#project-table').DataTable({
+                'bSort': true,
+                'bPaginate': false,
+                'bDestroy': true,
+                'columns': [
+                    {
+                        data: 'slug', 
+                        bSortable: true,
+                        render: function (data, type, row) {
+                            return `${row.name} <button class="view-projects-btn" type="button" onclick='window.location.href="${url}${row.rawSlug}";' data-bs-toggle="tooltip" data-bs-placement="right" title="View Landowner Management System">View</button>`
+                        }
+                    },
+                    {data: 'permission', bSortable: true},
+                    {data: 'tenementCount', bSortable: true},
+                    // {
+                    //     data: 'actions', bSortable: false,
+                    //     render: function (data, type, row) {
+
+                    //         // For testing the URL route
+                    //         // console.log(`${url}${row.rawSlug}`)
+
+                    //         let action = (data > 7) ?
+                    //             `<td>
+                    //                 <button class="btn btn-sm btn-ofx-blue" type="button" onclick='window.location.href="${url}${row.rawSlug}";'>
+                    //                     Landowner Management System <i class="fa-solid fa-earth-oceania"></i>
+                    //                 </button>
+                    //             </td>` :
+                    //             `<td><span data-bs-toggle="modal" data-bs-target="#leaveProjectModal">
+                    //                 <button class="btn btn-ofx-fa btn-ofx-fa-red" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Leave Project">
+                    //                     <span class="fa fa-user-alt-slash"/>
+                    //                 </button>
+                    //             </td>`
+
+                    //         return `<div class="float-end">${action}</div>`;
+                    // }}
+                ],
+                ajax: {
+                    url: "{% url 'project:get_projects' %}",
+                    type: 'GET',
+                    contentType: 'application/json',
+                    data: function (response) {
+                        return response.data;
+                    },
+                }
+            });
+     
+            // Check for the modal parameter in the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const modalParam = urlParams.get('modal');
+
+            if (modalParam === 'True') {
+                // Show the modal if the parameter is present
+                $('#myModal').modal('show');
+            }
+            setTimeout(function () {
+                if (document.getElementById("flash-message") !== null)
+                    document.getElementById("flash-message").style.display = "none";
+            }, 3000);
+
+            $('button[type="submit"]').on('click', function (event) {
+                formId = event.target.form.id;
+                const form = document.getElementById(formId);
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    form.classList.add('was-validated');
+                }
+            });
+        });
+    </script>
+
+    {% endblock %}

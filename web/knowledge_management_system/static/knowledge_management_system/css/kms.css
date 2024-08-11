@@ -1,0 +1,69 @@
+.popout-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 75%;
+    height: 100%;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    transform: translateX(100%);
+    transition: transform 0.1s ease-out;
+}
+
+.popout-container.shown {
+    transform: translateX(0); /* Slide in from the right */
+}
+
+.popout-content {
+    padding: 20px;
+    height: 100%;
+}
+
+#closeBtn {
+    margin-top: 10px;
+}
+
+.horizontal-radio {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.horizontal-radio input[type="radio"] {
+    margin-right: 5px;
+}
+
+/*Hide original svg:*/
+.tox-tbtn[aria-label="Save"] .tox-icon svg {
+    display: none;
+}
+
+/*Dimensions of svg icon:*/
+.tox-tbtn[aria-label="Save"] .tox-icon {
+    display: list-item;
+    list-style: none;
+    width: 25px;
+    height: 25px;
+}
+
+.company-folder {
+    width: 100px;
+    text-overflow: ellipsis;
+}
+.company-folder:hover{
+    background-color: lightgray;
+    cursor: pointer;
+}
+.company-folder-selected{
+    background-color: lightgray;
+}
+/*Svg icon:*/
+[aria-label='Save'].tox-tbtn .tox-icon {
+    background-image: url("../images/save.svg");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 75%;
+    filter: invert(92%) sepia(74%) saturate(725%) hue-rotate(21deg) brightness(93%) contrast(73%);
+}
+

@@ -1,0 +1,355 @@
+{% extends 'appboard/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block head_title%}
+{{board.name}}
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'project_management/css/project_management.css' %}"/>
+    <link rel="stylesheet" href="{% static 'project_management/css/board.css' %}"/>
+    <link rel="stylesheet" href="{% static 'project_management/css/orefox-jkanban.css' %}"/>
+    <link rel="stylesheet" href="{% static 'project_management/css/chosen.css' %}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="{% static '/project_management/js/chosen.jquery.js' %}" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
+<body>
+    <div class="content-margin-top-offest px-4">
+        <div class="breadcrumb pt-3">
+            <a href="{% url 'project_management:kanban' %}"
+                class="breadcrumb-item">Activity Manager</a>
+            <span class="breadcrumb-item">{{board.name}}</span>
+        </div>
+        <div id="title-divider" class="mb-4"></div>
+        <div class= "d-flex flex-column align-items-start justify-content-start flex-md-row align-items-md-center justify-content-md-between " style="overflow-x: hidden">
+            <h4 class="text-ofx-blue text-break me-2">{{ board.name }}</h4>
+            <div class="d-flex flex-row align-items-center">
+                <span class="me-2" style="font-weight: 500; font-size: smaller; color: grey;"
+                    data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                    data-bs-custom-class="long-tooltip"
+                    data-bs-title='
+                        <div style="color: grey;" class="d-flex flex-column">
+                            <span>Updated by <span class="fw-bold">{{board.user_updated}}</span>
+                                {% if days_difference > 2 %}
+                                    on {{ board.date_updated|date:"M d, Y fA" }}
+                                {% else %}
+                                    {{ board.date_updated|naturaltime }}
+                                {% endif %}
+                            </span>
+                            <span>Created by <span class="fw-bold">{{board.user_created}}</span> {{board.date_created|date }}</span>
+                        </div>
+                    '
+                >
+                    Edited
+                    {% if days_difference > 2 %}
+                        on {{ board.date_updated|date:"M d, Y fA" }}
+                    {% else %}
+                        {{ board.date_updated|naturaltime }}
+                    {% endif %}
+                </span>
+                <div class="btn-clear-hover px-2" type="button" data-bs-toggle="modal" data-bs-target="#create_column_modal">
+                    <i class="fa-solid fa-plus me-1"></i>
+                    <span class="d-md-inline d-none">Add List</span>
+                </div>
+                <div class="vr mx-2"></div>
+                <div class="btn-clear-hover px-3" data-bs-toggle="modal" data-bs-target="#rename_board_modal">
+                    <i class="fa-regular fa-pen-to-square" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit Board"></i>
+                </div>
+                <div class="btn-clear-hover px-3" data-bs-toggle="modal" data-bs-target="#view_user_modal">
+                    <i class="fa-solid fa-users"  data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Board Members"></i>
+                </div>
+                <div class="btn-clear-hover px-3" data-bs-toggle="modal" data-bs-target="#delete_board_confirmation_modal">
+                    <i class="fa-regular fa-trash-can"  data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete Board"></i></i>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div id="myKanban" class="mt-4 px-0"></div>
+
+        {% include "./board.modal_form.html" %}
+        {% include "./board.task_form.html"%}
+    </div>
+</body>
+{% endblock %}
+
+{% block extra_body %}
+<script src="{% static '/project_management/js/project_management.js'%}"></script>
+<script src="{% static 'project_management/js/orefox-jkanban.js' %}"></script>
+<script src="{% static '/project_management/js/chosen.jquery.js' %}" type="text/javascript"></script>
+<script src="{% static '/project_management/js/dom-autoscroller.min.js' %}"></script>
+<script>
+    let csrf_token = "{{ csrf_token }}"
+    let kanban_url = "{% url 'project_management:kanban' %}";
+    var board = "{{ board }}";
+    var kanbanID = "{{ board.id }}"
+    var columns =
+    {{ columns|safe }}
+    var tasks =
+    {{ tasks|safe }}
+</script>
+<script>
+    $('#assignees_select_create').chosen();
+    jKanbanColumns = []
+    jKanbanTasks = {}
+
+    // Format task for jkanban
+    tasks.forEach((element, index) => {
+        const taskObject = {
+            taskID: element.fields.restID,
+            title: element.fields.title,
+            date: element.fields.date,
+            assignees: element.fields.assignees,
+            priority: element.fields.priority,
+            file: element.fields.file,
+            description: element.fields.description,
+        }
+        if (jKanbanTasks.hasOwnProperty(element.fields.column)) {
+            jKanbanTasks[element.fields.column].push(taskObject)
+        } else {
+            jKanbanTasks[element.fields.column] = [taskObject]
+        }
+    })
+
+    // Format Column for jkanban
+    columns.forEach((element, index) => {
+        jKanbanColumns.push(
+            {
+                id: element.fields.restID,
+                title: element.fields.title,
+                item: jKanbanTasks[element.pk]
+            }
+        )
+    })
+
+    const BoardKanban = new jKanban({
+        element: "#myKanban",
+        gutter: "10px",
+        widthBoard: "250px",
+        // itemHandleOptions: {
+        //     enabled: true,
+        // },
+        click: function (el) {
+            $.ajax({
+                headers: {"X-CSRFToken": csrf_token},
+                url: kanban_url + "task/" + el.attributes[1].value,
+                type: "GET",
+                dataType: "json",
+                cache: true,
+                success: function (data) {
+                    data = JSON.parse(data["task"])[0]
+
+                    $("#edit_task_form").find("input[type=text], textarea").val("");
+                    $("#due_date_edit").val("");
+
+                    $("#title_input_edit").val(data.fields.title);
+                    $('#assignees_select_edit option').prop('selected', false)
+                    $("#description_edit").val(data.fields.description);
+                    if (data.fields.date != null) {
+                        $("#due_date_edit").val(data.fields.date);
+                    }
+                    if (data.fields.file != null && data.fields.file != "" ) {
+                        $("#file_multiple_edit").val("")
+                        $("#files").empty()
+                        $("#files").append(
+                            `<a href="/media/` + data.fields.file + `">` + data.fields.file + `</a>`
+                        )
+                    } else {
+                        $("#files").parent().empty()
+                    }
+                    $('select option:contains("' + data.fields.priority + '")').prop('selected', true);
+                    if (data.fields.assignees.length > 0) {
+                        data.fields.assignees.forEach(assignee => {
+                            $('#assignees_select_edit option:contains(' + assignee[0] + ')').prop('selected', true)
+                        }); 
+                    }
+
+                    $('#view_task_modal .last_updated').text(data.fields.date_updated)
+                    $('#view_task_modal .user_updated').text(data.fields.user_updated)
+
+                    $('#view_task_modal').data('task-id', el.getAttribute('data-taskid'))
+                    $('#view_task_modal').modal('show');
+                },
+                error: function (data) {
+                },
+            });
+        },
+        dropEl: function (el, target, source, sibling) {
+            var taskid = el.getAttribute('data-taskid')
+            var index = $("[data-taskid=" + taskid + "]").index()
+            if (taskid == null) {
+                taskid = el.getAttribute('data-eid')
+                index = $("[data-eid=" + taskid + "]").index()
+
+            }
+            $.ajax({
+                headers: {"X-CSRFToken": csrf_token},
+                url: kanban_url + "update/task",
+                data: {
+                    id: target.parentElement.getAttribute('data-id'),
+                    taskID: taskid,
+                    task_order: index
+                },
+                type: "POST",
+                dataType: "json",
+                cache: false,
+                success: function (data) {
+                    // location.reload();
+                },
+                error: function (data) {
+                    location.reload();
+                },
+            });
+        },
+        buttonClick: function (el, boardID) {
+            $("#create_task_form").find("input[type=text], textarea").val("");
+            $("#due_date_create").val("");
+
+            $("#title_input_create").val("");
+            $('#assignees_select_create option').prop('selected', false)
+            $("#description_create").val("");
+            $("#file_multiple_create").val("")
+            $('#assignees_select_edit option').prop('selected', false)
+            $('select option').prop('selected', false);
+
+            $('#create_task_modal').data('board-id', boardID)
+            $('#create_task_modal').modal('show');
+        },
+        itemAddOptions: {
+            enabled: true,
+            content: '+ Add New Task',
+            class: 'btn btn-outline-secondary',
+            footer: true
+        },
+        boards: jKanbanColumns,
+        dragendBoard: function (el) {
+            let $e = $(el)
+            const id = $e.data('id')
+            const newOrder = $e.data('order')
+            
+            $.ajax({
+                type: "POST",
+                headers: {"X-CSRFToken": csrf_token},
+                url: "{% url 'project_management:update_column' %}",
+                data: {
+                    id: id,
+                    order: newOrder
+                },
+                dataType: "json",
+                success: function (data) {
+                },
+                error: function (data) {
+                    location.reload()
+                }
+            });
+
+        },                             
+    });
+
+    autoScroll([
+        document.querySelector('#myKanban')
+    ],{
+        margin: 30,
+        maxSpeed: 10,
+        scrollWhenOutside: true,
+        autoScroll: function(){
+            return this.down && BoardKanban.drake.dragging;
+        }
+    })
+
+
+    $('#btnSubmit').on('click', function (event) {
+        formId = event.target.form.id;
+        const form = document.getElementById(formId);
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            form.classList.add('was-validated');
+        }      
+    });
+
+    $(document).ready(() => {
+
+        // Show/Hide settings button on Column when a Column is hovered
+        $('.kanban-board').on('mouseenter', function (e) {
+            const column = $(this)
+            const settingsBtn = column.find('.kanban-settings-dropdown')
+            settingsBtn.removeClass('d-none')
+        }).on('mouseleave', function (e) {
+            const column = $(this)
+            const settingsBtn = column.find('.kanban-settings-dropdown')
+
+            const dropdownBtn = settingsBtn.find('*[data-bs-toggle="dropdown"]')
+            dropdownBtn.dropdown('hide')
+
+            settingsBtn.addClass('d-none') 
+        })
+
+        // On updating title of column
+        $('.dropdown.kanban-title-dropdown').on('show.bs.dropdown', function (e) {
+            let dropdown = $(this)
+            let titleColumn = $(this).closest('.kanban-board-header').find('.kanban-title-board')
+            let doneBtn = $(this).find('.btn[type="submit"]')
+            let column = $(this).closest('.kanban-board')
+            let column_id = column.attr('id')
+            if (!column_id) {
+                column_id = column.data('id')
+            }
+
+            // Fill input with title
+            let titleInput = dropdown.find('input[name="title"]')
+            titleInput.val(titleColumn.text())
+            titleInput.focus()
+            titleInput.select()
+
+            const originalBtnHTML = doneBtn.html()
+            doneBtn.on('click', function (e) {
+                e.preventDefault()
+                updateBoardName()
+            })
+
+            titleInput.on('keyup', function (e) {
+                if (e.keyCode == 13) {
+                    updateBoardName()
+                }
+            })
+
+            function updateBoardName() {
+                let newTitle = titleInput.val()
+                if (newTitle.trim() == titleColumn.text() || newTitle.trim().length == 0)  {
+                    return
+                }
+
+                $.ajax({
+                    headers: {"X-CSRFToken": csrf_token},
+                    url: "{% url 'project_management:update_column' %}",
+                    type: "POST",
+                    dataType: "json",
+                    cache: false,
+                    data: {
+                        id: column_id,
+                        title: newTitle
+                    },
+                    beforeSend: function () {
+                        doneBtn.addSpinner()
+                    },
+                    success: function (data) {
+                        titleColumn.text(newTitle)
+                        dropdown.dropdown('hide')
+                    },
+                    error: function (data) {
+                        location.reload()
+                    },
+                    complete: function () {
+                        doneBtn.removeSpinner(originalBtnHTML);
+                    }
+                
+                })                
+            }
+
+           
+        });
+    })
+</script>
+{% endblock %}

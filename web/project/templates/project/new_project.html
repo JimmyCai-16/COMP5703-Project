@@ -1,0 +1,255 @@
+{% extends 'appboard/base.html' %}
+{% load modal_tags %}
+
+{% load static %}
+{% load humanize %}
+
+{% block head_title %}
+    Start New Project
+{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'project/css/project.css' %}"/>
+
+{% endblock %}
+
+{% block content %}
+
+  <div id="flash-message" class="text-md ms-4">
+    {% if messages %}
+    {% for message in messages %} 
+    {% if message.level == 25 %}
+    <div
+      class="alert alert-success p-3"> {{ message }}
+    </div>
+    {% endif %} {% endfor %} {% endif %}
+  </div>
+
+  <div class="container-fluid content-margin-top-offest mb-4">
+    <div class="container">  
+        <div class="form-outline mb-4">
+            <h4 class="text-ofx-blue mb-4">Create New Project<i class=" ms-2 fas fa-fw fal fa-folder-plus"></i></h4>
+            <div class="row">
+                <div class="col-12 my-3">
+            <div class="card shadow mb-2">
+                {# Project Tab #}
+                <div class="card-header">
+                    <div class="nav nav-tabs card-header-tabs" id="nav-tab" role="tablist">
+                        <a class="nav-link active" id="nav-select-region-tab" data-bs-toggle="tab"
+                           data-bs-target="#nav-select-region" aria-controls="nav-select-region" aria-selected="true">
+                           Step One - Select Region
+                        </a>
+                        <a class="nav-link disabled" id="nav-details-tab" data-bs-toggle="tab"
+                           data-bs-target="#nav-details" aria-controls="nav-details" aria-selected="false">
+                           Step Two - Details
+                        </a>
+                        <!-- <a class="nav-link disabled" id="nav-done-tab" data-bs-toggle="tab"
+                           data-bs-target="#nav-done" aria-controls="nav-done" aria-selected="false">
+                           Step Three
+                        </a> -->
+                      </div>
+                </div>
+                <div class="card-body tab-content overflow-auto" id="nav-tabContent">
+                  {# select-region Tab #}
+                    <div class="tab-pane active" id="nav-select-region" role="tabpanel" aria-labelledby="nav-select-region-tab">
+                        <p><br><br>Choosing the region of your project is vital to ensure that GeoDesk Ai provides you with the most accurate and relevant
+                          tools and data tailored to your location.<br><br> Selecting your project's region allows us to offer you a customisable 
+                          project template that can be adjusted to fit your chosen region's unique geological characteristics, legal frameworks, 
+                          and reporting requirements.<br><br>By tailoring the template to your region, GeoDesk Ai ensures you have access to features and 
+                          functionalities aligned with your project's specific needs and context. This empowers you to make informed decisions, 
+                          streamline project management, and optimise mineral exploration efforts.<br><br>If your specific region still needs a 
+                          dedicated template, don't worry! Please get in touch with us HERE, and we will build a dedicated template.
+                        </p><br>
+                        <p style="color: red;font-weight: 600;">Currently only Australia, Queensland is supported.</p>
+
+                        <form method="post" id="selectRegionForm"  name="region_form_submit">
+                          {% csrf_token %}
+                          <div class="row">
+                     
+                              <div class="col-md-5 form-group">
+                                 <label for="{{ region_form.country.id_for_label }}">Country:</label>
+                                {{ region_form.country }}</div>
+                              <div id="stateDropdown" class="col-md-5 form-group">
+                                <label for="{{ region_form.state.id_for_label }}">State:</label>
+                                {{ region_form.state }}
+                              </div>                           
+                          </div>                         
+                          <div class="row">
+                            <div class="col-md-12 pt-3" style="display:none" id="countryWarning">
+                              <div class="alert alert-warning" role="alert">
+                                Currently only Australia, Queensland is supported.
+                              </div>
+                            </div>
+                            <div class="col-md-12" style="display: none;padding-bottom:10px;" id="btnHide">
+                                <button style="float: right" class="btn btn-ofx-blue" name="region_form_submit" type="button" id="btnNext">Next <i class="fa-solid fa-arrow-right"></i></button>
+                            </div>                            
+                          </div>
+                      </form>
+                      
+                  </div>
+                    {# details Tab #}
+                    <div class="tab-pane" id="nav-details" role="tabpanel" aria-labelledby="nav-details-tab" disabled>
+                      <div class="card-1 shadow-1 mx-4 my-2">
+                        <!-- <div class="card-header" style="height:40px"></div> -->
+                        <div class="my-2 mx-4">
+                          <form method="post" id="createProject" name="project_form_submit">
+                            <div class="mb-4 mt-2">
+                              <input type="hidden" id="hiddenCountry" name="hiddenCountry">
+                              <input type="hidden" id="hiddenState" name="hiddenState">
+                              <input type="hidden" id="hiddenCodeCountry" name="hiddenCodeCountry">
+                              <input type="hidden" id="hiddenCodeState" name="hiddenCodeState">
+                                {% csrf_token %}
+                                {% for field in form %}
+                                  <div class="form-group mb-3">
+                                      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                      {{ field }}
+                                  </div>
+                                {% endfor %}                           
+                            </div>
+                              <button class="btn btn-ofx-blue" type="button" id="btnBack">Go Back</button>
+                              <button class="btn btn-ofx-blue" type="button" id="btnCancel">Reset</button>
+                              <button class="btn btn-ofx-green" name="project_form_submit" type="submit">Create</button>
+                          </form>
+                        </div>
+                      </div>               
+                    </div>
+                    <!-- {# done Tab #}
+                    <div class="tab-pane" id="nav-done" role="tabpanel" aria-labelledby="nav-done-tab" disabled>
+                      <p>Tab 3</p>
+                    </div> -->
+                </div>
+                {# END TABS #}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script> -->
+
+<script>
+  $(document).ready(function() {
+    var stateDropdownContainer = document.getElementById("stateDropdown");
+    var btnNextTab = document.getElementById("btnHide");
+    var btnNext = document.getElementById("btnNext");
+    var countryOnLoad = document.getElementById("countryId").value;
+    ajaxState(countryOnLoad);
+    
+
+    if (stateDropdownContainer) {
+      stateDropdownContainer.style.display = "none";
+    }
+
+    $('#countryId').change(function() {
+      var selectedCountry = $(this).val();
+      ajaxState(selectedCountry);
+    });
+
+    $('#id_name').val("");
+    $('#id_purpose').val("")
+    $('#id_locality').val("")
+    $('#hiddenCountry').val("")
+    $('#hiddenState').val("")
+
+    $('#btnCancel').click(function() {
+      $('#id_name').val("");
+      $('#id_purpose').val("")
+      $('#id_locality').val("")
+    });
+
+  });
+    setTimeout(function () {
+        if( document.getElementById("flash-message") !== null)
+        document.getElementById("flash-message").style.display = "none";
+      }, 3000); //  "3000" the number of milliseconds to display the flash message
+      setTimeout(function () {
+        if( document.getElementById("server-error") !== null)
+        document.getElementById("server-error").style.display = "none";
+      }, 3000);
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+
+    var stateDropdown = document.getElementById("state");
+    var tabDetails = document.querySelector("#nav-details-tab");
+    var tabDetailsAnchor = document.getElementById("nav-details-tab");
+    var btnBack = document.getElementById("btnBack");
+    var tabSelectRegionAnchor = document.getElementById("nav-select-region-tab");
+
+    // Initially disable Tab 2
+    tabDetails.classList.add("disabled");
+
+    btnNext.addEventListener("click", function() {
+      var countryData = document.getElementById("countryId");
+      var stateData = document.getElementById("stateId");
+      var hiddenCountryValue = document.getElementById("hiddenCountry");
+      var hiddenStateValue = document.getElementById("hiddenState");
+      hiddenCountryValue.value = countryData.options[countryData.selectedIndex].text
+      hiddenStateValue.value = stateData.options[stateData.selectedIndex].text
+      var hiddenCountryCodeValue = document.getElementById("hiddenCodeCountry");
+      var hiddenStateCodeValue = document.getElementById("hiddenCodeState");
+      hiddenCountryCodeValue.value = countryData.value;
+      hiddenStateCodeValue.value= stateData.value;
+
+      var countryDataId = document.getElementById("id_country");
+      var stateDataId = document.getElementById("id_state");
+      countryDataId.value = hiddenCountryValue.value;
+      countryDataId.readOnly = true;
+      stateDataId.value = hiddenStateValue.value;
+      stateDataId.readOnly = true;
+
+      if(hiddenCountryCodeValue.value !=='AUS' || hiddenStateCodeValue.value !=='QLD'){
+        document.getElementById("countryWarning").style.display = "block";
+        setTimeout(function () {
+          document.getElementById("countryWarning").style.display = "none";
+        }, 5000);
+        //alert('Sorry, Currently only Queensland is supported');
+        return false;
+      }
+      var tabDetails = new bootstrap.Tab(tabDetailsAnchor);
+      tabDetails.show();
+    });
+
+    btnBack.addEventListener("click", function() {
+      //switch to Tab 1
+      var tabSelectRegion = new bootstrap.Tab(tabSelectRegionAnchor);
+      tabSelectRegion.show();
+    });
+  });
+
+  function ajaxState(selectedCountry){
+    var stateDropdownContainer = document.getElementById("stateDropdown");
+    var btnNextTab = document.getElementById("btnHide");
+    var btnNext = document.getElementById("btnNext");
+    var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();   
+        $.ajax({
+          url: '{% url 'project:get_states' %}', 
+          data: {
+              'csrfmiddlewaretoken': csrfToken, 
+              'country_name': selectedCountry
+          },
+          dataType: 'json',
+          method: 'POST',
+          success: function(data) {
+              var stateDropdown = $('#stateId');
+              stateDropdown.empty();
+              $.each(data.states, function(index, state) {
+                  stateDropdown.append($('<option>').val(state.code).text(state.name));
+              });
+
+              if(data.states.length>0){
+                stateDropdownContainer.style.display = "block";
+                btnNextTab.style.display = "block";
+                btnNext.style.display = "block";
+              }
+              else{
+                stateDropdownContainer.style.display = "none";
+                btnNextTab.style.display = "none";
+                btnNext.style.display = "none";
+              }
+          }
+        });
+  }
+</script>
+
+{% endblock %}

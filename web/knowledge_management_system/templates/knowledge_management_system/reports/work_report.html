@@ -1,0 +1,53 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+    <meta name="description" content="{{ description }}">
+    <style>
+        @font-face {
+            font-family: Arial;
+        }
+
+        @page {
+            size: {{ page_size|default:"A4" }};
+            margin: {{ margin|default:"3cm" }};
+
+            font-family: Arial, serif;
+            font-size: 9pt;
+
+            @top-left {
+                color: grey;
+                content: element(top-left);
+            }
+
+            @top-center {
+                color: grey;
+                content: element(top-center);
+            }
+            @top-right {
+                color: grey;
+                content: element(top-right);
+            }
+            @bottom-left {
+                color: grey;
+                content: element(bottom-left);
+            }
+            @bottom-center {
+                color: grey;
+                content: element(bottom-center);
+            }
+            @bottom-right {
+                color: grey;
+                content: element(bottom-right);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="top-left">Top Left</div>
+    <div id="top-right">Top Right</div>
+    This is a test!
+</body>
+
+</html>

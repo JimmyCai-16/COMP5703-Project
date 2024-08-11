@@ -1,0 +1,43 @@
+[
+    {
+        "field": "permit_type",
+        "value": "EPM",
+        "label": "Exploration Permit for Minerals",
+        "next": [
+            {
+                "field": "permit_status",
+                "value": "G",
+                "label": "Granted",
+                "next": [
+                    {
+                        "field": "date_granted",
+                        "range":
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "display": "Exploration Permit for Minerals",
+        "children": [
+            {
+                "display": "Application",
+                "children": [
+                    {
+                        "display": "2011-02-01 - 2011-02-01",
+                        "data": "the geojson"
+                    }
+                ]
+            },
+            {
+                "display": "Granted",
+                "children": [
+                    {
+                        "display": "2021-11-04 - 2021-11-08",
+                        "data": "the geojson"
+                    }
+                ]
+            }
+        ]
+    }
+]

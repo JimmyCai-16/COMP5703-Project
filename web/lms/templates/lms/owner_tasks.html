@@ -1,0 +1,239 @@
+<!-- {% comment %}
+owner.html
+id=TASKS_CONTENT
+{% endcomment %} -->
+{% load project_tags %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+  .tasks-content .task-item {
+    min-width: 30%;
+    max-width: 50%;
+    flex: 1;
+    background-color: white;
+    color: black;
+    padding: 5px;
+    margin-bottom: 10px;
+    margin-right: 10px;  
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    /* overflow: hidden; */
+    border: 2px solid gainsboro;
+    border-radius: 4px;
+    cursor: pointer;
+
+    transition: box-shadow 0.075s ease-in-out;
+  }
+
+  .tasks-content .task-item:hover {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.277);
+  }
+
+  .task-item .left-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    overflow: hidden;
+    padding-right: 8px;
+  }
+
+  @media screen and (max-width: 768px) {
+    .tasks-content .task-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .right-content {
+      align-items: start !important;
+      border-left: 0px !important;
+      border-top: solid 0.1px gainsboro !important;
+
+    }
+  }
+
+  .task-item .left-content .title, .task-item .left-content .description {
+    word-wrap: break-word;
+    word-break: break-all;
+    flex-wrap: wrap;
+    text-overflow: ellipsis;
+  }
+
+  .task-item .left-content .title, .note-item .title {
+    font-size: medium;
+    font-weight: 700;
+  }
+
+  .task-item .left-content .date {
+    color: #0ba837;
+  }
+
+  .task-item .right-content {
+    min-width:fit-content;
+    flex: 0 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    justify-content: space-between;
+
+    padding-left: 8px;
+    padding-right: 4px;
+
+    border-left: solid 2px gainsboro;
+    border-top: 0px;
+    --red: #ff0000;
+    --green: #0ba837;
+    --orange: #dba137;
+
+  }
+
+  .task-item .right-content .priority {
+    color: var(--red);
+  }
+
+  .task-item .right-content .status {
+    color: var(--green);
+  }
+
+  .task-item .right-content .last-updated {
+    font-weight: 600;
+    color: rgb(96, 96, 96);
+  }
+
+  .task-item .right-content .date {
+    color: gray;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    align-items: end;
+  }
+</style>
+{% endblock%}
+
+{% now "Y-m-d" as today_date %}
+
+{% if view.queryset %}
+{% for task in view.queryset %}
+<div class="task-item form-data" 
+  {% if view.project|is_write:view.member %}
+    data-bs-toggle="modal" data-bs-target="#modifyTaskModal" data-action="modify"
+    data-url="{% url 'lms:modify_task' slug=view.project.slug owner=task.owner.id task=task.id %}"
+    data-modal-content-bottom="
+      <div class='d-flex flex-column'>
+        <span class='fst-italic text-secondary'><b>Last Updated:</b> {{ task.date_updated|date }} {{ task.date_updated|time}} by {{ task.user_updated }}</span>
+        <span class='fst-italic text-secondary'><b>Date Created:</b> {{ task.date_created|date }} by {{ task.user_created }}</span>
+      </div>  
+    "
+  {% endif %}
+>
+  <div class="left-content">
+    <span class="title" data-field="name" data-value="{{ task.name }}">{{ task.name }}</span>
+    {% if task.date_due|date:'Y-m-d' <= today_date %}
+      <span  style="background-color: var(--ofx-red); color:white; width: fit-content;" class="rounded-1 p-1"  data-field="date_due" data-value="{{ task.date_due|date:'Y-m-d' }}">
+        <i class="fa-regular fa-calendar-xmark"></i>
+        {{ task.date_due }}
+      </span>
+    {% else %}
+      <span class="date" data-field="date_due" data-value="{{ task.date_due|date:'Y-m-d' }}">
+        <i class="fa-regular fa-calendar"></i>
+        {{ task.date_due }}
+      </span>
+    {% endif %}
+    <span class="description" data-field="content" data-value="{{ task.content }}">
+      {{ task.content }}
+    </span>
+  </div>
+  <div class="right-content">
+    <div class="d-flex flex-column align-items-end w-100">
+      {% if view.project|is_admin:view.member %}
+      <button class="btn-clear-hover"
+              data-bs-toggle="modal" data-bs-target="#deleteTaskModal" data-action="delete"
+              data-url="{% url 'lms:delete_task' slug=view.project.slug owner=task.owner.id task=task.id %}"
+              data-modal-content="Delete <b> {{ task.name }}</b>?"
+      >
+          <i class="fa fa-trash"></i>
+      </button>
+      {% endif %}
+      <div style="width: 100%;" class="d-flex flex-column align-items-end">
+        <b>Priority</b>
+        <span class="priority" data-field="priority" data-value="{{ task.priority }}">{{ task.get_priority_display }}</span>
+        <b class="mt-2">Status</b>
+        <span class="status" data-field="status" data-value="{{ task.status }}">{{ task.get_status_display }}</span>
+      </div>
+    </div>
+    <div class="d-flex flex-column align-items-end w-100 mt-2">
+      <span class="date">
+        <span class="last-updated">Last updated</span>
+        <span>{{ task.date_updated|date }}</span>
+        <!-- <div class="date-tooltip">
+          <span><span class="fw-bold">Updated:</span> <span> {{ task.user_updated}}, {{task.date_updated}}</span></span>
+          <span><span class="fw-bold">Created:</span> <span>{{task.user_created}}, {{task.date_created}}</span></span>
+        </div> -->
+      </span>
+    </div>
+    <!-- Files -->
+  </div>
+</div>
+{% endfor %}
+<script>
+  $(function () {
+    console.log('Init task');
+    document.querySelectorAll('.task-item').forEach(function(e) {
+      console.log(e);
+      const $task = $(e)
+
+      const $priority = $task.find('.priority:first')
+      const priority_value = $priority.data('value')
+
+      console.log('Priority ', priority_value);
+
+      
+      if (priority_value== '0') {
+        $priority.addClass('text-secondary')
+      } else if (priority_value == '1') {
+        $priority.addClass('text-secondary')
+      } else if (priority_value == '2') {
+        $priority.addClass('text-warning')
+      } else if (priority_value == '3') {
+        $priority.addClass('text-danger')
+      } else if (priority_value== '4') {
+        $priority.addClass('text-danger-emphasis fw-bold')
+      } else if (priority_value == '5') {
+        $priority.addClass('text-bg-danger fw-bold')
+      }
+
+      const $status = $task.find('.status:first')
+      const status_value = $status.data('value')
+
+      if (status_value== '0') {
+        $status.addClass('text-secondary')
+      } else if (status_value == '1') {
+        $status.addClass('text-success-emphasis')
+        
+      } else if (status_value == '2') {
+        $status.addClass('text-warning')
+        
+      } else if (status_value == '3') {
+        $status.addClass('text-success')
+        
+      } else if (status_value == '4') {
+        $status.addClass('text-warning')
+      }
+
+      const $date = $task.find('.date:first')
+      const task_date_value = $date.data('value') // YYYY-mm-dd
+      console.log('Date:', $date.data('value'));
+      
+      const taskDate= new Date(task_date_value)
+      const currentDate = new Date()
+
+    });
+  })
+</script>
+{% else %}
+
+{% endif %}

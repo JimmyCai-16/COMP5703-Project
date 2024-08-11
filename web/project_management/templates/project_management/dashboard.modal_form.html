@@ -1,0 +1,258 @@
+<!-- Create board modal -->
+<div class="modal fade" tabindex="-1" id="create_board_modal" data-keyboard="false" data-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-md" role="document" id="modal_body">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title">Create Board</h5>
+          </div>
+          <div class="modal-body">
+              <form id="create_board_form" action=""
+                    method="POST" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <div class="d-flex flex-column justify-content-center p-2">
+                      <input type="text" class="form-control mb-4 empty-validate" id="create_board_input"
+                             placeholder="Board Title" required>
+
+                      <h6>Owner</h6>
+                      <p class="mb-4" style="color: grey;">{{ request.user }}</p>
+					  {% include './member_search.html'%}
+                      
+                  </div>
+                  <div class="modal-footer">
+                        <button type="submit"
+                                class="btn btn-sm btn-ofx-green rounded-1">
+                            Create Board
+                        </button>
+                        <button type="button" class="btn btn-sm close-btn" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                  </div>
+              </form>
+          </div>
+
+      </div>
+  </div>
+</div>
+
+<!-- Rename board modal -->
+<div class="modal fade" tabindex="-1" id="rename_board_modal" data-keyboard="false" data-backdrop="static">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document" id="modal_body">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Manage Board</h5>
+			</div>
+			<div class="modal-body">
+				<form id="rename_board_form" board-id="" method="POST" enctype="multipart/form-data">
+					{% csrf_token %}
+					<div class="d-flex flex-column p-2">
+						<span id="rename_desc"></span>
+						<input id="rename_board_input" type="text" class="form-control">
+                        <div class="mb-4"></div>
+                        {% include './member_search.html'%}
+					</div>
+					<div class="modal-footer">
+                        <button id="rename_board_btn" type="submit"
+                                class=" btn btn-sm btn-ofx-green rounded-1">
+                            Update Board
+                        </button>
+                        <button type="button" class="btn btn-sm close-btn" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Delete board modal -->
+<div class="modal fade" tabindex="-1" id="delete_board_modal" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered modal-md" role="document" id="modal_body">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title">Deleting Board</h5>
+          </div>
+          <form id="delete_board_form" board-id="" method="POST" enctype="multipart/form-data">
+              <div class="modal-body">
+                      <div>
+                          <p id="delete_desc"></p>
+                      </div>
+                      <div class="modal-footer">
+                            <button id="delete_board_btn" board-id="" type="submit" 
+                                    class="btn btn-sm btn-ofx-red rounded-1">
+                                Delete Board
+                            </button>
+                            <button type="button" class="btn btn-sm close-btn" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                      </div>
+              </div>
+          </form>
+
+      </div>
+  </div>
+</div>
+
+{% block extra_body %}
+<script>
+	// Create board
+
+
+    
+    const create_board_modal = document.getElementById('create_board_modal')
+    create_board_modal.addEventListener('show.bs.modal', () => {
+        // Empty UI
+        $('#create_board_input').val('')
+        $('.search_member_input').val('')
+        $('.selected_members_list').html('')
+        $('.empty-validate').removeClass('is-valid is-invalid')
+
+        // Empty variables
+        searchTimeout = null;
+        selectedMembers = [];
+        searchingMembers =[]
+        
+    })
+    create_board_modal.addEventListener('shown.bs.modal', () => {
+        $('#create_board_input').focus()
+        
+    })
+
+    create_board_modal.addEventListener('click', () => {
+        $('.members_search_dropdown .dropdown-toggle').dropdown('hide')
+    })
+
+    $('.empty-validate').on('keyup', function(e) {
+        e.preventDefault()
+        if ($(this).val().trim().length === 0) {
+            $(this).removeClass('is-valid')
+            $(this).addClass('is-invalid')
+        } else {
+            $(this).removeClass('is-invalid')
+            $(this).addClass('is-valid')
+        }
+    })
+    
+    $('#create_board_form').submit(function (e) {
+        e.preventDefault()
+
+        const boardNameInput = $(this).find('#create_board_input')
+        const boardName = $(this).find('#create_board_input').val()
+        if (boardName.trim().length === 0) return;
+        $.ajax({
+            headers: {"X-CSRFToken": csrf_token},
+            url: kanban_url + "board",
+            data: {
+                "name": boardName,
+                "members": JSON.stringify(selectedMembers)
+            },
+            type: "POST",
+            dataType: "json",
+            cache: false,
+            success: function (data) {
+                $('#create_board_modal').modal('hide');
+                $('#create_board_form').unbind();
+                location.reload();
+            },
+            error: function (data) {
+            },
+        });
+    })
+
+    // Rename board
+    const rename_board_form = $('#rename_board_modal #rename_board_form')
+    const rename_board_input = $('#rename_board_modal #rename_board_form #rename_board_input')
+    document.getElementById('rename_board_modal').addEventListener('show.bs.modal', function (event) {
+        $('.empty-validate').removeClass('is-valid is-invalid')
+    })
+    document.getElementById('rename_board_modal').addEventListener('shown.bs.modal', function (event) {
+        rename_board_input.focus()
+    })
+
+    $('#board_item #rename_board_a').click(function(e) {
+        const boardId = $(this).attr('board-id')
+        const boardName = $(this).attr('board-name')
+        const boardMembers = $(this).attr('board-members')
+
+        if (!boardId || boardId.trim().length === 0) return;
+
+        $('#rename_board_modal #rename_desc').text(`Renaming ${boardName}`)
+        selectedMembers = JSON.parse(`${boardMembers}`)
+        buildSelectedMembersList(selectedMembers)
+
+        rename_board_form.attr('board-id', boardId)
+        rename_board_input.val('')
+        $(`#rename_board_modal`).modal('show');
+    })
+
+    rename_board_form.submit(function(e) {
+        e.preventDefault()
+        const boardId = $(this).attr("board-id")
+        if (!boardId || boardId.trim().length === 0) return;
+
+        $.ajax({
+            headers: {"X-CSRFToken": csrf_token},
+            url: "{% url 'project_management:update_board' %}",
+            type: "POST",
+            dataType: "json",
+            cache: false,
+            data: {
+                id: boardId,
+                name: rename_board_input.val(),
+                members: JSON.stringify(selectedMembers)
+            },
+            success: function (data) {
+                $('#rename_board_modal').modal('hide');
+                rename_board_form.unbind();
+                location.reload();
+            },
+            error: function (data) {
+            },
+            
+        })
+
+        
+    })
+
+    // Deleting Board
+    const delete_board_form = $('#delete_board_modal #delete_board_form')
+
+    $('#board_item #delete_board_a').click(function(e) {
+        const boardId = $(this).attr('board-id')
+        const boardName = $(this).attr('board-name')
+        if (!boardId || boardId.trim().length === 0) return;
+
+        $('#delete_board_modal #delete_desc').text(`Deleteing ${boardName}`)
+        delete_board_form.attr('board-id', boardId)
+        $(`#delete_board_modal`).modal('show');
+    })
+
+    delete_board_form.submit(function(e) {
+        e.preventDefault()
+        const boardId = $(this).attr("board-id")
+        if (!boardId || boardId.trim().length === 0) return;
+        $.ajax({
+            headers: {"X-CSRFToken": csrf_token},
+            type: "POST",
+            url: "{% url 'project_management:delete_board' %}", 
+            data: {id: boardId},
+            dataType: "json",
+            cache: false,
+            success: function (data) {
+                $('#delete_board_modal').modal('hide');
+                location.reload();
+            },
+            error: function (data) {
+            },
+        })
+        
+        
+    })
+
+    //
+    setTimeout(function () {
+        if( document.getElementById("flash-message") !== null)
+        document.getElementById("flash-message").style.display = "none";
+    }, 3000); 
+</script>
+{% endblock %}

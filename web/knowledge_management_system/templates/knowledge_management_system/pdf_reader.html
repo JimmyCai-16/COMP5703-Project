@@ -1,0 +1,32 @@
+{% extends "appboard/base.html" %}
+{% load static %}
+{% load pdf_tags %}
+{% load modal_tags %}
+
+{% block extra_head %}
+    {% pdf_import_static %}
+{% endblock %}
+
+{% block content %}
+
+    <button id="openPdf" data-bs-toggle="modal" data-bs-target="#pdfModal" type="button">Open the Modal</button>
+
+{% endblock %}
+
+{% block extra_body %}
+
+    <div class="modal fade" id="pdfModal" style="z-index: 99999999">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header py-1">
+                    <span class="mx-auto">PDF Preview</span>
+                    <button class="modal-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body embed-pdf-modal-body">
+                    {% pdf_embed id="pdf1" src="kms:get_pdf" slug="asd" %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

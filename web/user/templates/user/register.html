@@ -1,0 +1,231 @@
+{% extends "base.html" %} {% load i18n static %} {% load static %} 
+{% block content %}
+
+<section
+  class="gradient-form"
+  style="background-color: #fff; height: 98%; width: 99%"
+>
+  <div class="row d-flex justify-content-center align-items-center h-100">
+    <div
+      class="col-md-6 d-flex gradient-custom-2 h-100"
+      id="start-sidebar"
+    >
+    
+      <div>
+        <a href="{% url 'website:home' %}">
+          <img
+            class="img-profile"
+            style="object-fit: contain; margin-left: 1rem; margin-top: 1rem; object-position: top; width: 25%; height: 25%;"
+            src="{% static 'website/images/logo/GeoDesk.Ai_logo-with_text.png' %}"
+            alt=""
+          />
+        </a>
+
+        <div class="text-white px-3 py-2 p-md-5 mx-md-4">
+
+          <h4 class="mb-2">Instant Access to Your Exploration Management</h4>
+          <p class="small mb-5">
+            Register now for immediate, free access to manage your exploration projects efficiently. No paywalls, no waiting - just enter your tenement ID, and GeoDesk.Ai instantly provides the tools and insights you need to propel your exploration forward.
+          </p>
+
+          <!-- <h4 class="mb-2">We’re GeoDesk AI</h4>
+          <p class="small mb-5">
+            We provide artificial intelligence-based geological data analytics to
+            mining and exploration companies.
+          </p>
+          <h4 class="mb-2 mt-5">GeoDesk AI</h4>
+          <p class="small mb-0">
+            GeoDesk AI is a platform that can bring more efficiency to mineral
+            exploration. It can store and analyse the majority of geological data used
+            in exploration, using traditional, cutting-edge methods.
+          </p> -->
+        </div>
+
+      </div>
+    
+    </div>
+    <div class="col-md-6 h-100">
+      
+      <div
+        class="card-body mx-auto row w-100 d-flex align-items-center justify-content-center"
+        style="margin-top: 140px"
+      >
+      <div class="col-xl-6 col-8">
+        <div id="flash-message" class="text-md ms-2 mb-2 position-relative">
+          {% if messages %}
+          {% for message in messages %} 
+          {% if message.level == 40 %}
+          <div
+          class="alert alert-danger p-3">  {{ message }}
+        </div>
+          
+          {% elif message.level == 25 %}
+          <div
+          class="alert alert-success p-3">{{ message }}
+          </div>
+          {% endif %}
+          {% endfor %}
+          {% elif form.errors %}
+          <div
+            class="alert alert-danger pt-0 pb-0 mt-0"
+            >
+            {% for field, errors in form.errors.items %} 
+            {% for error in errors %}
+            <span>f{{ error }}<br /></span>
+            {% endfor %} {% endfor %}
+          </div>
+        
+          
+          {% endif %}
+      </div>
+    
+        <form method="post" class="ms-4" id="register-form">
+          {% csrf_token %} 
+          <div class="row"  id="client-error" >
+          <div class="col-12 text-start d-flex flex-column justify-content-end align-items-start p-0"
+                      
+          ></div>
+          </div>
+          <div class="row mt-3 mb-3">
+            <div class="form-outline col-11 fw-bolder ps-0">
+            {{form.account_type}} 
+            </div>
+          </div>
+          <div class="row mt-3 mb-3">
+            <div class="form-outline col-10">
+               {{form.first_name}}
+               <label class="form-label" for="id_first_name">First Name</label>
+            </div>
+           <div class="cross-marker col-1 text-start ms-1">
+              <i class="fas fa-check fname-cross-marker"></i>
+           </div>
+        </div>
+        <div class="row">
+          <div class="form-outline mb-3 col-10">
+            {{form.last_name}}
+            <label class="form-label" for="id_last_name">Last Name</label>
+          </div>
+          <div class="cross-marker col-1 text-start ms-1" 
+            ><i class="fas fa-check lname-cross-marker"></i
+          ></div>
+        </div>
+          <div class="row">
+            <div class="form-outline mb-3 col-10">
+              {{form.email}} 
+            <label class="form-label" for="id_email">Email</label>
+          </div>
+          <div class="cross-marker col-1 text-start ms-1" 
+            ><i class="fas fa-check email-cross-marker"></i
+          ></div>
+        </div>
+          <div class="row">
+            <div class="form-outline mb-3 col-10">
+            {{form.company}}
+            <label class="form-label" for="id_company">Company</label>
+          </div>
+          <div class="cross-marker col-1 text-start ms-1" 
+            ><i class="fas fa-check company-cross-marker"></i
+          ></div>
+        </div>
+
+          <div class="row">
+            <div class="form-outline mb-3 col-10">
+            {{form.password1}}
+            <label class="form-label" for="id_password1">Password</label>
+            </div>
+            <div class="cross-marker col-1 text-start ms-1" 
+              ><i class="fas fa-check password1-cross-marker"></i
+            ></div>
+          </div>
+
+          <ul id="password_requirements" style="display: none;">
+            <li class="error" id="pass_length">
+              8 to 24 Characters
+            </li>
+            <li class="error" id="pass_upper">
+              At least one uppercase
+            </li>
+            <li class="error" id="pass_number">
+              At least one digit
+            </li>
+            <li class="error" id="pass_special">
+              At least one special character
+            </li>
+          </ul>
+
+          <div class="row">
+            <div class="form-outline mb-3 col-10">
+            <input
+              type="password"
+              name="password2"
+              id="id_password2"
+              class="form-control"
+            />
+            <label class="form-label" for="id_password2"
+              >Confirm Password</label
+            >
+          </div>
+          <div class="cross-marker col-1 text-start ms-1" 
+            ><i class="fas fa-check password2-cross-marker"></i
+          ></div>
+        </div>
+        <div class="form-check" style="font-size:12px;" id="terms_conditions">
+          <input class="form-check-input" type="checkbox" id="acceptTerms" name="acceptTerms" required>
+          <label class="form-check-label" for="acceptTerms">
+              I accept the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
+          </label>
+      </div>
+          <div class=" row mb-3">
+            <button
+              class="btn btn-primary col-10 fa-lg gradient-custom-2  ms-0"
+              id="register-btn"
+              type="submit"
+              disabled           
+
+            >
+              Sign Up
+            </button>
+            <div class="text-danger text-sm">**All fields are mandatory</div>
+          </div>
+
+         
+          <div class="row text-start">
+            <div class="col-11">
+            <span class="mb-0">Already have an account?</span>
+            <a
+              type="button"
+              class="btn btn-outline-danger px-3"
+              href="{% url 'user:login' %}"
+            >
+              Sign In</a
+            ></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" role="dialog" aria-labelledby="termsModalLabel" aria-hidden="true"  style="z-index:20000">
+  <div class="modal-dialog modal-dialog-scrollable" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+              <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <!-- Add your terms and conditions text here -->
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. ...
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelTermsBtn" >Cancel</button>
+              <button type="button" class="btn btn-primary" id="acceptTermsBtn" data-bs-dismiss="modal">Accept</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+<script src="{% static 'user/js/register.js' %}"></script>
+{% endblock %}

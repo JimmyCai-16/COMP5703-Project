@@ -1,0 +1,550 @@
+{% extends 'appboard/base.html' %}
+{% load pdf_tags %}
+{% load modal_tags %}
+{% load static %}
+{% load project_tags %}
+{% load humanize %}
+
+{% block head_title %}
+    KMS - {{ project.name }}
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/css/bootstrap-select.min.css"
+          integrity="sha512-mR/b5Y7FRsKqrYZou7uysnOdCIJib/7r5QeJMFvLNHNhtye3xJp1TdJVPLtetkukFn227nKpXD9OjUc09lx97Q=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'knowledge_management_system/css/kms.css' %}">
+    <script type="text/javascript" src="{% static 'knowledge_management_system/js/tinymce/tinymce.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="{% static "project/js/project_dashboard.js" %}"></script>
+    <script src="{% static "knowledge_management_system/js/KMS.js" %}"></script>
+
+    {# Layers Tree #}
+    <script src="{% static "interactive_map/js/L.Control.Layers.Tree.js" %}"></script>
+    <link rel="stylesheet" href="{% static "interactive_map/css/L.Control.Layers.Tree.css" %}"/>
+
+    {# MAP CSS #}
+    <link rel="stylesheet" href="{% static "interactive_map/css/api.css" %}"/>
+
+    {% pdf_import_static %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid mb-4 content-margin-top-offest">
+        <div class="container">
+            <div class="row">
+                <div class="col-6">
+                    <div class="breadcrumb">
+                        <a href="{% url 'project:dashboard' slug=project.slug %}"
+                           class="breadcrumb-item">{{ project.name }}</a>
+                        <span class="breadcrumb-item">KMS</span>
+                    </div>
+                </div>
+                <div class="col-6 d-flex justify-content-end">
+                    <span>Online Users:</span>
+                    <span id="online-users"></span>
+                </div>
+            </div>
+
+            <div id="title-divider" class="mb-4"></div>
+            <div class="row mb-4">
+                <h4 class="text-ofx-blue">
+                    {{ project.name }} - Knowledge Management System
+                </h4>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-12 col-xl-10">
+
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    Project Outline
+                                </div>
+                                <div class="card-body{% if project|is_owner:member %} p-0{% endif %}">
+                                    {% if project|is_owner:member %}
+                                        <form id="project.outline" method="POST"
+                                              action="{% url 'kms:project_cms' slug=project.slug %}">
+                                            {% csrf_token %}
+                                            <textarea data-tinymce-i>
+                                            {{ kms.outline|safe }}
+                                        </textarea>
+                                        </form>
+                                    {% else %}
+                                        <div id="project.outline" class="text-wrap" style="height:255px">
+                                            {{ kms.outline|safe }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {# KMS Map Box #}
+                        <div id = 'kms_map_box'class="col-sm-12 col-xl-4 mb-4 mb-xl-0" style="height:200px">
+                            <div class="card shadow w-100">
+                                <div class="card-header font-weight-bold">Project Map</div>
+                                <div class="card-body" id="kms-map"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row pt-5">
+                        {# Tasks / Map Row #}
+                        <div class="col-12 ">
+                            {# Pending Tenement Tasks Card #}
+                            <div class="card shadow mb-2">
+                                <div class="card-header">
+                                    <span class="font-weight-bold">Activity Manager</span>
+                                </div>
+                                <div class="card-body">
+                                    {# Tenement Tasks Table #}
+                                    <table id="task-table" class="table table-sm dt-responsive w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>Permit ID</th>
+                                                <th>Name</th>
+                                                <th>Description</th>
+                                                <th>Authority</th>
+                                                <th>Due Date</th>
+                                                <th>Attachment</th>
+                                                <th>
+                                                    {% if project|is_write:member %}
+                                                    <span data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                                                        <button class="btn btn-ofx-fa btn-ofx-green float-end text-xs"
+                                                            data-bs-toggle="tooltip" data-bs-placement="left" title="Create Task">
+                                                            <span class="fa fa-plus"></span>
+                                                        </button>
+                                                    </span>
+                                                    {% endif %}
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+        
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="kmsAccordion" class="accordion accordion-ofx-blue my-4">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="kmsH1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#kmsC1" aria-controls="kmsC1" aria-expanded="false">
+                                    Prospects &nbsp;<i class="fa fa-info-circle" aria-hidden="true" data-bs-toggle="tooltip" data-bs-trigger="hover focus" title="Prospects List: Click to view a list of prospects associated with this project"></i>
+                                    </button>
+                            </h2>
+                            <div id="kmsC1" class="accordion-collapse collapse" aria-labelledby="kmsH1"
+                                 data-bs-parent="#kmsAccordion">
+                                <div class="accordion-body">
+
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <table id="prospectsTable" class=" table table-sm dt-responsive w-100" data-model="prospect">
+                                                <thead>
+                                                </thead>
+                                                <tbody>
+            
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="kmsH2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#kmsC2" aria-controls="kmsC2" aria-expanded="false">
+                                    Current Reports &nbsp;<i class="fa fa-info-circle" aria-hidden="true" data-bs-toggle="tooltip" data-bs-trigger="hover focus" title="Current Reports: Access work and status reports for this project."></i>
+                                    </button>
+                            </h2>
+                            <div id="kmsC2" class="accordion-collapse collapse" aria-labelledby="kmsH2"
+                                 data-bs-parent="#kmsAccordion">
+                                <div class="accordion-body">
+
+                                    <div class="row">
+                                        <div class="col-12 col-xl-6">
+                                            <h4 class="text-ofx-blue">Work Reports</h4>
+                                            <table id="workReportsTable" data-model="work_report"
+                                                   class="table table-sm dt-responsive w-100">
+                                                <thead></thead>
+                                                <tbody></tbody>
+                                            </table>
+
+                                            {#                                        <button class="btn btn-sm btn-ofx-gray">Work Report Library</button>#}
+                                            <button class="btn btn-sm btn-ofx-green float-end form-open" data-bs-toggle="modal"
+                                                    data-bs-target="#workReportModal">New Work Report
+                                            </button>
+                                        </div>
+                                        <div class="col-12 col-xl-6">
+                                            <h4 class="text-ofx-blue">Status Reports</h4>
+                                            <table id="statusReportsTable" data-model="status_report"
+                                                   class="table table-sm dt-responsive w-100">
+                                                <thead></thead>
+                                                <tbody></tbody>
+                                            </table>
+
+                                            {#                                        <button class="btn btn-sm btn-ofx-gray">Status Report Library</button>#}
+                                            <button class="btn btn-sm btn-ofx-green float-end form-open" data-bs-toggle="modal"
+                                                    data-bs-target="#statusReportModal">New Status Report
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="kmsH3">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#kmsC3" aria-controls="kmsC3" aria-expanded="false">
+                                Geospatial &nbsp;<i class="fa fa-info-circle" aria-hidden="true" data-bs-toggle="tooltip" data-bs-trigger="hover focus" title="Geospatial Information: Access and explore geospatial data and results related to this project."></i>
+                            </button>
+                        </h2>
+                    {# TODO: RE-ADD STATISTICS BOX AFTER DEMO #}
+                        <div id="kmsC3" class="accordion-collapse collapse" aria-labelledby="kmsH3"
+                             data-bs-parent="#kmsAccordion">
+                            <div class="accordion-body">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <table id="mapsTable" data-model="map" class="table table-sm dt-responsive w-100">
+                                            <thead></thead>
+                                            <tbody></tbody>
+                                        </table>
+                                        {# <button class="btn btn-sm btn-ofx-gray">Geospatial Library</button>#}
+                                        <button class="btn btn-sm btn-ofx-gray float-end">New Map</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="kmsH4">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#kmsC4" aria-controls="kmsC4" aria-expanded="false">
+                                Previous Exploration &nbsp;<i class="fa fa-info-circle" aria-hidden="true" data-bs-toggle="tooltip" data-bs-trigger="hover focus" title="Previous Exploration: Explore historical exploration data for this project."></i>
+                            </button>
+                        </h2>
+                        <div id="kmsC4" class="accordion-collapse collapse" aria-labelledby="kmsH4"
+                             data-bs-parent="#kmsAccordion">
+                            <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <h4 class="text-ofx-blue">Previous Exploration Synopsis</h4>
+                                            {% if project|is_owner:member %}
+                                                <form id="project.previous_exploration_synopsis" method="POST"
+                                                      action="{% url 'kms:project_cms' slug=project.slug %}">
+                                                    {% csrf_token %}
+                                                    <textarea class="w-100" data-tinymce-i>
+                                                        {{ kms.previous_exploration_synopsis|safe }}
+                                                    </textarea>
+                                                </form>
+                                            {% else %}
+                                                <div id="project.previous_exploration_synopsis">
+                                                    {{ kms.previous_exploration_synopsis|safe }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-12 px-5 pb-3">
+                                        <h4 class="text-ofx-blue">Previous Exploration Reports</h4>
+                                        <div class="my-1"> Click company folders to view reports</div>
+                                        <div class="my-1"> company folders will appear upon creating the historical report</div>
+                                        <div class = "mb-2">
+                                            {% for company in companies %}
+                                                <div class="border border-dark d-inline px-2 py-1 my-2 rounded company-folder me-2"
+                                                company={{ company }}>
+                                                    <i class="fa-solid fa-folder me-2"></i>{{ company }}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <div id="previousReportsTableContainer" >
+                                            <table id="previousReportsTable" data-model="historical_report"
+                                                   class="table table-sm dt-responsive w-100" >
+                                                <thead></thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+
+                                            {#                                        <button class="btn btn-sm btn-ofx-gray">Historical Report Library</button>#}
+                                            {% if project|is_admin:member %}
+                                                    <button id="addTargetButton"
+                                                            data-bs-target="#addEditTargetModal"
+                                                            class="btn btn-sm btn-ofx-green float-start text-xs"
+                                                            data-bs-toggle="modal" data-bs-placement="left"
+                                                            title="Add Prospect">
+                                                        Add New Prospect
+                                                    </button>
+                                             {% endif %}
+                                            <button class="btn btn-sm btn-ofx-green float-end form-open" data-bs-toggle="modal"
+                                                    data-bs-target="#historicalReportModal">New Historical Report
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+        </div>
+
+            <div id="popoutContainer" class="popout-container">
+                <div class="popout-content">
+                    <button id="popoutCloseBtn" class="btn btn-ofx-fa btn-ofx-fa-gray">
+                        <i class="fa-solid fa-angles-right"></i>
+                    </button>
+
+                    <div id="popoutContent">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="kmsForms">
+        {% modalform id="workReport" title="Work Report Editor" submit_text='Save' size='xl' method="POST" action='form/work_report' %}
+            {% csrf_token %}
+            {{ work_report_form }}
+        {% endmodalform %}
+
+        {% modalform id="statusReport" title="Status Report Editor" submit_text='Save' size='xl' method="POST" action='form/status_report' %}
+            {% csrf_token %}
+            {{ status_report_form }}
+        {% endmodalform %}
+
+        {% modalform id="historicalReport" title="Historical Report Editor" submit_text='Save' size='xl' method="POST" action='form/historical_report' %}
+            {% csrf_token %}
+            {{ historical_report_form }}
+        {% endmodalform %}
+
+        {% modalform id='deleteWorkReport' title='Delete Work Report' submit_text='Remove' dynamic="true" %}
+            {% csrf_token %}
+            {{ deleteWorkReport.as_p }}
+            Are you sure you want to delete the report <b id="name"></b>?
+        {% endmodalform %}
+
+        {% modalform id='deleteStatusReport' title='Delete Status Report' submit_text='Remove' dynamic="true" %}
+            {% csrf_token %}
+            {{ deleteStatusReport.as_p }}
+            Are you sure you want to delete the report <b id="name"></b>?
+        {% endmodalform %}
+
+        {% modalform id='deleteHistoricalReport' title='Delete Historical Report' submit_text='Remove' dynamic="true" %}
+            {% csrf_token %}
+            {{ deleteHistoricalReport.as_p }}
+            Are you sure you want to delete the report <b id="name"></b>?
+        {% endmodalform %}
+
+        {% modalform id='createTask' title='Create Task' submit_text='Create' %}
+            {% csrf_token %}
+            {{ createTaskForm.as_p }}
+        {% endmodalform %}
+
+        {% modalform id='deleteTask' title='Delete Task' submit_text='Remove' submit_class='btn-ofx-red' dynamic='true' %}
+            {% csrf_token %}
+            <p>Remove <b id="name"></b> from the tenement?</p>
+        {% endmodalform %}
+        
+        <div class="modal fade" id="pdfModal" style="z-index: 99999999">
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content">
+                    <div class="modal-header py-1">
+                        <span class="mx-auto">PDF Preview</span>
+                        <button class="modal-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body embed-pdf-modal-body">
+                        {% pdf_embed id="reportPDF" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# TARGET MODALS #}
+         {% modalform id='addEditTarget' title='Add Prospect' submit_text='Add' dynamic='true' %}
+             {% csrf_token %}
+             {{ createTargetForm.as_p }}
+             <input type="hidden" id="id_target_id" name="target_id">
+         {% endmodalform %}
+
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <script>
+        let csrf_token = "{{ csrf_token }}"
+        let host = "{{ request.get_host }}"
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"
+            integrity="sha512-FHZVRMUW9FsXobt+ONiix6Z0tIkxvQfxtCSirkKc5Sb4TKHmqq1dZa8DphF0XqKb3ldLu/wgMa8mT6uXiLlRlw=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="module" src="{% static 'knowledge_management_system/js/KMS.js' %}"></script>
+    <script type="module" src="{% static 'knowledge_management_system/js/project.js' %}"></script>
+    <script type="text/javascript" src="{% static 'interactive_map/js/get_project_map.js' %}"></script>
+    <script type="text/javascript" src="{% static 'common/pdf/js/pdf_embed.js' %}"></script>
+    <script src="{% static 'interactive_map/js/api.js' %}" type="text/javascript"></script>
+    <script>
+        function previewReportPDF(src) {
+            $('#reportPDF').attr('src', src);
+        }
+
+        $(document).ready(function () {
+
+
+            $('#kms_project_map_box').load("{% url 'project:get_project_map' slug=project.slug %}");
+        
+            let taskTable = $('#task-table').DataTable({
+                'bSort': true,
+                'bPaginate': false,
+                'bDestroy': true,
+                order: [[4, "asc"]],
+                columnDefs: [
+                    {targets: [6], className: 'noowrap'},
+
+                ],
+                columns: [
+                    {
+                        data: 'permit', bSortable: true,
+                        mRender(data) {
+                            return `<a href="${data['url']}">${data['type']} ${data['number']}</a>`
+                        }
+                    },
+                    {data: 'name', bSortable: true},
+                    {data: 'description', bSortable: true},
+                    {data: 'authority', bSortable: true},
+                    {data: 'due_date', bSortable: true},
+                    {
+                        data: 'attachments', bSortable: false,
+                        render: function (data, type, row) {
+                            let files = data['files'];
+                            let options = '';
+
+                            $.each(files, function (i, file) {
+                                options += `
+                                    <span class="dropdown-item">
+                                        <a href="${file['url']}" download>${file['filename']}</a>
+                                        <span class="text-sm text-ofx-gray">${file['size']}</span>
+                                    </span>`
+                            });
+
+                            return options ? `
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-ofx-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        ${files.length} Files (<span class="text-sm text-ofx-dark">${data['size']}</span>)
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        ${options}
+                                    </div>
+                                </div>` : ''
+                        }
+                    },
+                    {
+                        data: 'actions', bSortable: false,
+
+                        mRender: function () {
+                            " {% if project|is_admin:member %}"
+                                return `
+                                <div class="float-end">
+                                    <span data-bs-toggle="modal" data-bs-target="#deleteTaskModal">
+                                        <button class="btn btn-ofx-fa btn-ofx-fa-red" data-bs-toggle="tooltip" data-bs-placement="left"
+                                                title="Delete Task">
+                                            <span class="fa fa-trash"/>
+                                        </button>
+                                    </span>
+                                </div>`
+
+                                "   {% endif %}"
+                        }
+
+                    }
+                ],
+                createdRow: function (row, data) {
+                    $(row).attr('id', data.id);
+                    $(row).attr('name', data.name);
+                },
+                ajax: {
+                    url: "{% url 'project:get_tasks' slug=project.slug %}",
+                    type: 'GET',
+                    contentType: 'application/json',
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    data: function (response) {
+                        return response.data;
+                    },
+                }
+            });
+            const kmsMap = $('#kms-map').InteractiveMap({
+                width: '100%',
+                height: '0',
+                paddingBottom: '80%',
+                widgets: ['zoomButton', 'resetBounds'],
+                layers: [
+                    {
+                        {# PROSPECT ENDPOINT #}
+                        url: "{% url 'interactive_map:project_prospects' slug=project.slug %}",
+                        tooltip: (feature) => feature.properties.name,
+                    },
+                    {
+                        {# TENEMENT ENDPOINT #}
+                        url: "{% url 'interactive_map:project_tenements' slug=project.slug %}",
+                        tooltip: (feature) => {
+                            const {permit_type, permit_number} = feature.properties;
+    
+                            return `${permit_type} ${permit_number}`;
+                        },
+                    },
+                ]
+            });
+
+            const targetMap = $('#target_map').InteractiveMap({
+                 width: '100%',
+                 height: '0',
+                 paddingBottom: '80%',
+                 widgets: ['zoomButton', 'createMark', 'resetBounds'],
+                 layers: [
+                     {
+                         {# TENEMENT ENDPOINT #}
+                         url: "{% url 'interactive_map:project_tenements' slug=project.slug %}",
+                     },
+                 ]
+             });
+
+             targetMap.on(InteractiveMap.Event.Mark.created, function (e) {
+                 const { marker, lat, lng } = e.detail;
+
+                 marker.bindPopup(`
+                                 <table>
+                                     <tbody>
+                                         <tr><th>Latitude: </th><td>${lat}</td></tr>
+                                         <tr><th>Longitude: </th><td>${lng}</td></tr>
+                                     </tbody>
+                                 </table>
+                             `).openPopup();
+                 $('#id_location').val(`${lat} ${lng}`);
+                 $('#id_location_input').val(`${lat} ${lng}`);
+             });
+
+
+             $('#addTargetButton').on('click',function (e) {
+
+                 setTimeout(function(){ 
+                     targetMap.widgets.createMark.clearLayers();
+                     targetMap.map.invalidateSize();
+                     targetMap.resetBounds();
+                 }, 200);
+                 $('#id_target_id').val('');
+                 $('#id_target_name').val('');
+                 $('#id_target_description').val('');
+                 $('#id_location').val('');
+                 $('#id_location_input').val('');
+                 $('#addEditTargetForm .modal-header').text('Add Prospect');
+                 $('#addEditTargetForm #btnSubmit').text('Add');
+             });
+        });
+    </script>
+{% endblock %}

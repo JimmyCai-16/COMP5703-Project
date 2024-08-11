@@ -1,0 +1,146 @@
+{# KMS Project #}
+{{ form.instance_id }}
+<div class="row">
+    <div class="col-12 col-lg-6">
+        {# Form Template Selector #}
+        <div class="row mb-3">
+            <label for="{{ form.form_templates.id_for_label }}" class="col-sm-3 col-form-label"><b>Load Template</b></label>
+            <div class="col-sm-9">
+                <div class="input-group input-group-sm">
+                    {{ form.form_templates }}
+                    <button class="btn btn-outline-secondary" type="button" data-import="status_report_form">Load</button>
+                </div>
+            </div>
+        </div>
+        {# Project Name #}
+        {% comment %}
+        <div class="row mb-3">
+            <label for="{{ form.kms_project.id_for_label }}" class="col-sm-3 col-form-label"><b>Project</b></label>
+            <div class="col-sm-9 d-flex align-items-center">
+                {{ form.kms_project.project.name }}
+            </div>
+        </div>
+        {% endcomment %}
+        {# Report Name #}
+        <div class="row mb-3">
+            <label for="{{ form.name.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Report Name</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.name }}
+            </div>
+        </div>
+        {# Prospect Tags #}
+        <div class="row mb-3">
+            <label for="{{ form.prospect_tags.id_for_label }}" class="col-sm-3 col-form-label"><b>Prospect Tags</b></label>
+            <div class="col-sm-9">
+                {{ form.prospect_tags }}
+            </div>
+        </div>
+        {# Personnel at Site #}
+        <div class="row mb-3">
+            <label for="{{ form.personnel_at_site.id_for_label }}" class="col-sm-3 col-form-label"><b>Personnel at Site</b></label>
+            <div class="col-sm-9">
+                {{ form.personnel_at_site }}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6">
+        {# Author #}
+        <div class="row mb-3">
+            <label for="{{ form.author.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Author</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.author }}
+            </div>
+        </div>
+        {# Manager #}
+        <div class="row mb-3">
+            <label for="{{ form.manager.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Manager</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.manager }}
+            </div>
+        </div>
+        {# Distribution #}
+        <div class="row mb-3">
+            <label for="{{ form.distribution.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Distribution</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.distribution }}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-12">
+        {# Health Safety Status #}
+        <label for="{{ form.health_safety_status.id_for_label }}">
+            <b>Health & Safety Status</b>
+        </label>
+        <p>
+            {# Was Reportable HNS Incident #}
+            Was there a reportable H&S Incident?
+            {{ form.was_reportable_hns_incident }}
+        </p>
+        {{ form.health_safety_status }}
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-12">
+        <label for="{{ form.enviro_status.id_for_label }}">
+            <b>Environmental Status</b>
+        </label>
+        {# Was Reportable Enviro Incident #}
+        <p>
+            Was there a reportable Environmental Incident?
+            {{ form.was_reportable_enviro_incident }}
+        </p>
+        {# Enviro Status #}
+        {{ form.enviro_status }}
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-12">
+        <label for="{{ form.community_status.id_for_label }}">
+            <b>Community Status</b>
+        </label>
+        {# Was Reportable Enviro Incident #}
+        <table>
+            <tbody>
+                <tr>
+                    <td>Was there a reportable Environmental Incident?</td>
+                    <td>{{ form.was_community_interaction }}</td>
+                </tr>
+                <tr>
+                    <td>Was it noted in the landowner management system?</td>
+                    <td>{{ form.is_noted_in_lms }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <p></p>
+        {# Community Status #}
+        {{ form.community_status }}
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-12">
+        <label for="operational_summary">
+            <b>Operational Summary</b>
+        </label>
+        <p></p>
+        {{ form.operational_summary }}
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-end">
+        <div class="form-check-inline text-right">
+            {# Is Template #}
+            <label for="{{ form.is_template.id_for_label }}">Save as Template?</label>
+            {{ form.is_template }}
+        </div>
+    </div>
+</div>

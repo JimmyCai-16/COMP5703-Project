@@ -1,0 +1,11 @@
+{% autoescape off %}
+Hi,
+
+{{message}}
+
+{% if link != "" %}
+Please click on the {{ link}} to complete your stripe payment account onboarding before start uploading paid apps.
+{% endif %}
+Regards,
+Orefox
+{% endautoescape %}

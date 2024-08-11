@@ -1,0 +1,87 @@
+{% load static %}
+
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'appboard/css/sidebar.css' %}" />
+</head>
+
+<div id="sidebar" class="sidebar">
+    <nav class="sticky-top position-sticky">
+        <ul class="navbar-nav flex-column text-ofx-light px-3">
+            <li class="nav-item py-3 text-center">
+                <img class="img-profile"
+                     src="{% static 'website/images/logo/GeoDesk.Ai_logo-with_text.png' %}">
+            </li>
+
+            <hr class="text-ofx-gray my-2">
+
+            <li class="side-menu-item">
+
+                <a href="#" class="side-main-btn" id="side-main-btn-1">
+                    <i class="fa-solid fa-computer fa-2x"></i>
+                    </br>
+                    My Apps
+                </a>
+
+                <ul class="side-menu-sub-item" id="my_apps">
+                    {% if subscriptions and subscriptions|length > 0  %}
+                        
+                        {% for subscription in subscriptions %}
+
+                            {% if subscription.status == "PAUSED" %}
+                                <li><div class="pause-sub cursor-pointer btn text-ofx-red" data-toggle="modal" data-target="#subPauseModal" style="cursor:pointer">                    
+                                    {{subscription.application.name}}</div></li>
+                            {% else %}
+                                <li><a href="{{subscription.application.app_url}}">{{subscription.application.name}}/a></li>
+                            {% endif %}
+
+                        {% endfor %}
+
+                    {% else %}
+                        
+                        <center><div style="color: rgba(255, 255, 255, 0.499); margin-top: 1rem; margin-bottom: 1rem;">You have not subscribed to any app yet.</div></center>
+                    
+                    {% endif %}
+                </ul>
+            </li>
+
+            <li class="side-menu-item">
+
+                <a href="#" class="side-main-btn" id="side-main-btn-2">
+                    <i class="fa-solid fa-users-line fa-2x"></i>
+                    </br>
+                    Project Menu
+                </a>
+
+                <ul class="side-menu-sub-item" id="project_menu">
+                    <li><a href="{% url 'project:my_projects' %}">My Projects</a></li>
+                    <li><a href="{% url 'project:my_tenements' %}">My Tenements</a></li>
+                    <li><a href="{% url 'project:project_kms' %}">Knowledge Management System</a></li>
+                    <li><a href="{% url 'project:project_lms' %}">Landowner Management System</a></li>
+                    <li><a href="{% url 'data_catalogue:get_projects' %}">Data Catalogue</a></li>
+                </ul>
+            </li>
+
+            <li class="side-menu-item">
+
+                <a href="#" class="side-main-btn" id="side-main-btn-3">
+                    <i class="fa-solid fa-map-location-dot fa-2x"></i>
+                    </br>
+                    Regional Menu
+                </a>
+
+                <ul class="side-menu-sub-item" id="regional_menu">
+                    <li><a href="{% url 'interactive_map:home' %}">Queensland Tenure Monitoring Map</a></li>
+                    <li><a href="https://georesglobe.information.qld.gov.au/" target="_blank">GeoRes Globe</a></li>
+                    <li><a href="https://qldglobe.information.qld.gov.au/" target="_blank">Queensland Globe</a></li>
+                    <li><a href="https://geoscience.data.qld.gov.au/" target="_blank">GSQ Open Data Portal</a></li>
+                    <li><a href="https://qldspatial.information.qld.gov.au/catalogue/" target="_blank">Queensland Spatial Catalogue</a></li>
+                </ul>
+            </li>
+
+        </ul>
+    </nav>
+</div>
+
+<script>
+
+</script>

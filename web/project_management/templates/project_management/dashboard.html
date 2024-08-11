@@ -1,0 +1,107 @@
+{% extends 'appboard/base.html' %}
+{% load static %}
+
+{% block head_title %}
+Task List
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'project_management/css/dashboard.css' %}"/>
+<link rel="stylesheet" href="{% static 'project_management/css/project_management.css' %}"/>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid mt-4 mb-4">
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">All Boards</h1>
+        </div>
+
+        <hr class="mb-4 bg-ofx-blue"></hr>
+
+        <div class="mb-4">
+            <div class="d-flex flex-row align-items-center mb-3"> 
+                <h4 style="margin-bottom: 0px; margin-right: 4px;">Owner</h4>      
+                <button style="width:fit-content;" id="addBoard" class="btn btn-sm btn-ofx-green col-lg-4 col-md-6 col-sm-12">
+                    + Create new board
+                </button>
+            </div>
+            <div class="row g-4 pb-2">
+                {% for board in own_boards %}
+                    <div id="board_item" class="col-lg-4 col-md-6 col-sm-12">
+                        <div class="card card-hover">
+                            <div class="card-body d-flex align-items-center justify-content-between">
+                                <span class="text-break" style="font-size: large; flex-grow: 1;">{{ board.name }}</span>
+                                <div class="dropdown ms-1" style="z-index: 2;">
+                                    <a class="btn dropdown-toggle" style="color: white;" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </a>
+                                  
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a id="rename_board_a" class="dropdown-item"
+                                            board-id="{{board.id}}" board-name="{{board.name}}" 
+                                            board-members='[{% for member in board.members.all %}
+                                                   {
+                                                        "pk": "{{member.id}}",
+                                                        "fields": {
+                                                            "email": "{{member.email}}",
+                                                            "first_name": "{{ member.first_name }}",
+                                                            "last_name": "{{ member.last_name }}"
+                                                        }
+                                                    }
+                                                   {% if not forloop.last %},{% endif %}
+                                                {% endfor %}]'
+                                        >
+                                            Manage board
+                                        </a></li>
+                                        <li><a id="delete_board_a" board-id="{{board.id}}" board-name="{{board.name}}" class="dropdown-item">Delete board</a></li>
+                                    </ul>
+                                </div>
+                                <a href="{% url 'project_management:get_board' boardID=board.id %}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <hr class="mb-4 bg-ofx-blue"></hr>
+        <div class="">
+            <h4 style="margin-bottom: 2px;">Member</h4>
+            {% if boards|length != 0 %}
+                <div class="row">
+                    {% for board in boards %}
+                        <div class="col-lg-4 col-md-6 col-sm-12 my-3">
+                            <div class="card" style="background-color: var(--ofx-blue); color: white;">
+                                <div class="card-body">
+                                    <span style="font-size: large; flex-grow: 1;">{{ board.name }}</span>
+                                    <a href="{% url 'project_management:get_board' boardID=board.id %}" class="stretched-link"></a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <h5 style="color: grey;">You are not a member of any boards</h5>
+            {% endif%}
+        </div>
+
+        {% include "./dashboard.modal_form.html" %}
+    </div>
+
+{% endblock %}
+
+{% block extra_body %}
+
+<script src="{% static 'project_management/js/orefox-jkanban.js' %}"></script>
+<script>
+    let csrf_token = "{{ csrf_token }}"
+    let kanban_url = "{% url 'project_management:kanban' %}"
+</script>
+<script>
+
+    $('[id="addBoard"]').click(function() {
+        $('#create_board_modal').modal('show');
+    })
+
+</script>
+{% endblock %}

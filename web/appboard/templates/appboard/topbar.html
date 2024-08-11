@@ -1,0 +1,67 @@
+<nav id="topbar" class="navbar navbar-expand-lg bg-light shadow sticky-top position-sticky" style="z-index: 0">
+    <div class="container-fluid">
+
+        {# The top bar can have content in the left and right hand sides #}
+        <ul id="nav-topbar-left" class="navbar-nav">
+            <li class="top-nav-item d-inline-flex align-items-center" id="dashboard">
+                <!-- {{ breadcrumb|safe }} -->
+                <a class="main-nav-btn" href="{% url 'appboard:home' %}">
+                    <center>
+                        <i class="fas fa-fw fa-tachometer-alt"></i>
+                        </br>
+                        <span class="ms-1 main-nav-text">Dashboard</span>
+                    </center>
+                </a>
+            </li>
+
+            <li class="top-nav-item d-inline-flex align-items-center" id="my-projects">
+                <a class="main-nav-btn" href="{% url 'project:index' %}">
+                    <center>
+                        <i class="fas fa-fw fal fa-project-diagram"></i>
+                        </br>
+                        <span class="ms-1 main-nav-text">My Projects</span>
+                    </center>
+                </a>
+            </li>
+
+            <li class="top-nav-item d-inline-flex align-items-center" id="create-project">
+                <a class="main-nav-btn" href="{% url 'project:new_project' %}">
+                    <center>
+                        <i class="fas fa-fw fal fa-folder-plus "></i>
+                        </br>
+                        <span class="ms-1 main-nav-text">Create New Project</span>
+                    </center>
+                </a>
+            </li>
+
+            <li class="top-nav-item d-inline-flex align-items-center" id="task-list">
+                <a class="main-nav-btn" href="{% url 'project_management:kanban' %}">
+                    <center>
+                        <i class="fas fa-fw fal fa-list-check"></i>
+                        </br>
+                        <span class="ms-1 main-nav-text">Activity Manager</span>
+                    </center>
+                </a>
+            </li>
+            
+            <li class="top-nav-item d-inline-flex align-items-center" id="app-store">
+                <a class="main-nav-btn" href="https://appstore.geodesk.ai/" target="_blank">
+                    <center>
+                        <i class="fas fa-fw fa-store"></i>
+                        </br>
+                        <span class="ms-1 main-nav-text">App Store</span>
+                    </center>
+                </a>
+            </li>
+
+        </ul>
+
+        <ul id="nav-topbar-right" class="navbar-nav ms-auto">
+            {% if request.user.is_authenticated %}
+            <!-- {% include 'notification/topbar_dropdown.html' %} -->
+            {% endif %}
+
+            {% include 'appboard/topbar_usermenu_dropdown.html' %}
+        </ul>
+    </div>
+</nav>

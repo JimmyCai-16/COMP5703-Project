@@ -1,0 +1,199 @@
+/* API MAP */
+.leaflet-popup-content{
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .leaflet-popup-content table {
+    margin: auto;
+  }
+  .leaflet-popup-content tr {
+    text-align: left;
+  }
+  .leaflet-popup-content th {
+    padding: 2px;
+    padding-right: 8px;
+  }
+
+.leaflet-control-icon {
+    text-decoration: none;
+}
+
+.leaflet-control-icon::before {
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+}
+
+.leaflet-control-icon:hover {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+/* Widget CSS */
+.leaflet-control-reset-zoom::before {
+    content: '\f601';
+}
+
+/* Search Widget */
+#leaflet-search-container {
+    display: flex; /* Use flexbox to stack items horizontally */
+    align-items: center; /* Vertically center items within the container */
+    background-color: white;
+}
+
+#leaflet-search-results-container {
+    display: flex;
+    border-top: 2px solid rgba(0,0,0,0.2);
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    background-color: white;
+    overflow-y: auto;
+}
+
+#leaflet-search-results-container ul {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+}
+
+#leaflet-search-results-container ul li {
+    padding-left: 5px;
+    padding-right: 5px;
+    list-style: none;
+    line-height: 2;
+    vertical-align: middle;
+    cursor: default;
+}
+
+#leaflet-search-results-container ul li:not(.leaflet-search-empty):hover {
+    background-color: var(--ofx-blue-light);
+    color: white;
+    cursor: pointer;
+}
+
+#leaflet-search-results-container ul li.leaflet-search-empty {
+    color: #999; /* Change the color of the text */
+    font-size: inherit; /* Change font size */
+    font-family: inherit; /* Change font family */
+    opacity: 0.6; /* Change opacity */
+}
+
+#leaflet-search-results-container ul li.leaflet-search-empty::before {
+    content: 'Nothing Found...'
+}
+
+#leaflet-search-container > .leaflet-search-input {
+    flex: 1; /* Allow the input to grow and fill available space */
+    margin-left: 5px;
+    margin-right: 5px;
+    outline: none;
+    border: none;
+}
+
+#leaflet-search-container > a {
+    border: none;
+    box-shadow: none;
+}
+
+#leaflet-search-container > .leaflet-search-submit::before {
+    content: '\f002';
+}
+
+#leaflet-search-container > .leaflet-search-close::before {
+    content: '\f00d';
+}
+
+.primary-blue-button {
+  background-color: var(--ofx-blue); 
+  color: #fff; 
+  font-weight: bold;
+}
+.button-container {
+  /* display: flex; */
+  justify-content: center;
+  align-items: center;
+}
+
+.sp-map .leaflet-control-layers-toggle{
+  margin: 0 auto;
+}
+
+.sp-map .toggle-layers-button{
+  padding: 7px 100px 8px 100px;
+  margin: 5px;
+}
+
+.sp-map .leaflet-layerstree-closed {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ofx-blue);
+}
+
+.sp-map .leaflet-layerstree-opened {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ofx-blue);
+}
+
+.sp-map .leaflet-layerstree-header-pointer {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 5px;
+}
+
+.sp-map .leaflet-control-layers-selector{
+  margin-right: 5px;
+}
+
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column; 
+  justify-content: center;
+  align-items: center;
+  padding: 20px;   
+  z-index: 999;
+  text-align: center;
+  color: #fff;
+  /* background-color: white; */
+  }
+
+.loader:after {
+  content: "";
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid var(--ofx-blue);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  display: block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay background */
+  display: block;
+  z-index: 998; 
+}
+
+#map-container {
+  position: relative;
+}

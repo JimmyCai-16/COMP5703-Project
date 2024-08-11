@@ -1,0 +1,691 @@
+
+.search-box {
+  border: 1px solid var(--ofx-blue)
+}
+div::-webkit-scrollbar {
+  opacity: 0;
+  width: 4px;
+  height: 4px;
+}
+
+div:hover::-webkit-scrollbar{
+  opacity: 1;
+}
+
+div:hover::-webkit-scrollbar-thumb {
+  background-color: #9c9c9c;
+  border-radius: 5px;
+}
+
+div:hover::-webkit-scrollbar-track {
+  background-color: #ddd;
+  border-radius: 5px;
+}
+
+.text-truncated {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: break-all;
+}
+
+.dark-hover:hover {
+  background-color: rgb(185, 185, 185) !important;
+}
+
+.btn:hover{
+  background-color: var(--ofx-orange) !important;
+  color : #fff !important;
+}
+.btn-clear-hover {
+  background-color: transparent;
+  border: 0px;
+  padding: 1px;
+
+  border-radius: 4px;
+}
+
+.btn-clear-hover.hover, .btn-clear-hover:hover {
+  background-color: gainsboro !important;
+  color: black !important;
+}
+
+.btn-clear-hover .dark-hover:hover {
+  background-color: grey !important;
+  color: gainsboro !important
+}
+
+.btn-clear-hover-white {
+  background-color: transparent;
+  padding: 4px;
+  
+  color: white;
+  
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.btn-clear-hover-white:hover, .btn-clear-hover-white.hover {
+  border: 1px solid gainsboro;
+}
+
+.btn-clear-under-hover {
+  background-color: transparent;
+  padding: 1px;
+  color: white;
+
+  border: none;
+  border-bottom: 1px solid transparent;
+
+  transition: all 0.2s ease;
+}
+
+.btn-clear-under-hover:hover {
+  border-bottom: 1px solid gainsboro;
+}
+
+
+.btn-clear-under-hover.hover {
+  border-bottom: 1px solid gainsboro;
+}
+
+.ofx-progress-bar {
+  width: 100%;
+  height: 3px;
+  background-color: #f3f3f3;
+  position: relative;
+  margin: 20px 0;
+
+  overflow: hidden; 
+}
+
+.ofx-progress {
+  width: 40%; /* Fixed width of the moving section */
+  height: 100%;
+  background-color: var(--ofx-blue);
+  position: absolute;
+  left: -40%; /* Start from outside the container */
+  animation: moving-progress-animation 2s linear infinite;  /* Added 'infinite' for repeating */
+}
+
+@keyframes moving-progress-animation {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
+.lms-dropdown .dropdown-menu {
+  max-width: 200px;
+  
+}
+.owner-dropdown-menu.show{
+  transform: translate3d(10px, 42px, 0px) !important;
+}
+.wrap-text {
+  display: inline-block;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.lms-dropdown .dropdown-item {
+  cursor: pointer;
+
+  margin: 5px;
+  padding: 5px;
+
+  background-color: white;
+  color: black;
+
+  border: 0.1px solid gainsboro;
+  border-radius: 5px;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.lms-dropdown .dropdown-item-hover {
+  border: 0;
+}
+
+.lms-dropdown .dropdown-item-hover:hover {
+  background-color: gainsboro;
+}
+
+.tooltip-wrap {
+  position: relative;
+}
+
+.tooltip-wrap .tooltip {
+  font-size: x-small;
+
+  visibility: hidden;
+  /* width: 30%; */
+  width:max-content;
+  background-color: white;
+  color: #000000;
+  text-align: center;
+  
+  bottom: 15%;
+  right: 105%;
+  
+  margin-left: -60px;
+  padding: 5px;
+
+  border-radius: 6px;
+  border: 0.1px solid gainsboro;
+  position: absolute;
+  z-index: 100000;
+
+  opacity: 0;
+  transition: opacity 0.3s;
+  
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+
+  display: inline;
+}
+
+
+.tooltip-wrap:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.lms-tool-bar {
+  padding: 4px;
+
+  border-radius: 4px;
+}
+
+.lms-tool-bar button {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+/* ----Project ----- */
+
+.main-content {
+  width: 100%;
+  height: 100%;
+}
+
+.project-bar {
+  display: flex;
+  flex-direction: column;
+
+  padding-top: 5px;
+}
+
+.project-tool-bar {
+  display: flex;
+  flex-direction: row;
+
+  justify-content: end;
+
+  padding: 4px;
+
+  border: 0.2px solid gainsboro;
+  border-radius: 4px;
+
+  width: fit-content;
+}
+
+.project-tool-bar button {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.project-tool-bar .dropdown-menu {
+  z-index: 99999;
+}
+
+
+.btn-project-add-owner {
+
+  margin: 10px;
+  text-align: center;
+
+  border: 0.1px solid gainsboro;
+  border-radius: 5px;
+}
+.project-owner-search{
+  margin: 5px;
+  padding: 5px;
+}
+.project-owner-item {
+  cursor: pointer;
+
+  margin: 5px;
+  padding: 5px;
+
+  background-color: white;
+  color: black;
+
+  border: 0.1px solid gainsboro;
+  border-radius: 5px;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.project-owner-item:hover {
+  background-color: gainsboro;
+}
+
+/* ------ Lot ------ */
+
+.parcel-bar {
+  background-color: var(--ofx-blue); 
+  color: white;
+
+  padding-top: 10px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.parcel-list-content {
+  height: 100%; 
+  min-height: inherit; 
+  max-height: inherit; 
+  
+  padding: 5px;
+
+  border-bottom: gainsboro 0.5px solid;
+}
+
+.parcel-list {
+  height: 100%;
+  min-height: inherit;
+  max-height: 420px;
+
+  display: grid; grid-template-columns: repeat(3, 1fr); 
+  gap: 10px;
+
+}
+
+@media screen and (max-width: 768px) {
+  .parcel-list {
+    display: grid; grid-template-columns: repeat(1, 1fr); 
+  }
+}
+
+.parcel-list {
+  height: 1000px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.parcel-item {
+  padding: 5px;
+
+  height:fit-content;
+  max-height:min-content;
+
+  background-color: white;
+  border: solid 0.5px gainsboro;
+  border-radius: 5px;
+
+  color: black;
+
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+
+  cursor: pointer;
+  scroll-behavior: smooth;
+}
+
+.parcel-item.selected {
+  background-color: #ebebeb;
+  border: solid 1px var(--ofx-blue);
+}
+.parcel-item.selected:hover {
+  background-color: #ebebeb;
+  border: solid 1px var(--ofx-blue);
+}
+
+.parcel-item:hover {
+  background-color: #ebebeb;
+  border: solid 0.2px grey;
+}
+.leaflet-tooltip {
+  z-index: 10000;
+}
+
+.parcel-details > div{
+  padding: 8px ;
+}
+
+.parcel-details > .even{
+  background-color: #b0dafa !important;
+} 
+/* .leaflet-interactive{
+  stroke: var(--ofx-green);
+  fill:#ddd
+}
+.leaflet-interactive.selected{
+  stroke: var(--ofx-green);
+  fill:var(--ofx-red);
+  opacity:.5
+}
+.leaflet-interactive:hover{
+  stroke: var(--ofx-green);
+  fill:var(--ofx-red);
+  opacity:.7
+} */
+/* ------ End Lot ------ */
+
+.map-content {
+  width: 100%;
+  min-height: 200px;
+  height: inherit;
+  /* background-color:gray; */
+}
+
+.modal.leaflet-modal[aria-hidden='true'] {
+  visibility: hidden;
+  display: block !important;
+}
+
+.modal.leaflet-modal[aria-hidden='false'] {
+  visibility: visible;
+  display: block !important;
+}
+
+
+
+div.vr {
+  padding: 1px;
+  border-left: 1px solid gainsboro;
+}
+
+/* Parcel Owners */
+
+.owners-parcel-relationship-view {
+  /* min-height: 20%; */
+  /* height: max-content; */
+
+  max-height: 300px;
+  width: 100%;
+  
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  overflow-x: hidden;
+  overflow-y: scroll;
+
+  flex-direction: column;
+  /* flex-wrap: wrap; */
+  scroll-margin-top: 10px;
+  scrollbar-width: thin;
+
+  justify-content: start;
+  align-content: start ;
+  align-items: stretch;
+}
+
+
+.add-btn {
+  cursor: pointer;
+ 
+  border-radius: 5px;
+  justify-content: center;
+  display: flex;
+  align-items: center;;
+  background-color: var(--ofx-green);
+  color: #fff;
+  transition: all 0.15s ease-in-out;
+  padding: 5px 10px;
+  text-transform: capitalize;
+  border: solid 0.1px gainsboro;
+}
+.add-btn:hover {
+  background-color: gainsboro !important;
+  color: black !important;
+}
+.parcel-owner-add:hover {
+  background-color: var(--ofx-blue-light);
+  color: white;
+}
+
+.owner-main-bar {
+  width: 100%;
+
+  position: relative;
+
+  justify-content: space-between;
+
+}
+
+p.section-heading {
+  font-size: 18px;
+  color: var(--ofx-blue);
+  font-weight: 600;
+  text-decoration: none;
+  font-style: normal;
+  font-variant: normal;
+  text-transform: none;
+}
+
+.custom-dropdown-content{
+  width: 350px;
+  height: fit-content;
+  max-height: 350px;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow-x: hidden;
+  overflow-y: scroll;
+ 
+
+  /* align-items: center; */
+}
+
+/* -------- Dropdown ---------- */
+
+@media screen and (max-width: 768px) {
+
+}
+.custom-dropdown-content .card {
+  margin-bottom: 8px;
+
+  border-radius: 5px;
+}
+
+.correspondence-dropdown-menu.dropdown-menu.show,
+.history-dropdown-menu.dropdown-menu.show,
+.files-dropdown-menu.dropdown-menu.show,
+.reminders-dropdown-menu.dropdown-menu.show
+{
+  /* width: 400px; */
+  position: absolute;
+  /* inset: 100px -1000px auto -500px !important; */
+  inset: 35px auto auto 0px !important;
+  /* left: -60% !important; */
+  /* right: 40px !important; */
+  transform: translate(0px, 0px) !important;
+}
+
+@media screen and (max-width: 768px) {
+  .reminders-dropdown-menu.dropdown-menu.show {
+    transform: translate(-57%, 0px) !important;
+  }
+
+  .files-dropdown-menu.dropdown-menu.show {
+    transform: translate(-68%, 0px) !important;
+  }
+
+  .correspondence-dropdown-menu.dropdown-menu.show {
+    transform: translate(-78%, 0px) !important;
+  }
+
+  .history-dropdown-menu.dropdown-menu.show {
+    transform: translate(-87%, 0px) !important;
+  }
+
+}
+
+@media screen and (min-width: 768px) {
+  .reminders-dropdown-menu.dropdown-menu.show {
+    transform: translate(-31%, 0px) !important;
+  }
+
+  .files-dropdown-menu.dropdown-menu.show {
+    transform: translate(-42%, 0px) !important;
+  }
+
+  .correspondence-dropdown-menu.dropdown-menu.show {
+    transform: translate(-52%, 0px) !important;
+  }
+
+  .history-dropdown-menu.dropdown-menu.show {
+    transform: translate(-61%, 0px) !important;
+  }
+}
+
+
+.dropdown-menu.show {
+  /* background-color: rebeccapurple; */
+}
+
+/* --------Reminders------------- */
+
+.info-reminders-main {
+  min-height: 200px;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  /* height: inherit; */
+}
+
+.info-reminders-bar {
+  display: flex;
+  align-items: center;
+  align-content: center;
+
+  margin-bottom: 5px;
+}
+
+div.info-reminders-content {
+  height: inherit;
+
+  display: flex;
+  overflow-x: scroll;
+  flex-wrap: wrap;
+  flex-direction: column;
+
+  scroll-margin-top: 10px;
+  scrollbar-width: thin;
+
+  justify-content: start;
+  align-content: start ;
+  align-items: stretch;
+}
+
+/* -------- End Reminders------------- */
+
+
+/* -------- Task ------- */
+.tasks-box {
+  max-height: 50vh;
+  padding-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tasks-bar {
+  display: flex;
+  align-items: center;
+  align-content: center;
+
+  margin-bottom: 5px;
+}
+
+.tasks-bar .section-heading {
+  margin-bottom: 0px;
+  margin-right: 4px;
+}
+
+.tasks-box .tasks-content {
+
+  display: flex;
+  overflow-x: scroll;
+  flex-wrap: wrap;
+  flex-direction: column;
+
+  justify-content: start;
+  align-content: start ;
+  align-items: stretch;
+}
+
+/* -------- End Tasks -------- */
+
+
+/* ------- Notes ------ */
+.notes-box {
+  display: flex;
+  flex-direction: column;
+}
+.notes-bar {
+  display: flex;
+  align-items: center;
+  align-content: center;
+
+  margin-bottom: 5px;
+}
+
+.notes-content {
+  max-height: clamp(200px, 20vh, 300px);
+  margin-bottom: 2px;
+
+  display: flex;
+  overflow-x: scroll;
+  flex-wrap: wrap;
+  flex-direction: column;
+
+  justify-content: start;
+  /* align-content: end ; */
+  align-items: stretch;
+}
+
+/* ------- End Notes ------ */
+
+/*Legend specific*/
+.lms-legend {
+  padding: 6px 8px;
+  font: 14px Arial, Helvetica, sans-serif;
+  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  /*box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);*/
+  /*border-radius: 5px;*/
+  line-height: 24px;
+  color: #555;
+}
+.lms-legend h4 {
+  text-align: center;
+  font-size: 16px;
+  margin: 2px 12px 8px;
+  color: #777;
+}
+
+.lms-legend span {
+  position: relative;
+  bottom: 3px;
+}
+
+.lms-legend i {
+  width: 18px;
+  height: 18px;
+  float: left;
+  margin: 0 8px 0 0;
+
+  border-radius: 2px;
+}
+#LOTS_DROPDOWN_CONTENT{
+  overflow-y:hidden
+}

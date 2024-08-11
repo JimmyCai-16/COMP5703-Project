@@ -1,0 +1,14 @@
+{% if top_headers %}
+
+    <table{% if border_style %} border="border: {{ border_style }};"{% endif %}>
+        {% for row in data %}
+            <tr>
+                {% for column in row %}
+                    <td width="{{ column.width }}"{% if border_style %}
+                        border="border: {{ border_style }};"{% endif %}>{{ column }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endif %}

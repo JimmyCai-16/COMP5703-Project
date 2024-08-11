@@ -1,0 +1,193 @@
+<!-- {% comment %}
+owner.html
+id=CORRESPONDENCE_DROPDOWN_CONTENT
+{% endcomment %} -->
+{% load static %}
+{% load project_tags %}
+
+{% block extra_head %}
+<style>
+
+  .correspondence-item {
+    border-radius: 5px;
+    padding: 5px;
+    
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .correspondence-item:hover {
+    background-color: gainsboro;
+  }
+
+  .correspondence-item a {
+    color: black;
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-x: hidden;
+  }
+
+  .correspondence-item a:hover {
+    color: grey
+  }
+
+  .correspondence-item button {
+    background-color: transparent;
+    border: 0;
+    border-radius: 5px;
+  }
+
+  .correspondence-item button:hover {
+    background-color: gainsboro;
+  }
+  .correspondence_delete_file_confirm {
+    background-color: var(--ofx-red);
+  }
+
+  .correspondence_delete_file_confirm:hover {
+    background-color: var(--ofx-red-light) !important;
+  }
+</style>
+{% endblock %}
+
+{% if view.instance %}
+{% with view.instance as correspondence %}
+{% endwith%}
+{% elif view.queryset %}
+<div class="correspondence-item w-100">
+  <div class="corres-search-div p-0 search-div me-2 w-100">
+    <input type="search" class="form-control search-box" id="corres-search" placeholder="Search Correspondence..."
+            oninput="filterObjects('corres-search','corres-item','div', 0)" />                   
+  </div>
+</div>
+{% for correspondence in view.queryset %}
+
+<div class="card mt-4 corres-item form-data ">
+  <div class="fw-bold  mt-2 d-flex px-3 justify-content-between" >
+    <div data-field="name" data-value="{{ correspondence.name }}">{{ correspondence.name }}</div>
+    <div>
+      
+      {% if view.project|is_admin:view.member %}
+      <button class="btn-clear-hover"  data-bs-toggle="modal" data-bs-target="#deleteCorrespondenceModal" data-action="delete"
+              class="border-0"
+              data-url="{% url 'lms:delete_correspondence' slug=view.project.slug owner=correspondence.owner.id correspondence=correspondence.id %}"
+              data-modal-content="
+                <div class='d-flex flex-column'>
+
+                  <span>Delete <b> {{ correspondence.name }}</b>?</span>
+                  {% for file in correspondence.files.all %}
+                    <span>- {{ file.filename }} </span>
+                  {% endfor %}
+                  
+                </div>"
+      >
+        <i class="fa fa-trash"></i>
+      </button>
+      {% endif %}
+      {% if view.project|is_write:view.member %}
+      <button class="btn-clear-hover" data-bs-toggle="modal" data-bs-target="#modifyCorrespondenceModal" data-action="modify" class="border-0 ms-2 "
+              data-url="{% url 'lms:modify_correspondence' slug=view.project.slug owner=correspondence.owner.id correspondence=correspondence.id %}"
+              data-modal-content-bottom="
+                    <div class='d-flex flex-column'>
+                      <div class='corresponence-list mb-2'>
+                        {% for file in correspondence.files.all %}
+                        <div class='correspondence-item'>     
+                          <a class='flex-shrink-1'  href='{% url 'lms:correspondence_download_file' slug=view.project.slug owner=correspondence.owner.id correspondence=correspondence.id file=file.id %}'>{{file.filename}}</a>
+                          <a class='btn btn-ofx-fa-red correspondence_delete_file_btn'><i class='fa fa-trash'></i></a>
+                          <a class='btn correspondence_delete_file_confirm' style='white-space: nowrap; display: inline-flex; align-items: center;' url='{% url 'lms:correspondence_delete_file' slug=view.project.slug owner=correspondence.owner.id correspondence=correspondence.id file=file.id %}' hidden>
+                            Confirm Delete File
+                          </a>
+                        </div>
+                        {% endfor %}
+                      </div>
+                      <span class='fst-italic text-secondary'><b>Last Updated:</b> {{ correspondence.date_updated|date }} {{ correspondence.date_updated|time}} by {{ correspondence.user_updated }}</span>
+                      <span class='fst-italic text-secondary'><b>Date Created:</b> {{ correspondence.date_created|date }} by {{ correspondence.user_created }}</span>
+                    </div>
+                    <script>
+                      $('.correspondence_delete_file_btn').click(function(){
+                        let correspondence = $(this).parent()
+                        let delete_confirm_btn = correspondence.find('.correspondence_delete_file_confirm')
+                        let delete_btn = $(this)
+                        delete_confirm_btn.removeAttr('hidden')
+                        $(this).attr('hidden', true)
+                        setTimeout(function(){
+                          delete_btn.removeAttr('hidden')
+                          delete_confirm_btn.attr('hidden', true)
+                        }, 5000)
+                      })
+
+                      $('.correspondence_delete_file_confirm').click(function(){
+                        var url = $(this).attr('url');
+                        var correspondence = $(this).parent()
+                        let delete_confirm_btn = correspondence.find('.correspondence_delete_file_confirm')
+                        let delete_btn = correspondence.find('.correspondence_delete_file_btn')
+                        console.log(url);
+                        $.ajax({
+                          url: url,
+                          type: 'GET',
+                          dataType: 'json',
+                          beforeSend: function () {
+                            delete_btn.attr('disabled', true)
+                            delete_confirm_btn.attr('disabled', true)
+                          },
+                          success: function (data) {
+                            console.log('Success delete file', correspondence);
+                            correspondence.remove();
+                          },
+                          complete: function () {
+                            delete_btn.removeAttr('disabled')
+                            delete_confirm_btn.removeAttr('disabled')
+                          }
+                        });
+                      })
+                    </script>
+
+              "
+      >
+              <i class="fa fa-edit"></i>
+      </button>
+      {% endif %}
+
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-text py-0" data-field="content" data-value="{{ correspondence.content }}">{{ correspondence.content }}</div>
+    <!-- <div id="CORRESPONDENCE_ITEM_LIST" class="corresponence-list" data-url="{% url "lms:correspondence" slug=view.project.slug owner=correspondence.owner.id correspondence=correspondence.id %}">
+      
+    </div> -->
+    <div class="corresponence-list">
+      {% for file in correspondence.files.all %}
+      <div class="correspondence-item">     
+        <a href="{% url 'lms:correspondence_download_file' slug=view.project.slug owner=correspondence.owner.id correspondence=correspondence.id file=file.id %}">{{file.filename}}</a>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+  <div class="card-footer py-0">
+    <i>{{ correspondence.date_created|date:"d/m/Y H:i A" }}</i>
+  </div>
+</div>
+{% endfor %}
+
+{% block extra_body%}
+<script>
+  console.log('Script for owner correspondence');
+
+  // var myLinks = document.querySelectorAll('.correspondence_delete_file');
+  // myLinks.forEach(function(link) {
+  //     link.addEventListener('click', function(event) {
+  //         event.preventDefault(); // Prevent the default link behavior
+
+  //         $(this).remove()
+          
+  //         // Perform your desired action here
+  //         var linkText = link.textContent;
+  //         alert('Anchor clicked: ' + linkText);
+  //     });
+  // });
+
+</script>
+{% endblock %}
+{% endif %}

@@ -1,0 +1,85 @@
+
+.leaflet-layertree-color-box {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 5px; /* Adjust as needed for spacing between box and label */
+    margin-left: 5px;
+    border: 2px solid;
+    vertical-align: middle; /* Align the box vertically with the label */
+}
+
+.leaflet-control-layers-toggle.leaflet-layerstree-named-toggle {
+    margin: 2px 5px;
+    width: auto;
+    height: auto;
+    background-image: none;
+}
+
+.leaflet-layerstree-node {
+}
+
+.leaflet-layerstree-header input{
+    margin-left: 0px;
+}
+
+
+.leaflet-layerstree-header {
+}
+
+.leaflet-layerstree-header-pointer {
+    cursor: pointer;
+}
+
+.leaflet-layerstree-header label {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.leaflet-layerstree-header-label {
+}
+
+.leaflet-layerstree-header-name {
+}
+
+.leaflet-layerstree-header-space {
+}
+
+.leaflet-layerstree-children {
+    padding-left: 20px;
+}
+
+.leaflet-layerstree-children-nopad {
+    padding-left: 0px;
+}
+
+.leaflet-layerstree-closed {
+}
+
+.leaflet-layerstree-opened {
+}
+
+.leaflet-layerstree-hide {
+    display: none;
+}
+
+.leaflet-layerstree-nevershow {
+    display: none;
+}
+
+.leaflet-layerstree-expand-collapse {
+    cursor: pointer;
+}
+
+.primary-blue-button {
+    background-color: var(--ofx-blue);
+    border-color: var(--ofx-blue); 
+    color: #fff; 
+    padding: 5px 10px 5px 10px;
+    margin: 5px;
+    font-size: 0.800rem;
+    font-weight: 300;
+    text-align: center;
+    vertical-align: middle;
+    border-radius: 0.375rem;
+}

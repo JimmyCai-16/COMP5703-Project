@@ -1,0 +1,178 @@
+{% extends 'appboard/base.html' %}
+{% load static %}
+
+{% block head_title %}
+    Dashboard
+{% endblock %}
+
+
+{% block content %}
+
+{% if messages %}
+<div id="flash-message" class="alert alert-success text-md p-3 ms-4"  >
+    {% for message in messages %}
+        {{ message }}
+    {% endfor %}
+</div>
+{% endif %}
+
+
+    <div class="container-fluid mb-4 content-margin-top-offest">
+      
+        <div class="container">
+            <h4 class="mb-2 text-ofx-blue">My Dashboard<i class="ms-2 fas fa-fw fa-tachometer-alt"></i></h4>
+            <div id="title-divider" class="mb-4"></div>
+            <div class="row">
+                {% comment %}
+            {# TODO: RE-ADD STATISTICS BOX AFTER DEMO #}
+
+                <div class="col-lg-4 col-md-6 col-sm-12 my-3">
+                    <div class="card shadow h-100">
+                        <div class="card-header">
+                            <h5>Activity Manager</h5>
+                        </div>
+                        <div class="card-body">
+                        </div>
+                    </div>
+                </div>
+                {% endcomment %}
+                <div class="col-lg-4 col-md-6 col-sm-12 my-3">
+                    <div class="card shadow h-100">
+                        <div class="card-header">
+                            <h5>My Apps</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if subscriptions and subscriptions|length > 0  %}
+                            <ul>
+                            {% for subscription in subscriptions %} 
+                              {% if subscription.status == "PAUSED" %}
+                                  <li>  <div class="pause-sub cursor-pointer btn text-ofx-red" data-toggle="modal" data-target="#subPauseModal" style="cursor:pointer">                    
+                                    {{subscription.application.name}}</div></li>
+                              {% else %}
+                                <li> <a href={{subscription.application.app_url}} class="btn">{{subscription.application.name}}</a></li>
+                              {% endif %}
+                            {% endfor %}
+                           
+                            </ul>
+                             {% else %}
+                            <div> You have not subscribed to any app yet. </div>
+                            {% endif %}  
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 col-sm-12 my-3">
+                    <div class="card shadow h-100">
+                        <div class="card-header">
+                            <h5>Project Index</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li> <a href="{% url 'project:index' %}?tab=nav-projects-tab&tabContent=nav-projects" class="btn">My Projects</a></li>
+                                <li><a href="{% url 'project:index' %}?tab=nav-tenements-tab&tabContent=nav-tenements" class="btn">My Tenements</a></li>
+                          
+                            </ul>
+                          
+                            {% comment %} <a href="{% url 'project:index' %}?tab=nav-tenements-tab" class="stretched-link"></a> {% endcomment %}
+                        </div>
+                    </div>
+                </div>
+                
+                
+                
+
+            </div>
+        </div>
+
+
+        <!--  Modals  -->
+
+        <div class="modal modal-md fade" id="petrosea_app_modal">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header card-header">
+                        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="home-tab" data-toggle="tab" href=".home" role="tab"
+                                   aria-controls="home"
+                                   aria-selected="true">Create New Project</a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="profile-tab" data-toggle="tab" href=".profile" role="tab"
+                                   aria-controls="profile" aria-selected="false">Use Existing Project</a>
+                            </li>
+
+                        </ul>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class=" card-body">
+
+                        <div class="tab-content">
+                            <div class="tab-pane fade show home active" id="home" role="tabpanel"
+                                 aria-labelledby="home-tab">
+                                <div class="card shadow-sm container py-2 max-w-700 my-2">
+                                    <form action="{% url 'project:index' %}" method="POST">
+                                        {% csrf_token %}
+                                        {{ form.as_p }}
+                                        <div class="form-group">
+                                            <button class="form-control btn btn-primary mt-3 spin-on-click"
+                                                    spinner-class="spinner-border spinner-border-sm text-light"
+                                                    spinner-text="Loading...">
+                                                Create
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade profile" role="tabpanel" aria-labelledby="profile-tab">
+                                <div class="card shadow-sm container py-2 max-w-700 my-2">
+                                    <div class="form-group">
+                                        <label for="select_existing_project">Select a Project to start
+                                            processing...</label>
+                                        <select class="form-control custom-select" id="select_existing_project">
+                                            <option selected disabled value="">-- Select --</option>
+                                            {% for member in members %}
+                                                {% if member.is_write %}
+                                                    <option value="{% url 'data_processor' project_url=member.project.slug %}">
+                                                        {{ member.project.name }}
+                                                    </option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="subPauseModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content py-2 bg-ofx-green px-1 text-white">
+                    This subscription is Paused.
+                </div>
+            </div>
+        </div>
+     
+
+    </div>
+    <script>
+        $(document).ready(function() {
+            // When the card is clicked, open the modal
+            $('.pause-sub').click(function() {
+                $('#subPauseModal').modal('show');
+            });
+        });
+        </script>   
+<script>
+    setTimeout(function () {
+        if( document.getElementById("flash-message") !== null)
+        document.getElementById("flash-message").style.display = "none";
+      }, 3000);   
+</script>
+
+
+{% endblock %}

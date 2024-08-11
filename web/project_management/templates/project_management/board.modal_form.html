@@ -1,0 +1,309 @@
+<!-- Rename board modal -->
+<div class="modal fade" tabindex="-1" id="rename_board_modal"  data-keyboard="false" data-backdrop="static">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document" id="modal_body">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Rename board {{ board.name }}</h5>
+			</div>
+			<form id="rename_board_form">
+				<div class="modal-body">
+					<input type="text" class="form-control">
+				</div>
+				<div class="modal-footer">
+					<button type="submit"
+							class="btn btn-ofx-green btn-sm rounded-1">
+						Rename Board
+					</button>
+					<button type="button" class="btn btn-ofx-blue btn-sm rounded-1" data-bs-dismiss="modal">
+						Cancel
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+
+<!-- Create column modal -->
+<div class="modal fade" tabindex="-1" id="create_column_modal" data-keyboard="false" data-backdrop="static">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document" id="modal_body">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Create new List</h5>
+			</div>
+			<div class="modal-body">
+				<form id="create_column_form" action=""
+						method="POST" enctype="multipart/form-data">
+					{% csrf_token %}
+					<div class="form-group d-flex p-2">
+						<input type="text" class="form-control" name="title"
+								placeholder="List Title" required>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" id="btnSubmit"
+								class="btn btn-ofx-green btn-sm rounded-1">
+							Create List
+						</button>
+						<button type="button" class="btn btn-ofx-blue btn-sm rounded-1" data-bs-dismiss="modal">
+							Cancel
+						</button>
+					</div>
+				</form>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+
+<!-- Delete Column Confirmation Modal -->
+<div class="modal fade" tabindex="-1" id="deleteConfirmationModal">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document" name="deleteConfirmationModal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Delete List</h5>
+			</div>
+			<div class="modal-body">
+				<span>All tasks in this list will be removed. Proceed to delete list <span class="column-title fw-bold"></span>.</span>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-ofx-red btn-sm rounded-1">
+					Delete
+				</button>
+				<button type="button" class="btn btn-ofx-blue btn-sm rounded-1" data-bs-dismiss="modal">
+					Cancel
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- View User modal   -->
+<div class="modal fade" id="view_user_modal" tabindex="-1">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document" id="modal_body">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Member</h5>
+			</div>
+			<div class="modal-body">
+				<form id="manage_members_form" action="">
+					<h6>Owner</h6>
+					<span class="member-tag">{{board.owner}}</span>
+					{% include './member_search.html' with board=board %}
+
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-sm btn-ofx-green rounded-1">
+							Update members
+						</button>
+						<button type="button" class="btn btn-sm btn-ofx-blue" data-bs-dismiss="modal">
+							Cancel
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Delete Board Confirmation Modal -->
+<div class="modal fade" id="delete_board_confirmation_modal">
+	<div class="modal-dialog modal-dialog-centered modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Delete board</h5>
+			</div>
+			<div class="modal-body">
+				<span>Are you sure you want to delete this board?</span>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-ofx-red btn-sm">
+					Delete
+				</button>
+				<button type="button" class="btn btn-ofx-blue btn-sm" data-bs-dismiss="modal">
+					Cancel
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% block extra_body %}
+<script>
+
+	// CREATE COLUMN
+	$('#create_column_form').submit(function (e) {
+		e.preventDefault()
+		const generatedColumnID = Math.random().toString(36).slice(2)
+		if (e.target.elements.title.value.trim().length === 0) return;
+
+		$.ajax({
+			headers: {"X-CSRFToken": csrf_token},
+			url: kanban_url + "column",
+			data: {
+				"boardID": kanbanID,
+				"id": generatedColumnID,
+				"title": e.target.elements.title.value,
+			},
+			type: "POST",
+			dataType: "json",
+			cache: false,
+			success: function (data) {
+				$('#create_column_modal').modal('hide');
+				$('#create_column_form').unbind()
+				location.reload()
+			},
+			error: function (data) {
+			},
+		});
+	})
+	
+
+	$(document).ready(() => {
+
+		$('#rename_board_modal').on('shown.bs.modal', function (e) {
+			$(this).find('input[type="text"]').first().focus()
+		})
+
+		$('#rename_board_form').submit(function (e) {
+			e.preventDefault()
+
+			const boardId = '{{board.id}}'
+			if (!boardId || boardId.trim().length === 0) return;
+
+			const rename_board_input = $(this).find('input[type="text"]')
+			if (rename_board_input.val().trim().length === 0) return;
+
+			let $btn = $(this).find(`button[type="submit"]`);
+			const originalBtnHTML = $btn.html()
+
+			$.ajax({
+					headers: {"X-CSRFToken": csrf_token},
+					url: "{% url 'project_management:update_board' %}",
+					type: "POST",
+					dataType: "json",
+					cache: false,
+					data: {
+							id: boardId,
+							name: rename_board_input.val(),
+					},
+					beforeSend: function () {
+						$btn.addSpinner()
+					},
+					success: function (data) {
+							$('#rename_board_modal').modal('hide');
+							$(this).unbind();
+							location.reload();
+					},
+					error: function (data) {
+					},
+					complete: function () {
+						$btn.removeSpinner(originalBtnHTML);
+					}
+					
+			})
+
+		})
+		
+		$('#create_column_modal').on('show.bs.modal', function (e) {
+			$(this).find('input[type="text"]').val('')
+		})
+
+		$('#create_column_modal').on('shown.bs.modal', function (e) {
+			$(this).find('input[type="text"]').first().focus()
+		})
+
+		$('#manage_members_form').submit(function(e) {
+			e.preventDefault()
+			const boardId = '{{board.id}}'
+			if (!boardId || boardId.trim().length === 0) return;
+
+			let $btn = $(this).find(`button[type="submit"]`);
+			const originalBtnHTML = $btn.html()
+
+			$.ajax({
+				headers: {"X-CSRFToken": csrf_token},
+				url: "{% url 'project_management:update_board' %}",
+				type: "POST",
+				dataType: "json",
+				cache: false,
+				data: {
+					id: boardId,
+					members: JSON.stringify(selectedMembers ?? [])
+				},
+				beforeSend: function () {
+					$btn.addSpinner()
+				},
+				success: function (data) {
+					$(this).closest('.modal').modal('hide');
+					$(this).unbind();
+					location.reload();
+				},
+				error: function (data) {
+				},
+				complete: function () {
+					$btn.removeSpinner(originalBtnHTML);
+				}
+				
+			})
+		})
+
+		$('#deleteConfirmationModal').on('show.bs.modal', function (e) {
+			let dropdown = $(this)
+			let btn = $(e.relatedTarget)
+			let column_id = btn.data('column-id')
+			let column_title = btn.closest('.kanban-board-header').find('.kanban-title-board').text()
+
+			dropdown.find('.column-title').text(column_title)
+
+			dropdown.find('button[type="submit"]').on('click', function () {
+				$.ajax({
+					headers: {"X-CSRFToken": csrf_token},
+					url: kanban_url + "column_deletion",
+					data: {
+						id: column_id,
+					},
+					type: "POST",
+					dataType: "json",
+					cache: false,
+					success: function (data) {
+						$('#deleteConfirmationModal').modal('hide');
+						location.reload();
+					},
+					error: function (data) {
+					},
+				});
+			})
+		})
+
+		$('#delete_board_confirmation_modal').on('show.bs.modal', function (e) {
+			let dropdown = $(this)
+			let board_id = '{{ board.id }}'
+
+			dropdown.find('button[type="submit"]').on('click', function () {
+				$.ajax({
+					headers: {"X-CSRFToken": csrf_token},
+					url: "{% url 'project_management:delete_board' %}",
+					data: {
+						id: board_id,
+					},
+					type: "POST",
+					dataType: "json",
+					cache: false,
+					success: function (data) {
+						// return to project management page
+						window.location.replace("{% url 'project_management:kanban'%}");
+					},
+					error: function (data) {
+					},
+				});
+			})
+		})
+
+	})
+
+    setTimeout(function () {
+        if( document.getElementById("flash-message") !== null)
+        document.getElementById("flash-message").style.display = "none";
+	}, 3000); 
+</script>
+{% endblock %}

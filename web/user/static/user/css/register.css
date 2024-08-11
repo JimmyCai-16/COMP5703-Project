@@ -1,0 +1,57 @@
+  .fa-times{
+    color: rgb(214, 32, 0);
+    display:none;
+  }
+  .fa-check{
+    color:green;
+    display:none;
+  }
+
+  .error {
+    color: rgb(214, 32, 0);
+  }
+  
+  #client-error{
+    color: rgb(214, 32, 0);
+    font-size:.70rem;
+  
+  }
+  
+  #server-error{
+    position: absolute;
+    font-size:.7rem;
+    top:120px;
+  }
+
+.radio-label{
+  font-weight: 700;
+  color: var(--ofx-blue);
+  font-size: 16px !important;
+}
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  /* Chrome-specific CSS */
+  .radio-label {
+      font-size: 14px !important;/* Font size for Chrome */
+      font-weight: 900 !important;
+      color: var(--ofx-blue);
+  }
+}
+
+#id_account_type{
+  font-weight: 700;
+  color: var(--ofx-blue);
+  font-size: 18px !important;
+  display: flex;
+  flex-direction: row;
+}
+#id_account_type > div {
+  margin-right: 10px;
+}
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  /* Chrome-specific CSS */
+  #id_account_type {
+      font-size: 14px !important;/* Font size for Chrome */
+      font-weight: 900 !important;
+      color: var(--ofx-blue);
+  }
+}

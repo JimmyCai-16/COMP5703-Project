@@ -1,0 +1,78 @@
+<!-- {% comment %}
+owner.html
+id=NOTES_CONTENT
+{% endcomment %} -->
+
+{% load project_tags %}
+{% block extra_head %}
+<style>
+  .notes-content .note-item {
+    /* min-width: 30%;
+    max-width: 60%; */
+    width: 48%;
+
+    flex: 1;
+
+    background-color: white;
+    color: black;
+
+    padding: 5px;
+    margin-bottom: 10px;
+    margin-right: 10px;
+    
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    overflow: hidden;
+
+    border: 1px solid gainsboro;
+    border-radius: 4px;
+
+    cursor: pointer;
+    transition: box-shadow 0.075s ease-in-out;
+  }
+
+  .notes-content .note-item:hover {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.277);
+  }
+
+  @media screen and (max-width: 768px) {
+    /* .notes-content .note-item {
+      max-width: 80% !important;
+    } */
+  }
+</style>
+{% endblock %}
+
+
+{% if view.queryset %}
+  {% for note in view.queryset %}
+  <div class="note-item form-data" 
+      {% if view.project|is_write:view.member %}
+      data-bs-toggle="modal" data-bs-target="#modifyNoteModal" data-action="modify"
+      data-url="{% url 'lms:modify_note' slug=view.project.slug owner=note.owner.id note=note.id %}"
+      data-modal-content-bottom="
+          <div class='d-flex flex-column'>
+            <span class='fst-italic text-secondary'><b>Last Updated:</b> {{ note.date_updated|date }} {{ note.date_updated|time}} by {{ note.user_updated }}</span>
+            <span class='fst-italic text-secondary'><b>Date Created:</b> {{ note.date_created|date }} by {{ note.user_created }}</span>
+          </div>  
+      "
+      {% endif %}
+  >
+    <span class="title text-break" data-field="name" data-value="{{ note.name }}">{{ note.name }}</span>
+    <span class="text-secondary"> {{ note.date_updated|date }}</span>
+    <span class="text-break" data-field="content" data-value="{{ note.content }}">{{ note.content }}</span>
+    {% if view.project|is_admin:view.member %}
+    <button class="position-absolute top-0 end-0 m-1 btn-clear-hover dark-hover"
+          data-bs-toggle="modal" data-bs-target="#deleteNoteModal" data-action="delete"
+          data-url="{% url 'lms:delete_note' slug=view.project.slug owner=note.owner.id note=note.id %}"
+          data-modal-content="Delete <b> {{ note.name }}</b>?"
+    >
+          <i class="fa fa-trash"></i>
+    </button>
+    {% endif %}
+  </div>
+  {% endfor%}
+
+{% endif %}

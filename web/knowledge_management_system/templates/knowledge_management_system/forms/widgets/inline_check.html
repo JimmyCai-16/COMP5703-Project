@@ -1,0 +1,8 @@
+{% with id=widget.attrs.id %}
+    {% for group, options, index in widget.optgroups %}
+        {% for option in options %}
+            <input type="radio" id="{{ widget.attrs.id }}_{{ index }}" name="{{ widget.name }}" value="{{ option.value }}" {% if widget.value.0|slugify == option.value|slugify %}checked{% endif %}>
+            <label for="{{ widget.attrs.id }}_{{ index }}">{{option.label}}</label>
+        {% endfor %}
+    {% endfor %}
+{% endwith %}

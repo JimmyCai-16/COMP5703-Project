@@ -1,0 +1,261 @@
+<!-- {% comment %} USAGE
+Parse 
+<div
+  board-members='[{% for member in board.members.all %}
+        {
+            "pk": "{{member.id}}",
+            "fields": {
+                "email": "{{member.email}}",
+                "first_name": "{{ member.first_name }}",
+                "last_name": "{{ member.last_name }}"
+            }
+        }
+        {% if not forloop.last %},{% endif %}
+    {% endfor %}]'
+>
+</div>
+<div>
+    <form>
+	    {% include './member_search.html' with board=board %}
+    </form
+</div>
+
+<script>
+  $('#formid').submit(function (e) {
+    console.log(selectedMembers)
+  })
+</script>
+
+
+ {% endcomment %} -->
+
+{% block extra_head %}
+<style>
+  .selected-members-list {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .selected-members-list .member-tag {
+      display: block;
+      /* position: relative; */
+      padding: 5px 10px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      background-color: transparent;
+      color: #000000;
+      border: 1px solid var(--ofx-blue);
+      text-decoration: none;
+      border-radius: 4px;
+  }
+
+  .search_member_menu.dropdown-menu {
+      max-height: 200px;
+      overflow-y: scroll;
+  }
+
+  .search_member_menu.dropdown-item {
+      word-wrap: break-word;
+  }
+</style>
+{% endblock %}
+
+<h6>Members</h6>
+<div class="selected_members_list selected-members-list">
+</div>
+<div id="members_search_dropdown" class="members_search_dropdown dropdown" style="position: relative;">
+    <input id="search_member_input" class="search_member_input form-control dropdown-toggle" type="text" name="query" placeholder="+ Add member" aria-expanded="false">
+    <div id="search_member_menu" class="search_member_menu dropdown-menu" aria-labelledby="search_member_input">
+        <p class="placeholder-glow">
+            <span class="placeholder col-12"></span>
+        </p>
+    </div>
+</div>
+
+{% block extra_body %}
+<script>
+  searchTimeout = null;
+
+  /**
+   * MAINLY USED TO GET SELECTED MEMBERS 
+   * 
+   * Array of Object:
+   * {
+   *    pk: "",
+   *    fields: {
+   *        email: "",
+   *        first_name: "",
+   *        last_name: ""
+   *    }
+   * }
+  */
+  selectedMembers = [];
+  
+  searchingMembers = []
+
+	$(document).ready(() => {
+            
+
+			$('.modal').on('show.bs.modal', function() {
+					// Reset member search
+          const $modal = $(this)
+
+          if ($modal.find('.members_search_dropdown')) {
+            
+            searchTimeout = null;
+  
+            const membersString = `[{% for member in board.members.all %}
+                {
+                    "pk": "{{member.id}}",
+                    "fields": {
+                        "email": "{{member.email}}",
+                        "first_name": "{{ member.first_name }}",
+                        "last_name": "{{ member.last_name }}"
+                    }
+                }
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}]`
+            const members = JSON.parse(membersString)
+  
+            if (members && members.length !== 0) {
+                selectedMembers = members
+                buildSelectedMembersList(selectedMembers)
+            }
+
+            $('.search_member_input').val('')
+          }          
+
+			}).on('hide.bs.modal', function () {
+          const $modal = $(this)
+					// Clear member search
+          if ($modal.find('.members_search_dropdown')) {
+            searchTimeout = null;
+            selectedMembers = [];
+            searchingMembers =[];
+            $('.search_member_input').val('')
+            $('.selected_members_list').html('')
+            $('.members_search_dropdown .dropdown-toggle').dropdown('hide')
+          }
+			})
+	})
+
+  $('.members_search_dropdown').on('show.bs.dropdown', function (e) {
+    searchTimeout = null;
+
+    if ($('.search_member_input').val() === "") {
+        $('.members_search_dropdown .dropdown-toggle').dropdown('hide')
+        return false;
+    }
+  })
+
+  $('.search_member_input').on('click input', function(e) {
+      e.preventDefault()
+      if ($(this).val().trim().length === 0) {
+          searchingMembers = []
+          $('.members_search_dropdown .dropdown-toggle').dropdown('hide')
+      }
+      else {
+          $('.members_search_dropdown .dropdown-toggle').dropdown('show')
+      }
+  })
+
+
+  $('.search_member_input').on('keyup', function(e) {
+      e.preventDefault()
+      let input = $(this)
+      
+      if (searchTimeout) {
+          clearTimeout(searchTimeout);
+          if (!input.val().trim()) return
+      }
+      searchTimeout = setTimeout(function() {
+          searchMember(selectedMembers, input.val())
+      }, 1500);
+
+      $('.search_member_menu').html(`
+      <div class="d-flex justify-content-center">
+          <div class="spinner-border spinner-border-sm" role="status">
+              <span class="visually-hidden">Loading...</span>
+          </div>
+      </div>
+      `)
+  })
+
+  function searchMember(selectedMembers, query) {
+      if (!query || !query.trim()) return
+
+      $.ajax({
+          type: 'GET',
+          data: {
+              query: query
+          },
+          dataType: 'json',
+          url: "{% url 'project_management:search_member' %}",
+          success: function (data) {
+              
+              let htmlString = "";
+              let members_data = JSON.parse(data.members)
+              searchingMembers = members_data
+
+
+              for (let member of members_data) {
+                  const existed = (selectedMembers.findIndex(obj => obj.pk == member.pk) !== -1)
+                  if (existed) continue;
+
+                  const fields = member.fields
+                  htmlString += `<li
+                      class="dropdown-item"
+                      onclick='selectMemberFromSearch(${member.pk})'
+                  > 
+                          ${fields.email} - ${fields.first_name} ${fields.last_name}
+                  </li>`
+              }
+              $(".search_member_menu").html(htmlString)
+          },
+          error: function() {
+              $(".search_member_menu").html("  Error loading users. Please try again.  ")
+          }
+      })
+  }
+
+  function selectMemberFromSearch(member_pk) {
+      if (member_pk == null) return
+
+      const member = searchingMembers.find((value) => {return value.pk == member_pk})
+
+      selectedMembers.unshift(member)
+      buildSelectedMembersList(selectedMembers)
+      $('.search_member_input').val('')
+			$('.members_search_dropdown .dropdown-toggle').dropdown('hide')
+  }
+
+
+  function deselectUserAt(index) {
+      if (index == null) return
+      
+      selectedMembers.splice(index, 1)
+      buildSelectedMembersList(selectedMembers)
+  }
+
+  function buildSelectedMembersList(list = []) {
+      let htmlString = ""
+
+      let boardowner = '{{ board.owner.id }}'
+      let userid = '{{ user.id }}'
+      for (i in list) {
+          const member = list[i]
+          if (boardowner == member.pk) {
+              continue;
+          }
+          htmlString += `
+              <div class="member-tag">
+                  ${member.fields.email}
+                  <button class="btn-close" onclick='deselectUserAt(${i})' aria-label="Deselect user"></button>
+              </div>
+          `
+      }
+      $('.selected_members_list').html(htmlString)
+  }
+</script>
+{% endblock %}

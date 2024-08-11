@@ -1,0 +1,585 @@
+{% extends 'appboard/base.html' %}
+{% load modal_tags %}
+{% load project_tags %}
+{% load static %}
+
+{% block head_title %}
+    LMS - {{ project.name }}
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'lms/css/lms.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div id="LMS_CONTENT" class="container-fluid  px-4 d-flex flex-column content-margin-top-offest w-100 h-90">
+     <div class="main-content h-100">
+      <div id="PROJECT_BAR" class="project-bar">
+        <!-- project.html -->
+      </div>
+      <hr class="my-4" />
+      <div id="LOTS_MAP_VEWS" class=" pb-0" >
+        <div id="PARCELS_VIEW" class="" data-url="{% url 'lms:parcels' slug=project.slug %}">
+          <!-- parcel.html -->
+          
+        </div>
+       
+      </div>
+      <hr id="owner_bar" class="my-4" />
+      <div id="owner_progress_bar" class="ofx-progress-bar d-none">
+        <div class="ofx-progress"></div>
+      </div>
+      <div id="OWNER_VIEW" class="mt-2">
+        <!-- owner.html -->
+      </div>
+    </div>
+
+    <div id="LMS_FORMS">
+      {% if project|is_write:member %}
+        {% modalform id="newOwner" title="New Owner" %}
+            {% csrf_token %}
+            {{ owner_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+        {% modalform id="newOwnerRelationship" title="Add New Owner to Project and Parcel" %}
+            {% csrf_token %}
+            <div class="mb-3" style="border: 0.5px solid gainsboro; border-radius: 5px; padding: 2px;"><i class="fa-solid fa-circle-info"></i> <i>You are adding a new owner to both the current project and parcel.</i></div>
+            <div name="modal-content"></div>
+            <hr>
+            {{ owner_form.as_p }}
+            <hr>
+            {{ modify_relationship_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+        {% modalform id="newNote" title="New Note" enctype="multipart/form-data" %}
+            {% csrf_token %}
+            {{ note_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+        {% modalform id="newCorrespondence" title="New Correspondence" enctype="multipart/form-data" %}
+            {% csrf_token %}
+            {{ correspondence_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+        {% modalform id="newTask" title="New Task" enctype="multipart/form-data" %}
+            {% csrf_token %}
+            {{ task_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+        {% modalform id="newReminder" title="New Reminder" enctype="multipart/form-data" %}
+            {% csrf_token %}
+            {{ reminder_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+        {% modalform id="newFile" title="New File" enctype="multipart/form-data" %}
+            {% csrf_token %}
+            {{ file_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+
+        {% modalform id="modifyOwner" title="Modify Owner" enctype="multipart/form-data" %}
+            {% csrf_token %}
+            <input id="id_parcel" type="text" name="parcel" hidden>
+            <input id="id_owner" type="text" name="owner" hidden>
+            {{ owner_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+        {% modalform id="modifyRelationship" title="Modify Owner" %}
+            {% csrf_token %}
+            <div class="d-flex flex-row">
+              <div class="pe-3" style="border-right: 1px gainsboro solid;" name="modal-content"></div>
+              <div class="d-flex flex-column ms-3">
+                {{ modify_relationship_form.as_p }}
+              </div>
+            </div>
+            <div name="modal-content-bottom"></div>
+            
+        {% endmodalform %}
+        {% modalform id="modifyNote" title="Modify Note" enctype="multipart/form-data" %}
+            {% csrf_token %}
+            {{ note_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+        {% modalform id="modifyCorrespondence" title="Modify Correspondence" enctype="multipart/form-data" %}
+            {% csrf_token %}
+            {{ correspondence_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+        {% modalform id="modifyTask" title="Modify Task" enctype="multipart/form-data" %}
+            {% csrf_token %}
+            {{ task_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+        {% modalform id="modifyReminder" title="Modify Reminder" enctype="multipart/form-data" %}
+            {% csrf_token %}
+            {{ reminder_form.as_p }}
+            <div name="modal-content-bottom"></div>
+        {% endmodalform %}
+
+    {% endif %}
+    {% if project|is_admin:member %}
+
+        {% modalform id="deleteOwner" title="Delete Owner" %}
+            {% csrf_token %}
+            <span name="modal-content"></span>
+        {% endmodalform %}
+        {% modalform id="deleteRelationship" title="Remove Owner From Parcel" %}
+            {% csrf_token %}
+            <span name="modal-content"></span>
+        {% endmodalform %}
+        {% modalform id="deleteNote" title="Delete Note" %}
+            {% csrf_token %}
+            <span name="modal-content"></span>
+        {% endmodalform %}
+        {% modalform id="deleteCorrespondence" title="Delete Correspondence" %}
+            {% csrf_token %}
+            <span name="modal-content"></span>
+        {% endmodalform %}
+        {% modalform id="deleteTask" title="Delete Task" %}
+            {% csrf_token %}
+            <span name="modal-content"></span>
+        {% endmodalform %}
+        {% modalform id="deleteReminder" title="Delete Reminder" %}
+            {% csrf_token %}
+            <span name="modal-content"></span>
+        {% endmodalform %}
+
+        {% modalform id="revertHistory" title="Revert to Here" %}
+            {% csrf_token %}
+            <i>This only updates the history tab currently. The owner/parcel is changed in the database though. Refresh the content and you'll see.</i>
+            <input id="id_owner" type="text" name="owner" hidden>
+            <input id="id_parcel" type="text" name="parcel" hidden>
+            <input id="id_history" type="text" name="history" hidden>
+        {% endmodalform %}
+
+        {% modalform id="deleteFile" title="Delete File" %}
+            {% csrf_token %}
+            <span name="modal-content"></span>
+        {% endmodalform %}
+    {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_body %}
+  <script>
+    let $LMS = $('#LMS_CONTENT');
+  </script>
+  <script src="{% static 'lms/js/lms.js' %}"></script>
+  <script>
+    const PARCEL_FEATURE_COLLECTION_CONTEXT = "{{ parcels_feature_collection }}"
+
+    let currentOwnerUrl = ''
+    let currentParcel = {
+      id: '',
+      url: ''
+    }
+
+    const PARCELS_VIEW_PROPS = {
+      currentParcelToggle: 'map', // either 'map' or 'list',
+    }
+
+    const OWNERS_RELATIONSHIP_VIEW = '#OWNERS_RELATIONSHIP_VIEW'
+    const OWNERS_RELATIONSHIP_CONTENT = '#OWNERS_RELATIONSHIP_CONTENT'
+
+    const OWNER_VIEW = '#OWNER_VIEW'
+    const CORRESPONDENCE_DROPDOWN = '#CORRESPONDENCE_DROPDOWN'
+    const CORRESPONDENCE_DROPDOWN_CONTENT = '#CORRESPONDENCE_DROPDOWN_CONTENT'
+
+    const HISTORY_DROPDOWN = '#HISTORY_DROPDOWN'
+    const HISTORY_DROPDOWN_CONTENT = '#HISTORY_DROPDOWN_CONTENT'
+
+    const REMINDERS_VIEW = '#REMINDERS_VIEW'
+    const REMINDERS_CONTENT = '#REMINDERS_CONTENT'
+
+    const TASKS_VIEW = '#TASKS_VIEW'
+    const TASKS_CONTENT = '#TASKS_CONTENT'
+
+    const NOTES_VIEW = '#NOTES_VIEW'
+    const NOTES_CONTENT = '#NOTES_CONTENT'
+
+    fetchProjectBar()
+    init_LOTS_VIEW()
+
+    $LMS.on('click', '#PROJECT_OWNERS_DROPDOWN .project-owner-item', function (e) {
+      // if (!e.target.closest('.dropdown')) {
+      // const closetDropdown = e.target.closest('.dropdown')
+      // console.log('project owner item clicked');
+      // console.log(closetDropdown);
+      // console.log(Boolean(closetDropdown.classList.contains('project-owners-dropdown')));
+      // if (closetDropdown && closetDropdown.classList.contains('project-owners-dropdown')) {
+        console.log('do owner view');
+        const url = $(this).data('url')
+        init_OWNER_VIEW(url)
+        $('#btn_project_view_owners').dropdown('hide');
+      // }
+    })
+
+    function fetchProjectBar(completion = () => {}) {
+      $.ajax({
+        url: "{% url 'lms:project' slug=project.slug %}",
+        method: "GET",
+        success: function (response) {
+          console.log('project bar success');
+            $('#PROJECT_BAR').html(response.html)
+            completion()
+        }
+      })
+    }
+
+    /** 
+     * Render LOTS View for the Project
+    */
+     function init_LOTS_VIEW(completion = () => {}) {
+      console.log('Init lots view');
+       $.ajax({
+        url: $("#PARCELS_VIEW").data('url'),
+        method: "GET",
+        success: function (response) {
+          
+          $('#PARCELS_VIEW').html(response.html)
+          const firstParcel = $('#PARCEL_LIST_CONTENT .parcel-item').first()
+          
+          if (currentParcel.url) {
+            handleParcelChanged(currentParcel.id, currentParcel.url)
+          }
+          else if (firstParcel) {
+           
+            handleParcelChanged(firstParcel.data('id'), firstParcel.data('url'))
+          }
+
+          completion()
+        }
+      }) 
+    } 
+      // LOT-ITEM on clicked
+     
+    
+
+      VIEW_ZOOM = 13
+      styles = {
+        project:
+        {
+          weight: 2,
+          fillOpacity: 0.05,
+          color: '#8f8d8d',
+          zIndex: 0
+        },
+        success: function (response) {
+          $('#PARCELS_VIEW').html(response.html)
+          init_OWNERS_RELATIONSHIP_VIEW()
+
+          console.log('Parcel changed ' + url);
+          if (typeof url !== 'undefined') {
+            updateParcelMapOnSelectingParcel(url + '/map', function() {
+              if (PARCELS_VIEW_PROPS.currentParcelToggle === 'list') {
+                toggleParcelList()
+              }
+              $('#page-loading-icon').addClass('d-none')
+            })
+          }
+        },
+        complete: function () {
+          $('#page-loading-icon').addClass('d-none')
+        }
+      }
+      
+    function updateParcelMapOnSelectingParcel(parcelMapURL, completion) {
+ 
+      $.getJSON(parcelMapURL,
+        function (responseData) {
+          if (!responseData || !responseData.data) return
+        
+          selectedFeature = responseData.data.selectedFeature
+          featureCollectionData = responseData.data.parcels_feature_collection
+    
+          const parcelMiddlePoint = selectedFeature.properties.middle_point.coordinates.slice().reverse() 
+         // parcels_map.setView(parcelMiddlePoint, VIEW_ZOOM ?? 12)
+          // const layer = parcelsLayer.getLayer(selectedFeature.properties.id)
+          // parcels_map.panTo(layer.getBounds().getCenter())
+    
+          // Set project Geometry
+          projectL = L.geoJSON(featureCollectionData.project_geometry, {
+            style: function(feature) {
+              return styles.project
+            },
+            
+          }).addTo(parcels_map)
+          
+          // Set Parcels Geometry with updated data
+          parcelsLayer.clearLayers()
+          parcelsLayer = L.geoJSON(featureCollectionData, {
+            style: function(feature) {
+              return styles.normal
+            },
+            onEachFeature: onEachParcelFeature
+          }).addTo(parcels_map)
+    
+          parcelsLayer.bringToFront();
+    
+          parcelsLayer.eachLayer(function (layer) {  
+            if(layer.feature.properties.lot == selectedFeature.properties.lot 
+              & layer.feature.properties.plan == selectedFeature.properties.plan ) {
+              layer.feature.properties["selected"] = true    
+              layer.setStyle(styles.selected) 
+            } else {
+              setLayerToNormal(layer)
+              layer.feature.properties["selected"] = false
+            }
+          });
+    
+          completion()
+        }
+      );
+    }
+    
+    /** 
+     * Render owners of a parcel (owners relationship)
+     * 
+    */
+    function init_OWNERS_RELATIONSHIP_VIEW() {
+      // owners of a lot
+      console.log('init Owners relatiohsip ' +  $('#OWNERS_RELATIONSHIP_VIEW').data('url'));
+      $.ajax({
+        url: $('#OWNERS_RELATIONSHIP_VIEW').data('url'),
+        method: "GET",
+        success: function (response) {
+          console.log('Relationship success');
+          $('#OWNERS_RELATIONSHIP_CONTENT').html(response.html)
+        }
+      })
+    }
+    
+    /** 
+     * Render Owner View
+     * Include: Correspondence, History, Details, Reminders, Tasks, Notes
+     * 
+    */
+    function init_OWNER_VIEW(url) {
+      currentOwnerUrl = url
+      $.ajax({
+        url: url,
+        type: 'GET',
+        beforeSend: function () {
+          $('#owner_bar').addClass('d-none')
+          $('#owner_progress_bar').removeClass('d-none')
+        },
+        success: function (response) {
+          console.log('init Owner View');
+          $(OWNER_VIEW).html(response.html)
+          $('#owner_bar').removeClass('d-none')
+          $('#owner_progress_bar').addClass('d-none')
+        }
+      })
+    }
+
+
+    // FORM
+    $LMS.on('submit', 'form', function (e) {
+        e.preventDefault();
+
+        // Render in other functino
+        if ($(this).attr('id') == 'parcel_mail_form') {
+          onParcelMailFormSubmit(e)
+          return
+        }
+
+        let $form = $(this);
+        let formData = new FormData($form[0]);
+        let $btn = $form.find(`button[type="submit"]`);
+        let $modal = $form.closest('.modal');
+        let originalBtnHTML = $btn.html();
+
+        console.log('$Form', JSON.stringify($form));
+        console.log($modal.attr('id'));
+        console.log('formData', formData);
+
+        $.ajax({
+            method: "POST",
+            url: $form.prop('action'),
+            data: formData,
+            processData: false,
+            contentType: false,
+            enctype: "multipart/form-data",
+            beforeSend: function () {
+                $btn.addSpinner();
+            },
+            success: function (response) {
+                console.log('Submit success');
+
+                const containerName = $form.data('response_container').attr('id')
+                $form.data('response_container').html(response.html);
+
+                // Update UI after owners are updated
+                if ($modal.attr('id') == 'deleteOwnerModal' ||
+                    $modal.attr('id') == 'newOwnerModal' ||
+                    $modal.attr('id') == 'modifyOwnerModal' || 
+                    $modal.attr('id') == 'revertHistoryModal') {
+                  fetchProjectBar()
+                  init_OWNERS_RELATIONSHIP_VIEW()
+                }
+
+                // Load owner view after an owner is created
+                if ($modal.attr('id') == 'newOwnerModal') {
+                  currentOwnerUrl = $('#OWNER_BAR').data('url')
+                  init_OWNER_VIEW(currentOwnerUrl)
+                }
+
+                // Update Owner View
+                if ($modal.attr('id') == 'modifyOwnerModal' || 
+                    $modal.attr('id') == 'revertHistoryModal') {
+                  currentOwnerUrl && init_OWNER_VIEW(currentOwnerUrl)
+                }
+
+                // Empty Owner View after owner is deleted
+                if ($modal.attr('id') == 'deleteOwnerModal') {
+                  currentOwnerUrl = ''
+                  $(OWNER_VIEW).html("")
+                }
+
+
+                // Update Owner View After an info is updated
+                if ($modal.attr('id') == 'newCorrespondenceModal' || 
+                $modal.attr('id') == 'deleteCorrespondenceModal' ||
+                $modal.attr('id') == 'newFileModal' ||
+                $modal.attr('id') == 'deleteFileModal'  ||
+                $modal.attr('id') == 'newReminderModal' ||
+                $modal.attr('id') == 'deleteReminderModal') {
+                  console.log(currentOwnerUrl);
+                  currentOwnerUrl && init_OWNER_VIEW(currentOwnerUrl)
+                }
+
+                // Update UI after relationship is changed
+                if ($modal.attr('id') == 'newOwnerRelationshipModal' ||
+                $modal.attr('id') == 'newRelationshipModal' ||
+                $modal.attr('id') == 'deleteRelationshipModal'
+                ) {
+                  console.log('update after relationship is added');
+                  console.log(currentParcel);
+                  //init_LOTS_VIEW()
+                }
+
+                $form.resetForm();
+                $modal.modal('hide');
+            },
+            error: function (response) {
+                console.log('error', response);
+                $form.displayFormErrors(response['responseJSON']);
+            },
+            complete: function () {
+                $btn.removeSpinner(originalBtnHTML);
+            }
+        });
+    })
+        .on('hide.bs.modal', '.modal', function (e) {
+        // This is just to stop the modalforms from closing if the form is invalid upon submission.
+        let $modal = $(this);
+        if ($modal.attr('type') === 'normal') {
+          return
+        }
+
+        let $form = $modal.find('form');
+        let $trigger = $(document.activeElement);
+
+        if ($trigger.prop('type') === 'submit') {
+            if (!$form[0].checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+    })
+        .on('show.bs.modal', '.modal', function (e) {
+        let $modal = $(this);
+        if ($modal.attr('type') === 'normal') {
+          // Used for normal modal
+          return
+        }
+        let $form = $modal.find('form');
+        let $e = $(e.relatedTarget) // Get button that activate modal
+        
+        // Container section for the button, this is a sibling of the 'new' button and a parent of the 'delete' and 'modify' buttons
+        // Form will use this container to replace the content of response html
+        let $response_container;
+        $response_container = $e.closest('[data-container]').find('[data-container-content]')
+
+        if ($e.closest('[data-container]').data('container') == 'project_owners') {
+          $response_container = $(OWNER_VIEW)
+        }
+    
+        // Set some form properties
+        console.log('FORM ACTION URL ', $e.data('url'));
+        console.log('response_container' + $response_container.attr('id'));
+        $form.prop('action', $e.data('url'));
+        $form.data('response_container', $response_container);
+
+        // Fill the content of modal from button
+        if ($e.data('modal-content')) {
+          $form.find(`[name="modal-content"]`).html($e.data('modal-content'))
+        }
+
+        if ($e.data('modal-content-bottom')) {
+          $form.find(`[name="modal-content-bottom"]`).html($e.data('modal-content-bottom'))
+        }
+
+        let action = $e.data('action');
+        // Now populate the fields if we're modifying or deleting 
+        if (action !== 'new') {
+            let formDataElement = $e.closest('.form-data')
+            if ($e.data('model') == 'owner') {
+              formDataElement = $LMS.find('.owner-form-data')
+            }
+
+            formDataElement.find('[data-field][data-value]').each(function (i,element) {
+              let data = $(element).data()
+
+              let $field = $form.find(`[name="${data.field}"]`);
+              console.log('$field: ' + JSON.stringify($field));
+
+              if ($field.prop('type') === 'checkbox') {
+                $field.prop('checked', data.value);
+              } else if ($field.attr('type') === 'plaintext') {
+                $field.text(data.value);
+              } else {
+                $field.val(data.value);
+              }
+            })
+
+        }
+    });
+  </script>
+  <script>
+    /**
+     * Filter out items from classname in a container through span content
+     * 
+     * @param searchObjectTag the tag that the it will search with its content
+    */
+    function filterObjects(searchID='owner-search', searchObjectsClass="project-owner-item", searchObjectTag="span", tagNo=0, isDate=false) {
+   
+      var input = document.getElementById(searchID);
+      var filter = input.value.toLowerCase();
+      var objects = document.getElementsByClassName(searchObjectsClass);
+      
+      for (var i = 0; i < objects.length; i++) {
+        var objectName = objects[i].getElementsByTagName(searchObjectTag)[tagNo].innerText.toLowerCase();
+        if(isDate && objectName === filter ){
+          
+          objects[i].style.display = '';
+        }
+        else if (objectName.includes(filter)) {
+          objects[i].style.display = '';
+        } else {
+          objects[i].style.display = 'none';
+        }
+
+        // For searching parcel tenure
+        if (searchID === 'parcel-search' || searchID === 'parcel-search-dropdown') {
+          let tenureName = objects[i].getElementsByTagName(searchObjectTag)[1].innerText.toLowerCase()
+          if (tenureName.includes(filter)) {objects[i].style.display = '';}
+        }
+
+        //
+      }
+    }
+    </script>
+  
+{% endblock %}

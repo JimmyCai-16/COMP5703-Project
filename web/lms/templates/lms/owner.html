@@ -1,0 +1,486 @@
+{% load project_tags %}
+{% load static %}
+
+<!-- {% comment %}
+  PARENT FILE: base.html
+  PARENT DIV: id=OWNER_VIEW
+  FROM URL:
+{% endcomment %} -->
+
+{% if view.instance %}
+{% with view.instance as owner %}
+    <div id="OWNER_BAR" class="owner-main-bar d-flex flex-md-row flex-column-reverse" data-url="{% url 'lms:owner' slug=view.project.slug owner=owner.id %}">
+        <div style="word-break: break-all;">
+           <div class="d-flex">
+            <h4 class= "text-ofx-blue fw-bold"> 
+                {% if owner.preferred_name %}
+                {{owner.get_full_name|title}} ({{owner.preferred_name}})
+                {% else %}
+                    {{owner.get_full_name|title}} 
+                {% endif %}
+            </h4></div>
+        </div>
+        <div class="d-flex flex-row align-items-center justify-content-end">
+            
+            <div id="REMINDERS_VIEW" class="dropdown me-3" data-url="{% url 'lms:reminders' slug=view.project.slug owner=owner.id %}" 
+            data-container="reminders" >
+                <button class="btn-clear-hover p-1 tooltip-wrap " type="button" id ="remindersDropdownMenuButton" 
+                data-bs-toggle="dropdown" >
+                    <div class="tooltip">
+                        <span class="tooltip-action" title="View" titleOnClose="Close">View</span> Reminders
+                    </div>
+                    <i class="fa-solid fa-business-time"></i>
+                    <span style="position: absolute; top: -5px; left: 10px;" class="badge rounded-pill bg-ofx-blue-light">
+                        {{ owner.reminder_count }}
+                        <span class="visually-hidden">{{owner.reminder_count}} reminders</span>
+                    </span>
+                </button>
+                <div class="reminders-dropdown-menu dropdown-menu" aria-labelledby="remindersDropdownMenuButton" >
+                    <span class="dropdown-header d-flex flex-row align-items-center flex-wrap justify-content-between">
+                        <span>
+                            Reminders {{owner.reminder_count}}
+                            <div id="reminders_progress" class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </span>
+                        {% if view.project|is_write:view.member %}
+                        <button class="btn-clear-hover border border-1" data-bs-toggle="modal" data-bs-target="#newReminderModal" data-action="new"
+                        data-url="{% url 'lms:reminders' slug=view.project.slug owner=owner.id %}">
+                            New Reminder
+                        </button>
+                        {% endif %}
+                    </span>
+                    <div id="REMINDERS_CONTENT" class="custom-dropdown-content" data-container-content="reminders">
+                        <!-- owner_reminders.html -->
+                    </div>
+                </div>
+            </div>
+            <div id="FILES_DROPDOWN" class="dropdown me-3" data-url="{% url 'lms:files' slug=view.project.slug owner=owner.id %}">
+                <button class="btn-clear-hover position-relative p-1 tooltip-wrap" type="button" data-bs-toggle="dropdown">
+                    <div class="tooltip">
+                        <span class="tooltip-action" title="View" titleOnClose="Close">View</span> Files
+                    </div>
+                    <i class="fa-solid fa-folder"></i>
+                    <span style="position: absolute; top: -5px; left: 10px;" class="badge rounded-pill bg-ofx-blue-light">
+                        {{ owner.file_count }}
+                        <span class="visually-hidden">{{owner.file_count}} files</span>
+                    </span>
+                </button>
+                <div class="dropdown-menu files-dropdown-menu">
+                    <span class="dropdown-header d-flex flex-row align-items-center flex-wrap justify-content-between">
+                        <span>
+                            Files {{owner.file_count}}
+                            <div id="files_progress" class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </span>
+                        {% if view.project|is_write:view.member %}
+                        <button class="btn-clear-hover border border-1" data-bs-toggle="modal" data-bs-target="#newFileModal" data-action="new"
+                        data-url="{% url 'lms:files' slug=view.project.slug owner=owner.id %}">
+                            New File
+                        </button>
+                        {% endif %}
+                    </span>
+                    <div id="FILES_DROPDOWN_CONTENT" class="custom-dropdown-content">
+                        <!-- owner_files.html -->
+                    </div>
+                </div>
+            </div>
+            <div id="CORRESPONDENCE_DROPDOWN" class="dropdown me-3"
+                data-url="{% url 'lms:correspondences' slug=view.project.slug owner=owner.id %}" data-container="correspondence"
+            >
+               
+                <button class="btn-clear-hover position-relative p-1 tooltip-wrap" type="button" data-bs-toggle="dropdown"
+                >
+                    <div class="tooltip">
+                        <span class="tooltip-action" title="View" titleOnClose="Close">View</span> Correspondence
+                    </div>
+                    <i class="fa-regular fa-file-lines "></i>
+                    <span style="position: absolute; top: -5px; left: 10px;" class="badge rounded-pill bg-ofx-blue-light">
+                        {{ owner.correspondence_count }}
+                        <span class="visually-hidden">{{owner.correspondence_count}} files</span>
+                    </span>
+                </button>
+                <div id="correspondence_dropdown_menu" class="correspondence-dropdown-menu dropdown-menu">
+                    
+                    <div class="dropdown-header d-flex flex-row align-items-center flex-wrap justify-content-between">
+                        <span>Correspondence 
+                            <div id="correspondence_progress" class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </span>
+                        {% if view.project|is_write:view.member %}
+                        <button class="btn-clear-hover border border-1" data-bs-toggle="modal" data-bs-target="#newCorrespondenceModal" data-action="new"
+                            data-url="{% url 'lms:correspondences' slug=view.project.slug owner=owner.id %}">Attach Correspondence
+                        </button>
+                        {% endif %}
+                    </div>
+                    <div id="CORRESPONDENCE_DROPDOWN_CONTENT" class="custom-dropdown-content" data-container-content="correspondence">
+                        <!-- ownner_correspondence.html -->
+                    </div>
+                </div>
+            </div>
+            
+            <div id="HISTORY_DROPDOWN" class="dropdown btn-clear-hover"
+                data-url="{% url 'lms:histories' slug=view.project.slug model='owner' object=owner.id %}"
+                data-container="history"
+            >
+                <button id="history_dropdown_button" class="bg-transparent p-1 border-0 tooltip-wrap" type="button" data-bs-toggle="dropdown">
+                    <div class="tooltip">
+                        <span class="tooltip-action" title="View" titleOnClose="Close">View</span> Owner Updates
+                    </div>
+                    <i class="fa-solid fa-clock-rotate-left fa-flip-horizontal"></i> 
+                    <span class="d-none d-lg-inline">{{ owner.date_updated|date }}</span>
+                </button>
+                
+                <div id="history_dropdown_menu" class="history-dropdown-menu dropdown-menu">
+                    <span class="dropdown-header">
+                        History
+                        <div id="history_progress" class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </span>
+                    <div id="HISTORY_DROPDOWN_CONTENT" class="history custom-dropdown-content" data-container-content="history">
+                        <!-- history.html -->
+                    </div>
+                </div>
+            </div>
+            <div class="dropdown lms-dropdown ms-2">
+                <button type="button" class="btn-clear-hover tooltip-wrap" data-bs-toggle="dropdown">
+                    <div class="tooltip">
+                        <span class="tooltip-action" title="" titleOnClose="Close"></span> Owner Settings
+                    </div>
+                    <i class="fa fa-ellipsis-h"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-2">
+                    {% if view.owner_parcel_relationships.count == 0 %}
+                        <div class="ms-2" style="color: gray;">No parcels owned</div>
+                    {% else %}
+                    <div class="dropdown-item dropdown-item-hover" data-bs-toggle="modal" data-bs-target="#OWNER_PARCELS_MODAL">
+                        View Owned Parcels
+                    </div>
+                    {% endif %}
+                    {% if view.project|is_write:view.member %}
+                    <div class="dropdown-item dropdown-item-hover"
+                        data-bs-toggle="modal" data-bs-target="#modifyOwnerModal" data-model="owner"  data-action="modify"
+                        data-url="{% url 'lms:modify_owner' slug=view.project.slug owner=owner.id %}"
+                    >
+                    Edit Owner
+                    </div>
+                    {% endif %}
+                    {% if view.project|is_admin:view.member %}
+                    <div class="dropdown-item dropdown-item-hover"
+                        data-bs-toggle="modal" data-bs-target="#deleteOwnerModal" data-model="owner" data-action="delete"
+                        data-url="{% url 'lms:delete_owner' slug=view.project.slug owner=owner.id %}"
+                        data-modal-content="
+                            <div class='d-flex flex-column'>
+                                <div class='mb-3' style='border: 0.5px solid gainsboro; border-radius: 5px; padding: 4px;''>
+                                    <i class='fa-solid fa-circle-info'></i> 
+                                    <i>Deleting <b>{{ owner.get_full_name }}</b> from LMS project <b>{{ view.project.name }}</b>. All information of this owner will be deleted!</i>
+                                </div>
+                                <span style='color: red;'>Proceed to delete <b>{{ owner.get_full_name }}</b> from <b>{{view.project.name}}</b>? </span
+                            </div>
+                        "
+                    >
+                    Delete From Project
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="info-main">
+        <div id="OWNER_DETAILS_VIEW" class="info-info owner-form-data row">
+            <div class="col-lg-5 col-md-6 col-sm-12 ">
+                <span hidden data-field="title" data-value="{{ owner.title }}" >{% if owner.title %}{{ owner.get_title_display }}{% endif %}</span>
+                <div class="d-flex justify-content-between" data-field="first_name" data-value="{{ owner.first_name }}">
+                    <span class="fw-bold me-2">First Name</span><span class="col-8"> {{ owner.first_name }}</span></div>
+                <div class="d-flex justify-content-between" data-field="last_name" data-value="{{ owner.last_name }}"> <span class="fw-bold me-2">
+                    Last Name</span><span class="col-8">  {{ owner.last_name }}</span></div>
+                    <div  hidden
+                    data-field="preferred_name" 
+                    {% if owner.preferred_name %} data-value="{{ owner.preferred_name }}" {% endif %}
+                    style="color: grey;"
+                >
+                    {{ owner.preferred_name }}
+                </div>
+                <div class="d-flex justify-content-between" data-field="gender" data-value="{{ owner.gender }}"> <span class="fw-bold me-2">
+                    Gender</span><span class="col-8">{% if owner.get_gender_display != "N/A" %}  {{owner.get_gender_display}} {% else %} None {% endif %}</span></div>
+                    <div class="d-flex justify-content-between"  data-field="date_birth"
+                {% if owner.date_birth %} data-value="{{ owner.date_birth|date:'Y-m-d' }}"{% endif %}> <span class="fw-bold me-2">
+                    DOB</span><span class="col-8">  {{owner.date_birth}}</span></div>
+                <div class="d-flex justify-content-between" data-field="contact_email"
+                {% if owner.contact_email %} data-value="{{ owner.contact_email }}"{% endif %}>
+                <span class="fw-bold me-2">Email Address</span><span class="col-8">  {{ owner.contact_email }}</span> </div>
+            </div>
+          
+            <div class="col-lg-5 col-md-6 col-sm-12 ">
+                <div class="d-flex justify-content-between" data-field="address_street"
+                {% if owner.address_street %} data-value="{{ owner.address_street }}"{% endif %}>
+                <span class="fw-bold ">Street Address </span><span class="col-8"> {{ owner.address_street }}</span></div>
+                <div class="d-flex justify-content-between" data-field="address_postal"
+                {% if owner.address_postal %} data-value="{{ owner.address_postal }}"{% endif %}>
+                <span class="fw-bold">Postal Address</span><span class="col-8">  {{ owner.address_postal }} </span></div>
+               
+                <div class="d-flex justify-content-between" data-field="contact_phone"
+                {% if owner.contact_phone %} data-value="{{ owner.contact_phone }}"{% endif %}>
+                <span class="fw-bold">Phone No</span><span class="col-8">  {{ owner.contact_phone }}</span></div>
+                <div class="d-flex justify-content-between" data-field="contact_mobile"
+                {% if owner.contact_mobile %} data-value="{{ owner.contact_mobile }}"{% endif %}>
+                <span class="fw-bold">Mobile No </span><span class="col-8"> {{ owner.contact_mobile }}</span></div>
+                <div class="d-flex justify-content-between" data-field="contact_fax"
+                {% if owner.contact_fax %} data-value="{{ owner.contact_fax }}"{% endif %}>
+                <span class="fw-bold">Fax No</span><span class="col-8">  {{ owner.contact_fax }}</span></div>
+            </div>
+        </div>
+        <!-- {% comment %}
+        <div id="REMINDERS_VIEW" class="col-lg-5 col-sm-12 info-reminders-main" data-url="{% url "lms:reminders" slug=view.project.slug owner=owner.id %}" data-container="reminders">
+            <div class="info-reminders-bar">
+                <p style="margin-bottom: 0px; margin-right: 8px;" class="section-heading">
+                    Reminders
+                </p>
+                {% if view.project|is_write:view.member %}
+                <button style="border: solid 0.1px gainsboro;" class="btn-clear-hover"
+                    data-bs-toggle="modal" data-bs-target="#newReminderModal" data-action="new"
+                    data-url="{% url "lms:reminders" slug=view.project.slug owner=owner.id %}"
+                >
+                    + new reminder
+                </button>
+                {% endif %}
+            </div>
+            <div id="REMINDERS_CONTENT" class="info-reminders-content" data-container-content="reminders">
+                owner_reminders.html
+            </div>
+        </div>
+        {% endcomment %} -->
+    </div>
+    <hr />
+    <div id="TASKS_VIEW" class="tasks-box" data-url="{% url 'lms:tasks' slug=view.project.slug owner=owner.id %}" data-container="tasks">
+        <div class="tasks-bar d-flex flex-md-row flex-column justify-content-between">
+            <div class="d-flex align-items-center w-100  mb-2">
+                <p class="section-heading">Activity Manager</p>
+                {% if view.project|is_write:view.member %}
+                    <button class="add-btn"
+                    data-bs-toggle="modal" data-bs-target="#newTaskModal" data-action="new"
+                    data-url="{% url 'lms:tasks' slug=view.project.slug owner=owner.id %}"
+                >
+                 + Add new tasks
+                  </button>              
+                {% endif %}
+            </div>
+            <div class="task-search-div w-100 p-0 search-div mb-2">
+                <input type="search" class="form-control search-box" id="task-search" placeholder="Search Task..."
+                    oninput="filterObjects('task-search','task-item','span', 0)"/>                   
+            </div>
+        </div>
+        <div id="TASKS_CONTENT" class="tasks-content" data-container-content="tasks">
+            <!-- onwer_tasks.html -->
+        </div>
+    </div>
+    <hr />
+    <div id="NOTES_VIEW" data-url="{% url 'lms:notes' slug=view.project.slug owner=owner.id %}" data-container="notes">
+        <div class="notes-bar d-flex flex-md-row flex-column justify-content-between">
+            <div class="d-flex align-items-center w-100 mb-2">
+                <span style="margin-bottom: 0px; margin-right: 4px;" class="section-heading">
+                Notes
+                </span>
+                {% if view.project|is_write:view.member %}
+                <button style="" class="add-btn"
+                    data-bs-toggle="modal" data-bs-target="#newNoteModal" data-action="new"
+                    data-url="{% url 'lms:notes' slug=view.project.slug owner=owner.id %}"
+                >
+                + Add new note
+                </button>
+                {% endif %}
+            </div>
+            <div class="notes-search-div w-100 p-0 search-div mb-2">
+                <input type="search" class="form-control search-box" id="notes-search" placeholder="Search Notes..."
+                    oninput="filterObjects('notes-search','note-item','span', 0)" />                   
+            </div>    
+        </div>
+        <div id="NOTES_CONTENT" class="notes-content" data-container-content="notes">
+            <!-- onwer_notes.html -->
+        </div>
+    </div>
+    <div class="modal fade leaflet-modal" type="normal" id="OWNER_PARCELS_MODAL" tabindex="-1" aria-hidden="true"
+    >
+        <div class="modal-dialog modal-lg" style="overflow-y: initial !important;">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">{{owner.get_full_name}}'s parcels</h1>
+            </div>
+            <div class="modal-content" style="min-height: 20vh; height: 50vh; max-height: 80vh">
+                <div class="d-flex flex-md-row flex-sm-column p-2" style="height: inherit">
+                    <div class="flex-grow-1"  style="height: 100%; min-height: 200px; min-width: 70%;">
+                        <div id="owner_parcels_map" class="" style="width: 100%; height: 100%;"></div>
+                    </div>
+                    <div class="p-2 d-flex flex-column" style="overflow: hidden; min-width: 30%;  max-height: inherit">
+                        <div class="mb-2">
+                            <span style="color: gray;">Total parcels: {{view.owner_parcel_relationships.count}} parcels</span>
+                        </div>
+                        <div class="d-flex flex-column" style="max-height: inherit; overflow-y: scroll; overflow-x: hidden;">
+                            {% for relationship in view.owner_parcel_relationships %}
+                            <div class="parcel-item w-100 d-flex flex-column" style="min-height: 100px; height: fit-content;"
+                                onmouseover="ownerParcelOnMouseHover('{{relationship.parcel.parcel.id}}')"
+                                onmouseleave="ownerParcelOnMouseLeaved('{{relationship.parcel.parcel.id}}')"
+                            >
+                                <span>{{ relationship.parcel.parcel }}</span>
+                                <span><b>Start:</b> {{ relationship.date_ownership_start }}</span>
+                                <span><b>Ceased:</b> {{ relationship.date_ownership_ceased }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endwith %}
+{% endif %}
+{% block extra_body %}  
+<script src="{% static 'lms/js/lms_owner_parcels_map.js'%}"></script>
+<script>
+    currentOwnerParcelHoverItem = ''
+    function ownerParcelOnMouseHover(parcel_id) {
+        if (!ownerParcelsLayer) return
+
+        if (currentOwnerParcelHoverItem === parcel_id) return
+        currentOwnerParcelHoverItem = parcel_id
+        console.log('owner parcel on clicked', parcel_id);
+        const layer = ownerParcelsLayer.getLayer(parcel_id)
+        layer.setStyle(styles.hover)
+
+        owner_parcels_map.panTo(layer.getBounds().getCenter())
+    }
+
+    function ownerParcelOnMouseLeaved(parcel_id) {
+        if (!ownerParcelsLayer) return
+        currentOwnerParcelHoverItem = ''
+
+        const layer = ownerParcelsLayer.getLayer(parcel_id)
+        layer.setStyle(styles.normal)
+    }
+</script>
+<script>
+    $(document).ready(() => {
+        
+        var feature_collection = "{{ view.owner_parcels_feature_collection }}"
+        const parcels_feature = JSON.parse(feature_collection.replaceAll("&quot;", '"'))
+        
+       const firstParcelLatLong = parcels_feature.features[0].geometry.coordinates[0][0].slice().reverse()
+        owner_parcels_map = L.map('owner_parcels_map', {
+            zoonControl: false,
+            // dragging: false
+        }).setView(firstParcelLatLong, 13);
+
+
+        
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(owner_parcels_map);
+        generateOwnerParcelsMap(owner_parcels_map, parcels_feature)
+    })
+
+</script>
+<script>
+    $('#OWNER_BAR').get(0).scrollIntoView()
+    
+     // Correspondence
+    document.getElementById('CORRESPONDENCE_DROPDOWN').addEventListener('show.bs.dropdown', function (e) {
+        const correspondence_url = $('#CORRESPONDENCE_DROPDOWN').data('url')
+        $.ajax({
+            url: correspondence_url,
+            type: 'GET',
+            beforeSend: function () {
+                $('#correspondence_progress').removeClass('d-none')
+            },
+            success: function (response) {
+            console.log('Correspondence sucess');
+            $(CORRESPONDENCE_DROPDOWN_CONTENT).html(response.html)
+            $.ajax({
+                url: $('#CORRESPONDENCE_ITEM_LIST').data('url'),
+                type: 'GET',
+                success: function (response) {
+                    $('#CORRESPONDENCE_ITEM_LIST').html(response.html)
+                    $('#correspondence_progress ').addClass('d-none')
+                }
+            })
+            }
+        })
+    })
+
+    // Files
+    document.getElementById('FILES_DROPDOWN').addEventListener('show.bs.dropdown', function (e) {
+        const files_url = $('#FILES_DROPDOWN').data('url')
+        console.log('History ' + files_url);
+        $.ajax({
+            url: files_url,
+            type: 'GET',
+            beforeSend: function () {
+                $('#files_progress').removeClass('d-none')
+            },
+            success: function (response) {
+                console.log('Files success');
+                $('#FILES_DROPDOWN_CONTENT').html(response.html)
+                $('#files_progress').addClass('d-none')
+            }
+        })
+    })
+
+    // History
+    document.getElementById('HISTORY_DROPDOWN').addEventListener('show.bs.dropdown', function (e) {
+        const history_url = $('#HISTORY_DROPDOWN').data('url')
+        console.log('History ' + history_url);
+        $.ajax({
+            url: history_url,
+            type: 'GET',
+            beforeSend: function() {
+                $('#history_progress').removeClass('d-none')
+            },
+            success: function (response) {
+                console.log('History success');
+                $(HISTORY_DROPDOWN_CONTENT).html(response.html)
+                $('#history_progress').addClass('d-none')
+            }
+        })
+    })
+
+    // Reminders
+    reminders_url = $('#REMINDERS_VIEW').data('url')
+    console.log('REMINDER URL' + reminders_url);
+    $.ajax({
+        url: reminders_url,
+        type: 'GET',
+        beforeSend: function() {
+            $('#reminders_progress').removeClass('d-none')
+        },
+        success: function (response) {
+            $(REMINDERS_CONTENT).html(response.html)
+        },
+        complete: function() {
+            $('#reminders_progress').addClass('d-none')
+        }
+    })
+
+    // Tasks
+    tasks_url = $('#TASKS_VIEW').data('url')
+    $.ajax({
+        url: tasks_url,
+        type: 'GET',
+        success: function (response) {
+            console.log('Tasks success');
+            $(TASKS_CONTENT).html(response.html)
+        }
+    })
+
+    // Notes
+    notes_url = $('#NOTES_VIEW').data('url')
+    $.ajax({
+        url: notes_url,
+        type: 'GET',
+        success: function (response) {
+            console.log('Notes success');
+            $(NOTES_CONTENT).html(response.html)
+        }
+    })
+</script>
+{% endblock %}

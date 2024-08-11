@@ -1,0 +1,112 @@
+{% extends 'appboard/base.html' %}
+{% load static %}
+{% load modal_tags %}
+
+{% load modal_tags %}
+{% load project_tags %}
+{% load static %}
+{% load humanize %}
+
+{% block head_title %}
+    Data Catalogue
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'data_catalogue/style.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid  mb-4 content-margin-top-offest">
+    
+    <div class="container">
+        
+        <div class="breadcrumb">
+            <a href="#" class="breadcrumb-item text-ofx-blue-light">[My projects]</a>
+            <span class="breadcrumb-item">[Project Name] - Data Catalogue</span>
+        </div>
+
+        <div id="title-divider" class="mb-4"></div>
+
+        <h4>[Project Name] - Data Catalogue</h4>
+
+        <div class="row data-catalogue-row">
+
+            <div class="col-lg-3 col-sm-12 map-filter-component">
+        
+                {# Project Map Box #}
+                <div class="project-map" id='project_map_box'>[Map goes here]</div>
+                <div class="filter-title">Filter Datasets by Format</div>
+                <div class="data-filter-section">
+                    <input type="checkbox" name="data-formats" value="" id=""><label for="">JPG</label>
+                </div>
+
+            </div>
+            
+            <div class="col-lg-9 col-sm-12 dataset-component">
+                <div class="row">
+                    <form class="d-flex" role="search" method=POST action="#">
+                        {% csrf_token %}
+                        <input class="form-control me-2" type="search" placeholder="Search for datasets..." aria-label="Search" name="searched">
+                    </form>
+                </div>
+
+                <div class="line"></div>
+
+                <div class="row">
+                    <div class="dataset-card">
+                        <div class="card-text-area">
+                            <h5 class="dataset-card-title">[Dataset title/name]</h5>
+                            <p class="dataset-card-desc">[Dataset summary/description]</p>
+
+                        </div>
+                        <div class="card-btn-area">
+                            <a href="#"><button class="preview-btn">Preview</button></a>
+                            <a href="#"><button class="download-btn">Download</button></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="dataset-card">
+                        <div class="card-text-area">
+                            <h5 class="dataset-card-title">[Dataset title/name]</h5>
+                            <p class="dataset-card-desc">[Dataset summary/description]</p>
+
+                        </div>
+                        <div class="card-btn-area">
+                            <a href="#"><button class="preview-btn">Preview</button></a>
+                            <a href="#"><button class="download-btn">Download</button></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="dataset-card">
+                        <div class="card-text-area">
+                            <h5 class="dataset-card-title">[Dataset title/name]</h5>
+                            <p class="dataset-card-desc">[Dataset summary/description]</p>
+
+                        </div>
+                        <div class="card-btn-area">
+                            <a href="#"><button class="preview-btn">Preview</button></a>
+                            <a href="#"><button class="download-btn">Download</button></a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+        </div>
+
+        
+        
+
+    </div>
+
+
+
+</div>
+
+{% endblock %}
+

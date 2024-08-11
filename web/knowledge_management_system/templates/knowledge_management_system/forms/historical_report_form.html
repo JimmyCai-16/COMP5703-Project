@@ -1,0 +1,126 @@
+{% comment %}
+This form is for managing historical data.
+
+Model:
+
+{% endcomment %}
+{{ form.instance_id }}
+<div class="row">
+    <div class="col-6">
+        {# Form Template Selector #}
+        <div class="row mb-3">
+            <label for="{{ form.form_templates.id_for_label }}" class="col-sm-3 col-form-label"><b>Load Template</b></label>
+            <div class="col-sm-9">
+                <div class="input-group input-group-sm">
+                    {{ form.form_templates }}
+                    <button class="btn btn-outline-secondary" type="button" data-import="historical_report_form">Load</button>
+                </div>
+            </div>
+        </div>
+        {# Project Name #}
+        {% comment %}
+        <div class="row mb-3">
+            <label for="{{ form.kms_project.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Project</b>
+            </label>
+            <div class="col-sm-9 d-flex align-items-center">
+                <span>{{ form.kms_project.project.name }}</span>
+            </div>
+        </div>
+        {% endcomment %}
+        {# Historical Report Identifier #}
+        <div class="row mb-3">
+            <label for="{{ form.report_id.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Report ID</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.report_id }}
+            </div>
+        </div>
+        {# Historical Report Name #}
+        <div class="row mb-3">
+            <label for="{{ form.name.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Report Name</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.name }}
+            </div>
+        </div>
+        {# Company/Explorer #}
+        <div class="row mb-3">
+            <label for="{{ form.company.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Company/Explorer</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.company }}
+            </div>
+        </div>
+        {# Prospect Tags #}
+        <div class="row mb-3">
+            <label for="{{ form.prospect_tags.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Prospect Tags</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.prospect_tags }}
+            </div>
+        </div>
+    </div>
+    <div class="col-6">
+        {# Historical Report Author #}
+        <div class="row mb-3">
+            <label for="{{ form.author.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Author</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.author }}
+            </div>
+        </div>
+        {# Historical Tenure Number #}
+        <div class="row mb-3">
+            <label for="{{ form.tenure_number.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Tenure No</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.tenure_number }}
+            </div>
+        </div>
+        {# Work Type #}
+        <div class="row mb-3">
+            <label for="{{ form.type_of_work.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Work Type</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.type_of_work }}
+            </div>
+        </div>
+        {# Date Published #}
+        <div class="row mb-3">
+            <label for="{{ form.date_published.id_for_label }}" class="col-sm-3 col-form-label">
+                <b>Date Published</b>
+            </label>
+            <div class="col-sm-9">
+                {{ form.date_published }}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-12">
+        {# Summary #}
+        <label for="{{ form.summary.id_for_label }}">
+            <b>Summary</b>
+        </label>
+        <div class="col-12">
+            {{ form.summary }}
+        </div>
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-end">
+        <div class="form-check-inline text-right">
+            {# Is Template #}
+            <label for="{{ form.is_template.id_for_label }}">Save as Template?</label>
+            {{ form.is_template }}
+        </div>
+    </div>
+</div>

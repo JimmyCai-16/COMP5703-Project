@@ -1,0 +1,62 @@
+.no-border-input {
+  border: none !important;
+  box-shadow: none !important; /* This is to remove the Bootstrap's default shadow */
+}
+
+/* Remove border on focus */
+.no-border-input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.dropdown-item {
+  cursor: pointer !important;
+}
+
+.dropdown-item:active {
+  background-color: var(--ofx-blue) !important;
+  color: white !important;
+}
+
+.btn-clear-hover {
+  background-color: transparent;
+  border: 0px;
+  padding: 1px;
+
+  border-radius: 4px;
+}
+
+.btn-clear-hover.hover, .btn-clear-hover:hover {
+  background-color: gainsboro !important;
+  color: black !important;
+}
+
+.btn-clear-hover .dark-hover:hover {
+  background-color: grey !important;
+  color: gainsboro !important
+}
+
+.bs-tooltip-bottom .tooltip-inner {
+  text-align: left;
+  white-space: pre-line;
+}
+
+.long-tooltip {
+  --bs-tooltip-max-width: 600px;
+  --bs-tooltip-arrow-width: 0px;
+  --bs-tooltip-color: gainsboro;
+}
+
+.no-arrow-tooltip {
+  --bs-tooltip-arrow-width: 0px;
+}
+
+.no-arrow-grey-tooltip {
+  --bs-tooltip-arrow-width: 0px;
+  --bs-tooltip-color: gainsboro;
+}
+
+.task-card-tooltip {
+  --bs-tooltip-bg: gainsboro;
+  --bs-tooltip-color: dimgrey;
+}

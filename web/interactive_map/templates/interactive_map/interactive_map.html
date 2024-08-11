@@ -1,0 +1,326 @@
+{% extends "appboard/base.html" %}
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+{% block extra_head %}
+    {# CSS and JavaScript for MiniMap #}
+    <link rel="stylesheet" href="{% static 'interactive_map/css/Control.MiniMap.css' %}" />
+    <script src="{% static 'interactive_map/js/Control.MiniMap.js' %}" type="text/javascript"></script>
+
+    {# CSS and JavaScript for Leaflet Draw #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+    {# CSS and JavaScript for Fullscreen #}
+    <link href="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js"></script>
+
+    {# CSS and JavaScript for Layers Tree #}
+    <link rel="stylesheet" href="{% static 'interactive_map/css/L.Control.Layers.Tree.css' %}" />
+    <script src="{% static 'interactive_map/js/L.Control.Layers.Tree.js' %}"></script>
+
+    {# CSS for Map API and Custom Map CSS #}
+    <link rel="stylesheet" href="{% static 'interactive_map/css/api.css' %}" />
+    <link rel="stylesheet" href="{% static 'interactive_map/css/map.css' %}" />
+
+    {% csrf_token %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid content-margin-top-offest mb-5 sp-map">
+        <div class="container">
+            <h4 class="text-ofx-blue pb-4">Queensland Tenure Monitoring Map<i class="ms-2 fas fa-fw fal fa-map"></i></h4>
+            {# MAP CONTAINER #}
+            <div id="map-header">Select tenement(s) displayed using the toolbar to see their details</div>
+            <div id="map-container" style="position: relative;">
+                <div id="map" style="position: inherit !important;"></div>
+            </div>
+            <div id="map-footer">Results <span class="badge rounded-pill" id="total-count-badge">0</span></div>
+            {# MAP SELECTION TABLE #}
+            <div class="card" id="tenementTableResult" style="display: none;">
+                <div class="card-header" style="border-radius: 0;">
+                    <div class="nav nav-tabs card-header-tabs" id="selectionNav" role="tablist"></div>
+                </div>
+                <div class="card-body tab-content" id="selectionPanels"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the selected <b id="rowCount"></b> rows?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ofx-blue cancel-delete" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-ofx-red confirm-delete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <script src="{% static 'interactive_map/js/api.js' %}" type="text/javascript"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            const tables = [
+                { permit_type: 'EPM', permit_status: 'A', title: 'EPM Application' },
+                { permit_type: 'EPM', permit_status: 'G', title: 'EPM Granted' },
+                { permit_type: 'EPC', permit_status: 'A', title: 'EPC Application' },
+                { permit_type: 'EPC', permit_status: 'G', title: 'EPC Granted' },
+                { permit_type: 'MDL', permit_status: 'A', title: 'MDL Application' },
+                { permit_type: 'MDL', permit_status: 'G', title: 'MDL Granted' },
+                { permit_type: 'ML', permit_status: 'A', title: 'ML Application' },
+                { permit_type: 'ML', permit_status: 'G', title: 'ML Granted' },
+            ];
+
+            const tableDataMap = {};
+
+            tables.forEach(function (tableData, index) {
+                const { permit_type, permit_status, title } = tableData;
+                const id = `${permit_type}-${permit_status}`;
+                const isFirst = index === 0;
+
+                const navLinkClass = isFirst ? ' active' : '';
+                const navContentClass = isFirst ? ' show active' : '';
+
+                const tableContainer = $(`<div class="table-container" id="${id}-table-container"></div>`);
+                const tenementTable = $(`<table id="${id}-table" class="table table-bordered table-striped" style="width: 100%;"></table>`).DataTable({
+                    columns: [
+                        { data: 'permit_id', title: 'Permit ID', width: '100px' },
+                        { data: 'permit_status_display', title: 'Permit Status' },
+                        { data: 'date_lodged', title: 'Date Lodged' },
+                        { data: 'date_granted', title: 'Date Granted' },
+                        { data: 'date_expiry', title: 'Date Expiry' },
+                        { data: 'ahr_name', title: 'Authorised Holder Name' }
+                    ],
+                    columnDefs: [
+                        {
+                            "defaultContent": "None",
+                            "targets": "_all"
+                        }
+                    ],
+                    dom: 'Bfrt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-4"i><"col-sm-12 col-md-5"p>>',
+                    select: {
+                        style: "multi",
+                    },
+                    buttons: [
+                        {
+                            text: '<i class="fa fa-trash"></i>', 
+                            className: 'btn-blue',
+                            action: function () {
+                                const deletedRows = $(`#${id}-table`).DataTable().rows(".selected");
+
+                                if (deletedRows.count() > 0) {
+                                    $('#deleteModal').modal('show');
+                                    $('#rowCount').text(`(${deletedRows.count()})`)
+
+                                    $('.confirm-delete').click(function() {
+                                        const deletedRows = $(`#${id}-table`).DataTable().rows(".selected");
+                                        deletedRows.remove().draw();
+                                        updateHeaders();
+                                        $('#deleteModal').modal('hide');
+                                    });
+
+                                    $('.cancel-delete').click(function() {
+                                        $('#deleteModal').modal('hide');
+                                    });
+                                }
+                            },
+                        },
+                        {
+                            text: 'CSV',
+                            className: 'btn-blue',
+                            extend: 'csv',
+                            exportOptions: {
+                                columns: ':visible',
+                            },
+                        },
+                        {
+                            text: 'Excel',
+                            className: 'btn-blue',
+                            extend: 'excel',
+                            exportOptions: {
+                                columns: ':visible',
+                            },
+                        },
+                        {
+                            text: 'PDF',
+                            className: 'btn-blue',
+                            action: function () {
+                                $(`#${id}-table`).DataTable().button('.buttons-print').trigger();
+                            },
+                        },
+                    ],
+                });
+
+                new $.fn.dataTable.Buttons(tenementTable, {
+                    buttons: [
+                        'csv',
+                        'excel',
+                        'pdf',
+                        'print',
+                    ],
+                });
+
+                tableContainer.append(tenementTable.table().container());
+                tenementTable.buttons().container().appendTo($(`#${id}-table_wrapper .col-md-6:eq(0)`));
+
+                const navTab = $(
+                    `<li id="${id}-nav" class="nav-link${navLinkClass}" data-bs-toggle="tab" data-bs-target="#${id}-panel" role="tab" data-table-id="${id}">
+                        ${title}&nbsp;<span class="badge rounded-pill">0</span></a>
+                    </li>`
+                );
+                const navPanel = $(
+                    `<div id="${id}-panel" class="tab-pane fade${navContentClass}" role="tabpanel"></div>`
+                ).append(tableContainer);
+
+                $('#selectionNav').append(navTab);
+                $('#selectionPanels').append(navPanel);
+
+                tableDataMap[id] = tenementTable;
+
+                $(`#${id}-table tbody`).on('click', 'tr', function () {
+                    $(this).toggleClass('selected');
+                    const selectedRows = $(`#${id}-table tbody .selected`);
+                    const selectedData = selectedRows.map(function () {
+                        return tenementTable.row($(this)).data();
+                    }).toArray();
+
+                    tenementTable.rows().deselect();
+                    tenementTable.rows(selectedRows).select();
+                    updateTabBadgeCount(id, selectedData.length);
+                });
+            });
+
+            function updateHeaders() {
+                let total_count = 0;
+                for (const tableId in tableDataMap) {
+                    if (tableDataMap.hasOwnProperty(tableId)) {
+                        const table = tableDataMap[tableId];
+                        const row_count = table.rows().count();
+                        $(`#${tableId}-nav span.badge.rounded-pill`).text(row_count);
+                        total_count += row_count;
+                        if (row_count > 0){
+                            $(`#${tableId}-nav`).show();
+                            $(`#${tableId}-panel`).show();
+                        }
+                        else {
+                            $(`#${tableId}-nav`).hide();
+                            $(`#${tableId}-panel`).hide();
+                        }
+                    }
+                }
+                if (total_count > 0){
+                    $('#total-count-badge').text(total_count);
+                    var firstTab = $('#selectionNav li:visible').first();
+                    console.log(firstTab);
+                    firstTab.tab('show');
+                    $(`#tenementTableResult`).show();
+                }
+                else{
+                    $('#total-count-badge').text(0);
+                    $(`#tenementTableResult`).hide();
+                }
+            }
+
+            const map = $('#map').InteractiveMap({
+                width: '100%',
+                height: '800px',
+                widgets: ['minimap', 'fullscreen', 'legend', 'scale', 'toolbar', 'resetBounds', 'label', 'mouseCoords', 'searchBox', 'zoomButton'],
+                layers: [
+                    {# TENEMENT ENDPOINT #}
+                    {
+                        url: "{% url 'interactive_map:tenements' %}",
+                        tooltip: (feature) => {
+                            const {
+                                permit_type,
+                                permit_number,
+                                permit_status,
+                                permit_status_display,
+                                date_lodged,
+                                date_expiry,
+                                date_granted,
+                                ahr_name,
+                            } = feature.properties;
+
+                            return `
+                                <table>
+                                    <tbody>
+                                        <tr><th>Permit ID: </th><td>${permit_type} ${permit_number}</td></tr>
+                                        ${date_granted ? `<tr><th>Granted Date: </th><td>${date_granted}</td></tr>
+                                        <tr><th>Expiry Date: </th><td>${date_expiry}</td></tr>` : `<tr><th>Lodged Date</th><td>${date_lodged}</td></tr>`}
+                                        <tr><th>Company Name: </th><td>${ahr_name}</td></tr>
+                                    </tbody>
+                                </table>
+                            `;
+                        },
+                    },
+                ]
+            });
+
+            // Toolbar Events
+            map.on(InteractiveMap.Event.Toolbar.preDraw, function (e) {
+                $('#selectionPanels').find('table').each(function () {
+                    $(this).DataTable().clear().draw();
+                });
+
+            }).on(InteractiveMap.Event.Toolbar.postDraw, function (e) {
+
+                updateHeaders();
+
+            }).on(InteractiveMap.Event.Toolbar.selectedFeature, function (e) {
+
+                const feature = e.detail.target.feature;
+                const { permit_id, permit_type, permit_status, permit_number } = feature.properties;
+                if (!permit_id) {
+                    return;
+                }
+                const id = `${permit_type}-${permit_status}`;
+                const table = $(`#${id}-table`).DataTable();
+                const isDuplicate = table.rows().data().toArray().some(row => {
+                    return (row.permit_type === permit_type && row.permit_number === permit_number);
+                });
+                if (!isDuplicate) {
+                    table.row.add(feature.properties).draw();
+                }
+                updateTabBadgeCount(id, table.rows().count());
+            // Search Box Events
+            }).on(InteractiveMap.Event.Search.changed, function (e) {
+                // Filter the features and display the first 10 options.
+                e.detail.widget.filter('permit_id');
+
+            }).on(InteractiveMap.Event.Search.submit, function (e) {
+                // Find the feature, and zoom to it.
+                e.detail.widget.search('permit_id');
+            });
+
+            const tabBadgeCounts = {};
+
+            function updateTabBadgeCount(tableId, count) {
+                $(`[data-table-id="${tableId}"] span.badge.rounded-pill`).text(count);
+                const totalCount = Object.values(tabBadgeCounts).reduce((total, tabCount) => total + tabCount, 0);
+                $('#total-count-badge').text(totalCount);
+            }
+            $('#selectionNav a').click(function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                // Trigger a DataTables redraw when the tab is shown
+                var tabId = $(this).attr('href');
+                var tableId = tabId.replace("#", "");
+                if (tableDataMap.hasOwnProperty(tableId)) {
+                    tableDataMap[tableId].draw();
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,50 @@
+#myKanban {
+  overflow-x: auto;
+}
+
+.btn-outline-secondary {
+  /*background-color: lightgray;*/
+  border: none;
+  /*color: white;*/
+  padding: 7px 15px;
+  margin: 12.5px;
+  width: 90%;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+#inputGroupSelect01 {
+  width: 300px !important;
+}
+
+/* Remove the dropdown icon */
+.dropdown-toggle::after {
+  display: none;
+}
+
+.member-tag {
+  display: block;
+  width: fit-content;
+  padding: 5px 10px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  background-color: transparent;
+  color: #000000;
+  border: 1px solid var(--ofx-blue);
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.close-btn {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 2px;
+}
+
+.close-btn:hover {
+  background-color: gainsboro;
+}

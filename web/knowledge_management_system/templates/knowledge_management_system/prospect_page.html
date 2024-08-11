@@ -1,0 +1,246 @@
+{% extends 'appboard/base.html' %}
+{% load modal_tags %}
+{% load static %}
+{% load project_tags %}
+
+{% block head_title %}
+    KMS - Prospect: {{ target.name }}
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/css/bootstrap-select.min.css"
+          integrity="sha512-mR/b5Y7FRsKqrYZou7uysnOdCIJib/7r5QeJMFvLNHNhtye3xJp1TdJVPLtetkukFn227nKpXD9OjUc09lx97Q=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'knowledge_management_system/css/kms.css' %}">
+
+    <script type="text/javascript" src="{% static 'knowledge_management_system/js/tinymce/tinymce.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"
+            integrity="sha512-FHZVRMUW9FsXobt+ONiix6Z0tIkxvQfxtCSirkKc5Sb4TKHmqq1dZa8DphF0XqKb3ldLu/wgMa8mT6uXiLlRlw=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid mb-4 content-margin-top-offest">
+        <div class="container">
+
+            <div class="row">
+                <div class="col-6">
+                    <div class="breadcrumb">
+                        <a href="{% url 'project:dashboard' slug=project.slug %}"
+                           class="breadcrumb-item text-ofx-blue-light">{{ project.name }}</a>
+                        <a href="{% url 'kms:project_page' slug=project.slug %}"
+                           class="breadcrumb-item text-ofx-blue-light">KMS</a>
+                        <span class="breadcrumb-item">Prospect {{ target.name }}</span>
+                    </div>
+                </div>
+
+                <div class="col-6 d-flex justify-content-end">
+                    <span>Online Users:</span>
+                    <span id="online-users"></span>
+                </div>
+
+            </div>
+
+            <div id="title-divider" class="mb-4"></div>
+            <div class="row mb-4">
+                <h4 class="text-ofx-blue">
+                    Prospect {{ target.name }}
+                </h4>
+            </div>
+
+            <div class="row justify-content-center">
+            <div class="col-12 col-lg-12 col-xl-10">
+                <div class="row">
+                    <div class="col-8">
+                        <div class="card">
+                            <div class="card-header">
+                                Prospect Rationale
+                            </div>
+                            <div class="card-body{% if project|is_owner:member %} p-0{% endif %}">
+                                {% if project|is_owner:member %}
+
+                                    <form id="prospect.rationale" method="POST"
+                                          action="{% url 'kms:prospect_cms' slug=project.slug target=kms.prospect_id %}">
+                                        {% csrf_token %}
+                                        <textarea data-tinymce-i>
+                                            {{ kms.rationale|safe }}
+                                        </textarea>
+                                    </form>
+                                {% else %}
+                                    <div id="prospect.rationale" class="text-wrap">
+                                        {{ kms.rationale|safe }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div id="project_map_box" class="w-100 h-100">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="prospectAccordion" class="accordion accordion-ofx-blue mt-4">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="prospectH1">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#prospectC1" aria-controls="prospectC1" aria-expanded="false">
+                                Prospect Hypothesis
+                            </button>
+                        </h2>
+                        <div id="prospectC1" class="accordion-collapse collapse" aria-labelledby="prospectH1"
+                             data-bs-parent="#prospectAccordion">
+                            <div class="accordion-body">
+
+                                <div class="row">
+                                    <div class="col-12">
+                                        {% if project|is_owner:member %}
+                                            <form id="prospect.hypothesis" method="POST"
+                                                  action="{% url 'kms:prospect_cms' slug=project.slug target=kms.prospect_id %}">
+                                                {% csrf_token %}
+                                                <textarea data-tinymce-i>
+                                                        {{ kms.hypothesis|safe }}
+                                                    </textarea>
+                                            </form>
+                                        {% else %}
+                                            <div id="prospectHypothesis">
+                                                {{ kms.hypothesis|safe }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#prospectC2" aria-controls="prospectC2" aria-expanded="false">
+                                Prospect Objectives
+                            </button>
+                        </h2>
+                        <div id="prospectC2" class="accordion-collapse collapse" aria-labelledby="prospectH1"
+                             data-bs-parent="#prospectAccordion">
+                            <div class="accordion-body">
+
+                                <div class="row">
+                                    <div class="col-12">
+                                        {% if project|is_owner:member %}
+                                            <form id="prospect.objectives" method="POST"
+                                                  action="{% url 'kms:prospect_cms' slug=project.slug target=kms.prospect_id %}">
+                                                {% csrf_token %}
+                                                <textarea data-tinymce-i>
+                                                        {{ kms.objectives|safe }}
+                                                    </textarea>
+                                            </form>
+                                        {% else %}
+                                            <div id="prospectObjectives">
+                                                {{ kms.objectives|safe }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="prospectH2">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#prospectC3" aria-controls="prospectC3" aria-expanded="false">
+                                Full Prospect Report
+                            </button>
+                        </h2>
+                        <div id="prospectC3" class="accordion-collapse collapse" aria-labelledby="prospectH2"
+                             data-bs-parent="#prospectAccordion">
+                            <div class="accordion-body">
+                                <div class="row">
+                                    <div id="reportAccordion" class="accordion accordion-ofx-blue mt-4">
+                                        <div class="row">
+                                            <div class="row mb-2">
+                                                <div class="col-11">
+                                                    Total reports: {{ all_reports|length }}
+                                                </div>
+                                                <div class="col-1">
+                                                    <select class="form-select-sm" id="fullReportSelectSortBy">
+                                                        <option value="1" selected>Newest</option>
+                                                        <option value="2">Oldest</option>
+                                                    </select>
+                                                </div>
+                                                {#                                        <div class="col-3">#}
+                                                {#                                            <input id="searchReport">#}
+                                                {#                                            <span class="fa fa-search h-100"></span>#}
+                                                {#                                        </div>#}
+                                            </div>
+                                            <div id="reportItems" page="1">
+                                                {% for report in all_reports %}
+                                                    <div class="accordion-item reportItem"
+                                                         reportIndex={{ forloop.counter }} id="report{{ forloop.counter }}">
+                                                        <h2 class="accordion-header" id="reportH{{ forloop.counter }}">
+                                                            <button class="accordion-button collapsed" type="button"
+                                                                    data-bs-toggle="collapse"
+                                                                    data-bs-target="#reportC{{ forloop.counter }}"
+                                                                    aria-controls="reportC{{ forloop.counter }}"
+                                                                    aria-expanded="false">
+                                                                {{ report.name }} ( {{ report.type }} Report )
+                                                            </button>
+                                                        </h2>
+                                                        <div id="reportC{{ forloop.counter }}"
+                                                             class="accordion-collapse collapse"
+                                                             aria-labelledby="reportH{{ forloop.counter }}"
+                                                             data-bs-parent="#reportAccordion">
+                                                            <div class="accordion-body">
+                                                                        <textarea data-tinymce-r>
+                                                                            <div class="mceNonEditable">{{ report.summary }}</div>
+                                                                        </textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    <div id="kmsForms">
+        {% modalform id="workReport" title="Work Report Editor" submit_text='Save' size='xl' method="POST" action='form/work_report' %}
+            {% csrf_token %}
+            {{ work_report_form }}
+        {% endmodalform %}
+
+        {% modalform id="statusReport" title="Status Report Editor" submit_text='Save' size='xl' method="POST" action='form/status_report' %}
+            {% csrf_token %}
+            {{ status_report_form }}
+        {% endmodalform %}
+
+        {% modalform id="historicalReport" title="Historical Report Editor" submit_text='Save' size='xl' method="POST" action='form/historical_report' %}
+            {% csrf_token %}
+            {{ historical_report_form }}
+        {% endmodalform %}
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <script type="module" src="{% static 'knowledge_management_system/js/KMS.js' %}"></script>
+    <script type="module" src="{% static 'knowledge_management_system/js/prospect.js' %}"></script>
+    <script type="text/javascript" src="{% static 'interactive_map/js/get_project_map.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+
+            $('#project_map_box').load("{% url 'kms:get_kms_target_map' slug=project.slug target=target.id %}");
+        });
+    </script>
+{% endblock %}

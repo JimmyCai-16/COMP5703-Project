@@ -1,0 +1,530 @@
+/* Base Page Display */
+body,
+html {
+    /* height: auto; */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+#main-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    /* min-height: 100vh;  */
+}
+#main-content::before {
+    content: "";
+    /* flex-grow: 1; */
+}
+
+.fixed-bottom-new {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1030;
+  }
+.sticky-top {
+    position: sticky;
+    top: 0;
+}
+
+footer {
+    /* background-color: #333; */
+    color: #000;
+    text-align: center;
+    padding: 10px 0;
+    flex-shrink: 0; 
+}
+.sidebar-expanded {
+    width: 15.5rem;
+    font-size: 0.95rem;
+}
+/*.bright {filter: brightness(400%)}*/
+.bright { filter:brightness(0) invert(1) }
+.sidebar-collapsed {
+    width: 7rem;
+    text-align: center;
+}
+
+@media only screen and (max-width: 768px) {
+    .sidetoggle {
+        display: none;
+    }
+
+    .sidebar-expanded {
+        width: 6.75rem;
+        text-align: center;
+    }
+
+    .side-orefox {
+        display: none;
+    }
+
+    .side-item {
+        display: grid;
+        font-size: x-small;
+    }
+
+    .collapse-align {
+        align-items: center;
+    }
+}
+
+@media only screen and (max-width: 479px) {
+    #sidebar {
+        display: none;
+    }
+}
+
+header {
+    position: fixed;
+    top: 0;
+    height: var(--header-height);
+    z-index: 1000;
+    width: 100%;
+}
+
+/* remove the below if you don't want smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+.sidetoggle {
+    height: 2.75rem;
+    width: 2.75rem;
+    background-color: rgba(170, 170, 170, 0.2);
+}
+
+.sidetoggle:hover {
+    background-color: rgba(170, 170, 170, 0.4);
+}
+
+li {
+    list-style-type: none;
+}
+
+/* #sidebar {
+    min-height: 100vh;
+    position: fixed;
+    max-width: 15rem;
+    overflow-y: scroll;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+}
+
+#sidebar ul>li>a {
+    opacity: 0.75;
+    color: var(--ofx-light);
+    width: 100%;
+}
+
+#sidebar ul>li>a>i {
+    opacity: 1;
+    margin: 20px;
+}
+
+#sidebar ul>li>a:hover {
+    opacity: 1;
+    color: var(--ofx-light);
+}
+
+#sidebar ul>li>a:hover .fas {
+    opacity: 1;
+    color: var(--ofx-light);
+}
+*/
+
+/* Current side bar option appears white */
+/* #sidebar ul>li.active>a {
+    color: var(--ofx-light);
+    font-weight: 700;
+    font-size: 1rem;
+    opacity: 1;
+}
+
+#sidebar ul>li.active>a .fas {
+    color: var(--ofx-light);
+    font-weight: 700;
+    font-size: 1rem;
+    opacity: 1;
+}  */
+
+.collapse-item {
+    display: grid;
+    font-size: 0.7rem;
+}
+
+#scrollUp {
+    display: none;
+    position: fixed;
+    bottom: 30px;
+    right: 10px;
+    z-index: 2100;
+    border: none;
+    outline: none;
+    background-color: #555;
+    color: white;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 5px;
+}
+
+#scrollUp:hover {
+    background-color: var(--ofx-blue)
+}
+
+#scrollUp:before {
+    content: "";
+    position: absolute;
+    inset: 40%;
+    transform: translateY(20%) rotate(-45deg);
+    border-top: 3px solid #fff;
+    border-right: 3px solid #fff;
+}
+
+/* ------------------------------------ New side bar menu styling ------------------------------------ */
+
+.img-profile {
+    width: 75%;
+    height: 75%;
+    object-fit: contain;
+}
+
+.orefox-text {
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 750;
+    text-align: center;
+    letter-spacing: 0.05rem;
+    z-index: 1;
+}
+
+.sidebar {
+    min-height: 100vh;
+    position: fixed;
+    width: 15rem;
+    overflow-y: scroll;
+    top: 0;
+    bottom: 0;
+    z-index: 10000;
+    background-color: var(--ofx-blue);
+}
+
+.sidebar a {
+    text-decoration: none;
+}
+
+.side-menu-item {
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+    /* margin-bottom: 0.5rem; */
+}
+
+.side-main-btn {
+    display: block;
+    padding: 1rem 1.2rem;
+    color: var(--ofx-light);
+    position: relative;
+    opacity: 0.5;
+}
+
+.side-main-btn:hover {
+    opacity: 1;
+    color: white;
+    transition: 0.3s;
+    font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 7px;
+}
+
+.side-main-btn.active {
+    opacity: 1;
+    color: white;
+    font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 7px;
+}
+
+.side-menu-sub-item {
+    display: none;
+    text-align: left;
+    font-size: medium;
+    padding: 0.3rem;
+}
+
+.side-menu-sub-item li.active {
+    color: var(--ofx-light);
+    background-color: rgba(255, 255, 255, 0.089);
+    border-radius: 7px;
+    transition: 0.3s;
+}
+
+.side-menu-sub-item li a {
+    color: var(--ofx-light);
+    display: block;
+    /* margin-top: 0.5rem;
+    margin-bottom: 0.5rem; */
+    padding: 0.3rem;
+}
+
+.side-menu-sub-item li a:hover {
+    color: var(--ofx-light);
+    background-color: rgba(255, 255, 255, 0.089);
+    border-radius: 7px;
+    transition: 0.3s;
+}
+
+/* Top nav bar menu items */
+.navbar-top {
+    border: 1px solid black;
+}
+
+.main-nav-btn {
+    margin-right: 1.5rem;
+    text-decoration: none;
+    color: var(--ofx-gray);
+}
+
+.main-nav-text {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.main-nav-btn:hover {
+    color: var(--ofx-blue);
+    transition: 0.2s;
+}
+
+#topbar {
+    width: auto;
+    margin-left: 14.5rem;
+}
+
+#topbar ul>li.active>a {
+    color: var(--ofx-blue);
+}
+
+/* -------------------------------------------------------------------------------------------------- */
+
+table.dataTable {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+table.dataTable thead th {
+    background-color: #c8ddfc;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+    text-align: center;
+    font-size: .85rem;
+}
+
+table.dataTable tbody td {
+    padding: 0.5rem;
+    text-align: center;
+    font-size: .80rem;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.p-dash-table {
+    font-size: .85rem;
+}
+
+/* The 'View' button that will be next to the project name */
+.view-projects-btn {
+    float: right;
+    width: 3.125rem;
+    height: 1.5rem;
+    border: none;
+    border-radius: 0.3rem;
+    background-color: green;
+    color: white;
+    cursor: pointer;
+}
+
+.view-projects-btn:hover {
+    background-color: white;
+    color: green;
+    border-color: green;
+    border-style: solid;
+    border-width: thin;
+    transition: 0.5s;
+}
+
+/* Styling for alternate rows */
+table.dataTable tbody tr:nth-child(even) {
+    background-color: #c8ddfc;
+}
+
+/* Styling for selected row */
+table.dataTable tbody tr.selected {
+    background-color: #fcf8e3;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #ddd
+}
+
+table.dataTable .noowrap {
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Pagination styling */
+.dataTables_paginate {
+    text-align: center;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.sidebar-icons {
+    animation: blink 1s infinite;
+}
+
+.tools-link:hover,
+.tools-link a:hover {
+    background-color: var(--ofx-orange);
+}
+
+.dataTables_paginate .paginate_button {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.dataTables_paginate .paginate_button.current {
+    background-color: #f7f7f7;
+    border-color: #ddd;
+}
+
+.p-dash-table tbody tr:nth-child(odd) {
+    background-color: #c8ddfc;
+}
+
+/* Styling for selected row */
+.p-dash-table tbody tr.selected {
+    background-color: #fcf8e3;
+}
+
+.p-dash-table tbody tr:hover {
+    background-color: #f3f3f3
+}
+
+.p-dash-nav {
+    font-size: .95rem;
+    padding-left: 0rem;
+    padding-right: .2rem;
+}
+
+.swiper-slide-shadow-bottom {
+    background-color: #fdefde;
+
+}
+
+.content-margin-top-offest {
+    margin-top: 20px;
+
+}
+
+#flash-message {
+
+    position: relative;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    margin-top: 0px;
+    width: 90%; /* Add this line to make it full width */    
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* semi-transparent black */
+    z-index: 9999;
+    /* make sure the overlay appears on top of everything else */
+    cursor: wait;
+    /* show the wait cursor */
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 0.3rem;
+    outline: 0;
+    z-index: 3000
+}
+
+.dataTables_filter {
+
+    text-align: end;
+    margin-bottom: 10px;
+
+}
+
+.dataTables_filter>label {
+
+    text-align: start;
+
+
+}
+
+.dataTable .child .dtr-data {
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
+}
+
+/* Target Chrome's scrollbar */
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+
+}
+
+.dashboard-row .card{
+    max-height: 250px;
+    overflow-y: auto;
+}

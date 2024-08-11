@@ -1,0 +1,55 @@
+.btn-blue {
+  background-color: #273272;
+  color: white;
+}
+
+/* Style for the table footer pagination only */
+.dataTables_wrapper .dataTables_paginate {
+  text-align: center;
+  white-space: nowrap; /* Prevent line breaks */
+  overflow-x: auto; /* Enable horizontal scrolling if needed */
+}
+
+/* Adjust the padding and margin for pagination buttons */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  padding: 5px 8px; /* Reduce padding to make buttons narrower */
+  margin: 2px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* Style for the current page button */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background-color: #273272;
+  color: white;
+  border: 1px solid #273272;
+}
+
+#map-header {
+  background-color: #273272;
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+
+#map-footer {
+  background-color: #273272;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.badge {
+  background-color: #eb8e2b !important;
+}
+.tab-content > .tab-pane {
+  display: block;
+  height: 0;
+  overflow: hidden;
+}
+.tab-content > .active {
+  display: block;
+  height: auto;
+}

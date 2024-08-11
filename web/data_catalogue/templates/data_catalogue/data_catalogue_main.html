@@ -1,0 +1,785 @@
+{% extends 'appboard/base.html' %}
+{% load static %}
+{% load modal_tags %}
+
+{% load modal_tags %}
+{% load project_tags %}
+{% load static %}
+{% load humanize %}
+
+{% block head_title %}
+    {{project.name}} - Data Catalogue
+{% endblock %}
+
+{% block extra_head %}
+    {% csrf_token %}
+
+    {% comment %} <link rel="stylesheet" href="{% static 'data_catalogue/style.css' %}"> {% endcomment %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid  mb-4 content-margin-top-offest">
+    
+    <div class="container">
+        
+        <div class="breadcrumb">
+            <a href="{% url 'data_catalogue:get_projects' %}" class="breadcrumb-item text-ofx-blue-light">Data Catalogue Index</a>
+            <span class="breadcrumb-item">{{project.name}} - Data Catalogue</span>
+        </div>
+
+        <div id="title-divider" class="mb-4"></div>
+
+        <h4>{{project.name}} - Data Catalogue</h4>
+
+        <div class="row data-catalogue-row">
+
+            <div class="col-lg-3 col-sm-12 map-filter-component">
+        
+                {# Project Map Box #}
+                <div class="project-map" id='project_map_box'>[Map goes here]</div>
+                
+                <div class="filter-title-operator-section">
+                    <div class="filter-title">Filter Datasets by Type <i class="fa-solid fa-circle-info" data-bs-toggle="tooltip" data-bs-placement="top" title="The category to which the data belongs (e.g: Report, Seismic, Spectral etc...)"></i></div>
+                    <div class="filter-operator">
+                        <input class="binary-check" type="checkbox" id="andCheckboxType" name="dataset-type-operator" value="AND" checked>
+                        <label for="andCheckboxType" style="margin-right: 0.5rem;">AND</label>
+
+                        <input class="binary-check" type="checkbox" id="orCheckboxType" name="dataset-type-operator" value="OR">
+                        <label for="orCheckboxType">OR</label>
+                    </div>
+                </div>
+                
+                <div class="data-filter-section" id="datasetTypeContainer">
+                    <ul>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-electrical" name="data-formats" value="electrical">
+                            <label for="checkbox-electrical">Electrical</label>
+                        </li>
+                        <li>
+                            <input class="types-check"  type="checkbox" id="checkbox-electromagnetic" name="data-formats" value="electromagnetic">
+                            <label for="checkbox-electromagnetic">Electromagnetic</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-gravity" name="data-formats" value="gravity">
+                            <label for="checkbox-gravity">Gravity</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-gravity-gradiometry" name="data-formats" value="gravity-gradiometry">
+                            <label for="checkbox-gravity-gradiometry">Gravity Gradiometry</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-magnetic" name="data-formats" value="magnetic">
+                            <label for="checkbox-magnetic">Magnetic</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-mangnetotelluric" name="data-formats" value="magnetotelluric">
+                            <label for="checkbox-mangnetotelluric">Magnetotelluric</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-radiometric" name="data-formats" value="radiometric">
+                            <label for="checkbox-radiometric">Radiometric</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-seismic" name="data-formats" value="seismic">
+                            <label for="checkbox-seismic">Seismic</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-sepctral" name="data-formats" value="spectral">
+                            <label for="checkbox-sepctral">Spectral</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-report" name="data-formats" value="report">
+                            <label for="checkbox-report">Report</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-geochemistry" name="data-formats" value="geochemistry">
+                            <label for="checkbox-geochemistry">Geochemistry</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-borehole" name="data-formats" value="borehole">
+                            <label for="checkbox-borehole">Borehole</label>
+                        </li>
+                        <li>
+                            <input class="types-check" type="checkbox" id="checkbox-map-collection" name="data-formats" value="map-collection">
+                            <label for="checkbox-map-collection">Map Collection</label>
+                        </li>
+                    </ul>
+                </div>
+
+
+
+                <div class="filter-title-operator-section">
+                    <div class="filter-title">Commodities <i class="fa-solid fa-circle-info" data-bs-toggle="tooltip" data-bs-placement="top" title="The resource being explored for, produced, developed or identified (Coal, Methane, Cobalt, Gold)."></i></div>
+                    <div class="filter-operator">
+                        <input class="binary-check" type="checkbox" id="andCheckboxCommodities" name="commodities-operator" value="AND" checked>
+                        <label for="andCheckboxCommodities" style="margin-right: 0.5rem;">AND</label>
+
+                        <input class="binary-check" type="checkbox" id="orCheckboxCommodities" name="commodities-operator" value="OR">
+                        <label for="orCheckboxCommodities">OR</label>
+                    </div>
+                </div>
+
+                <div class="data-filter-section" id="commoditiesContainer">
+
+                    <ul>
+                        <li>
+                            <input class="commodity-check" type="checkbox" id="checkbox-gold" name="commodities" value="gold">
+                            <label for="checkbox-gold">Gold (Au)</label>
+                        </li>
+
+                        <li>
+                            <input class="commodity-check" type="checkbox" id="checkbox-copper" name="commodities" value="copper">
+                            <label for="checkbox-copper">Copper (Cu)</label>
+                        </li>
+
+                        <li>
+                            <input class="commodity-check" type="checkbox" id="checkbox-coal-seam-gas" name="commodities" value="coal-seam-gas">
+                            <label for="checkbox-coal-seam-gas">Coal Seam Gas</label>
+                        </li>
+
+                        <li>
+                            <input class="commodity-check" type="checkbox" id="checkbox-petroleum" name="commodities" value="petroleum">
+                            <label for="checkbox-petroleum">Petroleum</label>
+                        </li>
+
+                        <li>
+                            <input class="commodity-check" type="checkbox" id="checkbox-coal" name="commodities" value="coal">
+                            <label for="checkbox-coal">Coal</label>
+                        </li>
+
+                        <li>
+                            <input class="commodity-check" type="checkbox" id="checkbox-zinc" name="commodities" value="zinc">
+                            <label for="checkbox-zinc">Zinc (Zn)</label>
+                        </li>
+
+                        <li>
+                            <input class="commodity-check" type="checkbox" id="checkbox-lead" name="commodities" value="lead">
+                            <label for="checkbox-lead">Lead (Pb)</label>
+                        </li>
+
+                        <li>
+                            <input class="commodity-check" type="checkbox" id="checkbox-silver" name="commodities" value="silver">
+                            <label for="checkbox-silver">Silver (Ag)</label>
+                        </li>
+
+                        <li>
+                            <input class="commodity-check" type="checkbox" id="checkbox-uranium" name="commodities" value="urnaium">
+                            <label for="checkbox-uranium">Uranium (U)</label>
+                        </li>
+
+                        <li>
+                            <input class="commodity-check" type="checkbox" id="checkbox-tin" name="commodities" value="tin">
+                            <label for="checkbox-tin">Tin (Sn)</label>
+                        </li>
+                    </ul>
+
+                </div>
+
+                <div class="filter-title-operator-section">
+                    <div class="filter-title">Earth Science Data Categories <i class="fa-solid fa-circle-info" data-bs-toggle="tooltip" data-bs-placement="top" title="The field of study within Earth Science (Sedimentology, Palynology, Petrology, Geochemistry)."></i></div>
+                    <div class="filter-operator">
+                        <input class="binary-check" type="checkbox" id="andCheckboxESD" name="ESD-operator" value="AND" checked>
+                        <label for="andCheckboxESD" style="margin-right: 0.5rem;">AND</label>
+
+                        <input class="binary-check" type="checkbox" id="orCheckboxESD" name="ESD-operator" value="OR">
+                        <label for="orCheckboxESD">OR</label>
+                    </div>
+                </div>
+
+                <div class="data-filter-section" id="earthScienceDataContainer">
+                    <ul>
+                        <li>
+                            <input class="esd-check" type="checkbox" id="checkbox-resource-geology" name="esd" value="resource-geology">
+                            <label for="checkbox-resource-geology">Resource Geology</label>
+                        </li>
+
+                        <li>
+                            <input class="esd-check" type="checkbox" id="checkbox-surface-geology" name="esd" value="surface-geology">
+                            <label for="checkbox-surface-geology">Surface Geology</label>
+                        </li>
+
+                        <li>
+                            <input class="esd-check" type="checkbox" id="checkbox-coal-geology" name="esd" value="coal-geology">
+                            <label for="checkbox-coal-geology">Coal Geology</label>
+                        </li>
+
+                        <li>
+                            <input class="esd-check" type="checkbox" id="checkbox-basement-geology" name="esd" value="basement-geology">
+                            <label for="checkbox-basement-geology">Basement Geology</label>
+                        </li>
+
+                        <li>
+                            <input class="esd-check" type="checkbox" id="checkbox-geology" name="esd" value="geology">
+                            <label for="checkbox-geology">Geology</label>
+                        </li>
+
+                        <li>
+                            <input class="esd-check" type="checkbox" id="checkbox-mineral-resource-geology" name="esd" value="mineral-resource-geology">
+                            <label for="checkbox-mineral-resource-geology">Mineral Resource Geology</label>
+                        </li>
+
+                        <li>
+                            <input class="esd-check" type="checkbox" id="checkbox-petroleum-reservoir-engineering" name="esd" value="petroleum-reservoir-engineering">
+                            <label for="checkbox-petroleum-reservoir-engineering" style="display: inline;">Petroleum and Reservoir Engineering</label>
+                        </li>
+
+                        <li>
+                            <input class="esd-check" type="checkbox" id="checkbox-petroleum-geology" name="esd" value="petroleum-geology">
+                            <label for="checkbox-petroleum-geology">Petroleum Geology</label>
+                        </li>
+
+                        <li>
+                            <input class="esd-check" type="checkbox" id="checkbox-stratigraphy" name="esd" value="stratigraphy">
+                            <label for="checkbox-stratigraphy">Stratigraphy</label>
+                        </li>
+
+                        <li>
+                            <input class="esd-check" type="checkbox" id="checkbox-geophysics" name="esd" value="geophysics">
+                            <label for="checkbox-geophysics">Geophysics</label>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="filter-title-operator-section">
+                    <div class="filter-title">Filter Datasets by Format <i class="fa-solid fa-circle-info" data-bs-toggle="tooltip" data-bs-placement="top" title="The format the data is recieved and/or stored in (PDF,JPEG,ZIP)"></i></div>
+                    <div class="filter-operator">
+                        <input class="binary-check" type="checkbox" id="andCheckboxFormat" name="format-operator" value="AND" checked>
+                        <label for="andCheckboxFormat" style="margin-right: 0.5rem;">AND</label>
+
+                        <input class="binary-check" type="checkbox" id="orCheckboxFormat" name="format-operator" value="OR">
+                        <label for="orCheckboxFormat">OR</label>
+                    </div>
+                </div>
+
+                <div class="data-filter-section" id="dataFormatContainer">
+                    <ul>
+                        <li>
+                            <input class="format-check" type="checkbox" id="checkbox-tif" name="data-formats" value="tif">
+                            <label for="checkbox-tif">TIF</label>
+                        </li>
+                        <li>
+                            <input class="format-check"  type="checkbox" id="checkbox-PDF" name="data-formats" value="PDF">
+                            <label for="checkbox-PDF">PDF</label>
+                        </li>
+                        <li>
+                            <input class="format-check" type="checkbox" id="checkbox-ZIP" name="data-formats" value="ZIP">
+                            <label for="checkbox-ZIP">ZIP</label>
+                        </li>
+                        <li>
+                            <input class="format-check" type="checkbox" id="checkbox-JSON" name="data-formats" value="JSON">
+                            <label for="checkbox-JSON">JSON</label>
+                        </li>
+                        <li>
+                            <input class="format-check" type="checkbox" id="checkbox-gi" name="data-formats" value="gi">
+                            <label for="checkbox-gi">Global Image (.gi)</label>
+                        </li>
+                        <li>
+                            
+                            <label for="checkbox-grd"> 
+                                <input class="format-check" type="checkbox" id="checkbox-grd" name="data-formats" value="grd"> GeoReference Data (.grd)
+                            </label>
+                        </li>
+                        <li>
+                            <input class="format-check" type="checkbox" id="checkbox-gdb" name="data-formats" value="gdb">
+                            <label for="checkbox-gdb">Geodatabase (.gdb)</label>
+                            </input>
+                        </li>
+                        <li>
+                            <input class="format-check" type="checkbox" id="checkbox-JPEG" name="data-formats" value="JPEG">
+                            <label for="checkbox-JPEG">JPEG</label>
+                        </li>
+                        <li>
+                            <input class="format-check" type="checkbox" id="checkbox-DOCX" name="data-formats" value="DOCX">
+                            <label for="checkbox-DOCX">DOCX</label>
+                        </li>
+                    </ul>
+                </div>
+                <button id="submitBtn" class="submitBtn btn btn-ofx-blue">Search</button>
+            </div>
+            
+            <div class="col-lg-9 col-sm-12 dataset-component">
+                <div class="row">
+                    <div class="d-flex">
+
+                        <input class="form-control me-2" type="search" placeholder="Search for datasets..." aria-label="Search" name="q" id="search">
+                        <button class="submitBtn btn btn-ofx-blue">Search</button>
+                    </div>
+                </div>
+
+                <div class="line"></div>
+
+                {% if results|length == 0 %}
+
+                    <center>
+                        <p style="margin-top: 4rem;">No dataset available for the current filters selected</p>
+                    </center>    
+
+                {% else %}
+                
+                    {% for result in results %}
+
+                        <div class="row">
+                                <div class="dataset-card">
+                                    <div class="card-text-area">
+                                        <h5 class="dataset-card-title">{{result.title}}</h5>
+                                        <p class="dataset-card-desc">{{result.notes|truncatechars:100}}</p>
+                                    </div>
+                                    <div class="card-btn-area">
+                                        <a href="{% url 'data_catalogue:data_catalogue_files' slug result.name %}"><button class="btn btn-md btn-ofx-green">Open</button></a>
+                                    </div>
+                                </div>
+                        </div>
+                    {% endfor %}
+
+                {% endif %}
+
+                
+            </div>
+        </div>  
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_body %}
+    <link rel="stylesheet" href="{% static "interactive_map/css/api.css" %}"/>
+    <script src="{% static 'interactive_map/js/api.js' %}" type="text/javascript"></script>
+
+    <script>
+
+        // Only allows either AND or OR checkboxes to be selected once
+        $(".binary-check").on('click', function() {
+          var $checkBox = $(this);
+          if ($checkBox.is(":checked")) {
+            var group = "input:checkbox[name='" + $checkBox.attr("name") + "']";
+            $(group).prop("checked", false);
+            $checkBox.prop("checked", true);
+          } else {
+            $checkBox.prop("checked", false);
+          }
+        });
+
+        $(document).ready(function () {
+            
+            const map = $('#project_map_box').InteractiveMap({
+                width: '100%',
+                height: '0',
+                paddingBottom: '80%',
+                widgets: ['zoomButton', 'resetBounds'],
+                layers: [
+                    {
+                        {# TENEMENT ENDPOINT #}
+                        url: "{% url 'interactive_map:project_tenements' slug=slug %}",
+                        tooltip: (feature) => {
+                            const {permit_type, permit_number} = feature.properties;
+    
+                            return `${permit_type} ${permit_number}`;
+                        },
+                    },
+                ]
+            });
+
+            isLoaded = new Promise(function (resolve, reject) {
+                (function loadLayers(){
+                    if (!$.isEmptyObject(map.layers)) return resolve();
+                    setTimeout(loadLayers, 100);
+                })();
+            });
+
+            function getbbox(map){
+                var bounds = map.getBounds();
+                var neBounds = bounds.getNorthEast();
+                var swBounds = bounds.getSouthWest();
+                var boundingBox = [swBounds.lng, swBounds.lat, neBounds.lng, neBounds.lat];
+                return boundingBox;
+            }
+
+            isLoaded.then(() => {
+                let params = (new URL(document.location)).searchParams;
+                let bbox = params.has("ext_bbox");
+
+                if (!bbox) {
+                    window.location.href = location.origin + location.pathname + `?ext_bbox=` + getbbox(map.map).toString()
+
+                }
+            })
+
+            
+            const fieldOperatorTypes = {
+                'AND':'AND',
+                'OR':'OR'
+            };
+
+
+            // Data Types
+            const datasetTypes = {
+                'Electrical':'electrical', 
+                'Electromagnetic':'electromagnetic', 
+                'Gravity':'gravity', 
+                'Gravity Gradiometry':'gravity-gradiometry', 
+                'Magnetic':'magnetic', 
+                'Magnetotelluric':'magnetotelluric', 
+                'Radiometric':'radiometric', 
+                'Seismic':'seismic', 
+                'Spectral':'spectral', 
+                'Report':'report', 
+                'Geochemistry':'geochemistry', 
+                'Borehole':'borehole', 
+                'Map Collection':'map-collection',
+            };
+
+            var selectedTypes = []; // Create an object to store selected items
+
+            $('.types-check').on('change', function() {
+                if (this.checked) {
+                    // Checkbox is checked, add the item's label to the selectedTypes array
+                    selectedTypes.push($(this).next('label').text());
+                } else {
+                    // Checkbox is unchecked, remove the item from the selectedTypes array
+                    const index = selectedTypes.indexOf($(this).next('label').text());
+                    if (index !== -1) {
+                        selectedTypes.splice(index, 1);
+                    }
+                }
+            });
+
+            function getDatasetTypes(selectedTypes, datasetTypes) {
+                var typesList = [];
+                selectedTypes.forEach(function(item) {
+                    typesList.push(datasetTypes[item]);
+                  });
+                return typesList
+            }
+
+
+            // Binary Operator type (AND / OR) section for Data Types section 
+            datasetTypeOperator = [];
+
+            $("[name='dataset-type-operator']").on('change', function() {
+                if (this.checked) {
+                    // Checkbox is checked, add the item's label to the datasetTypeOperator array
+                    datasetTypeOperator = [$(this).next('label').text()];
+                } else {
+                    // Checkbox is unchecked, remove the item from the datasetTypeOperator array
+                    const index = datasetTypeOperator.indexOf($(this).next('label').text());
+                    if (index !== -1) {
+                        datasetTypeOperator.splice(index, 1);
+                    }
+                }
+            });
+
+            function getTypeOperator(datasetTypeOperator, fieldOperatorTypes) {
+                var typesOperatorList = [];
+                datasetTypeOperator.forEach(function(item) {
+                    typesOperatorList.push(fieldOperatorTypes[item]);
+                  });
+                return typesOperatorList
+            }
+
+            // -------------------------------------------------------------------------------------------------------------------
+
+            // Commodities
+            const commodities = {
+                'Gold (Au)': 'gold',
+                'Copper (Cu)': 'copper',
+                'Coal Seam Gas': 'coal-seam-gas',
+                'Petroleum': 'petroleum',
+                'Coal': 'coal',
+                'Zinc (Zn)': 'zinc',
+                'Lead (Pb)': 'lead',
+                'Silver (Ag)': 'silver',
+                'Uranium (U)': 'uranium',
+                'Tin (Sn)': 'tin'
+            }
+
+            var selectedCommodities = [];
+
+            $('.commodity-check').on('change', function() {
+                if (this.checked) {
+                    // Checkbox is checked, add the item's label to the selectedCommodities array
+                    selectedCommodities.push($(this).next('label').text());
+                } else {
+                    // Checkbox is unchecked, remove the item from the selectedCommodities array
+                    const index = selectedCommodities.indexOf($(this).next('label').text());
+                    if (index !== -1) {
+                        selectedCommodities.splice(index, 1);
+                    }
+                }
+            });
+
+            function getCommodities(selectedCommodities, commodities) {
+                var commoditiesList = [];
+                selectedCommodities.forEach(function(item) {
+                    commoditiesList.push(commodities[item]);
+                  });
+                return commoditiesList
+            }
+
+
+            // Binary Operator type (AND / OR) section for commodities section 
+            commodityOperator = [];
+
+            $("[name='commodities-operator']").on('change', function() {
+                if (this.checked) {
+                    // Checkbox is checked, add the item's label to the commodityOperator array
+                    commodityOperator = [$(this).next('label').text()];
+                } else {
+                    // Checkbox is unchecked, remove the item from the commodityOperator array
+                    const index = commodityOperator.indexOf($(this).next('label').text());
+                    if (index !== -1) {
+                        commodityOperator.splice(index, 1);
+                    }
+                }
+            });
+
+            function getCommodityOperator(commodityOperator, fieldOperatorTypes) {
+                var commodityOperatorList = [];
+                commodityOperator.forEach(function(item) {
+                    commodityOperatorList.push(fieldOperatorTypes[item]);
+                  });
+                return commodityOperatorList
+            }
+
+
+
+            // Earth Science Data Categories
+            const esdCategories = {
+                'Resource Geology': 'resource-geology',
+                'Surface Geology': 'surface-geology',
+                'Coal Geology': 'coal-geology',
+                'Basement Geology': 'basement-geology',
+                'Geology': 'geology',
+                'Mineral Resource Geology': 'mineral-resource-geology',
+                'Petroleum and Reservoir Engineering': 'petroleum-reservoir-engineering',
+                'Petroleum Geology': 'petroleum-geology',
+                'Stratigraphy': 'stratigraphy',
+                'Geophysics': 'geophysics'
+            }
+
+            var selectedESD = [];
+
+            $('.esd-check').on('change', function() {
+                if (this.checked) {
+                    // Checkbox is checked, add the item's label to the selectedESD array
+                    selectedESD.push($(this).next('label').text());
+                } else {
+                    // Checkbox is unchecked, remove the item from the selectedESD array
+                    const index = selectedESD.indexOf($(this).next('label').text());
+                    if (index !== -1) {
+                        selectedESD.splice(index, 1);
+                    }
+                }
+            });
+
+            function getEsdCategories(selectedESD, esdCategories) {
+                var esdList = [];
+                selectedESD.forEach(function(item) {
+                    esdList.push(esdCategories[item]);
+                  });
+                return esdList
+            }
+
+
+            // Binary Operator type (AND / OR) section for Earth Science Data section 
+            esdOperator = [];
+
+            $("[name='ESD-operator']").on('change', function() {
+                if (this.checked) {
+                    // Checkbox is checked, add the item's label to the esdOperator array
+                    esdOperator = [$(this).next('label').text()];
+                } else {
+                    // Checkbox is unchecked, remove the item from the esdOperator array
+                    const index = esdOperator.indexOf($(this).next('label').text());
+                    if (index !== -1) {
+                        esdOperator.splice(index, 1);
+                    }
+                }
+            });
+
+            function getEsdOperator(esdOperator, fieldOperatorTypes) {
+                var esdOperatorList = [];
+                esdOperator.forEach(function(item) {
+                    esdOperatorList.push(fieldOperatorTypes[item]);
+                  });
+                return esdOperatorList
+            }
+
+
+            // -------------------------------------------------------------------------------------------------------------------
+
+            // Data Formats
+            const dataFormats = {
+                'TIF':'tif', 
+                'PDF':'PDF', 
+                'ZIP':'ZIP', 
+                'JSON':'JSON', 
+                'Global Image (.gi)':'gi', 
+                'Geographic Reference Data (.grd)':'grd', 
+                'Geodatabase(.gdb)':'gdb', 
+                'JPEG':'JPEG', 
+                'DOCX':'DOCX',
+            };
+
+            var selectedFormats = []; // Create an object to store selected items
+
+        
+            $('.format-check').on('change', function() {
+                if (this.checked) {
+                    // Checkbox is checked, add the item's label to the selectedFormats array
+                    selectedFormats.push($(this).next('label').text());
+                } else {
+                    // Checkbox is unchecked, remove the item from the selectedFormats array
+                    const index = selectedFormats.indexOf($(this).next('label').text());
+                    if (index !== -1) {
+                        selectedFormats.splice(index, 1);
+                    }
+                }
+            });
+
+            function getFormats(selectedFormats, dataFormats) {
+                var FormatsList = [];
+                selectedFormats.forEach(function(item) {
+                    FormatsList.push(dataFormats[item]);
+                  });
+                return FormatsList
+            }
+
+            // Binary Operator type (AND / OR) section for data formats section 
+            dataFormatOperator = [];
+
+            $("[name='format-operator']").on('change', function() {
+                if (this.checked) {
+                    // Checkbox is checked, add the item's label to the dataFormatOperator array
+                    dataFormatOperator = [$(this).next('label').text()];
+                } else {
+                    // Checkbox is unchecked, remove the item from the dataFormatOperator array
+                    const index = dataFormatOperator.indexOf($(this).next('label').text());
+                    if (index !== -1) {
+                        dataFormatOperator.splice(index, 1);
+                    }
+                }
+                console.log(dataFormatOperator);
+            });
+
+            function getDataFormatOperator(dataFormatOperator, fieldOperatorTypes) {
+                var dataFormatOperatorList = [];
+                dataFormatOperator.forEach(function(item) {
+                    dataFormatOperatorList.push(fieldOperatorTypes[item]);
+                  });
+                return dataFormatOperatorList
+            }
+
+            const submitBtn = $('.submitBtn');
+
+            submitBtn.on('click', function(e) {
+                e.preventDefault()
+
+                var search_url = location.origin + location.pathname
+
+
+
+                search_url = search_url.concat(`?ext_bbox=` + getbbox(map.map).toString())
+
+                if ($('#search').val()){
+                    search_url = search_url.concat(`&q=` + $('#search').val())
+                }
+
+
+
+                getDatasetTypes(selectedTypes, datasetTypes).forEach((type) => {
+                    if (type !== undefined) {
+                        search_url = search_url.concat(`&type=${type}`)
+                    }
+                    
+                })
+                getTypeOperator(datasetTypeOperator, fieldOperatorTypes).forEach((typeOperator) => {
+                    search_url = search_url.concat(`&type_operator=${typeOperator}`)
+                })
+
+
+
+                getCommodities(selectedCommodities, commodities).forEach((commodity) => {
+                    search_url = search_url.concat(`&vocab_commodity=${commodity}`)
+                })
+                getCommodityOperator(commodityOperator, fieldOperatorTypes).forEach((commOperator) => {
+                    search_url = search_url.concat(`&vocab_commodity_operator=${commOperator}`)
+                })
+
+
+
+                getEsdCategories(selectedESD, esdCategories).forEach((esd) => {
+                    search_url = search_url.concat(`&earth_science_data=${esd}`)
+                })
+                getEsdOperator(esdOperator, fieldOperatorTypes).forEach((esd_operator) => {
+                    search_url = search_url.concat(`&earth_science_data_operator=${esd_operator}`)
+                })
+
+
+
+                getFormats(selectedFormats, dataFormats).forEach((format) => {
+                    search_url = search_url.concat(`&res_format=${format}`)
+                })
+                getDataFormatOperator(dataFormatOperator, fieldOperatorTypes).forEach((formatOperator) => {
+                    search_url = search_url.concat(`&res_format_operator=${formatOperator}`)
+                })
+
+
+                window.location.href = search_url
+
+            });
+
+            const urlParams = new URLSearchParams(window.location.search);
+            var search_query = urlParams.get('q')
+            $("#search").val(search_query)
+            console.log('search_query', search_query)
+
+            const parameters = ['res_format', 'type', 'earth_science_data', 'vocab_commodity']
+            parameters.forEach(function(paramName){
+                var urlValues = urlParams.getAll(paramName);
+
+                var paramValues = [];
+
+                urlValues.forEach(function(value) {
+                    if (value !== undefined) {
+                        paramValues.push(value);
+                    }
+                });
+
+                paramValues.forEach(function(paramValue) {
+                    if (paramValue !== null) {
+                            console.log(`${paramName} = ${paramValue}`);
+                            $("#checkbox-" + paramValue).prop("checked", true);
+                            selectedTypes.push($("#checkbox-" + paramValue).next('label').text());
+                    } else {
+                            console.log(`${paramName} not found in the URL.`);
+                        }
+                    
+                });
+            });
+
+
+            // Change this monstrosity of a code after pitch night (The entire data catalogue)
+            var operator_type = urlParams.get('type_operator');
+            if (operator_type !== null) {
+                if (operator_type === 'OR'){ $("#orCheckboxType").prop("checked", true); $("#andCheckboxType").prop("checked", false); datasetTypeOperator = ['OR'];}
+                if (operator_type === 'AND'){ $("#andCheckboxType").prop("checked", true); $("#orCheckboxType").prop("checked", false); datasetTypeOperator = ['AND'];}
+            }
+            var operator_type = urlParams.get('vocab_commodity_operator');
+            if (operator_type !== null) {
+                if (operator_type === 'OR'){ $("#orCheckboxCommodities").prop("checked", true); $("#andCheckboxCommodities").prop("checked", false); commodityOperator = ['OR'];}
+                if (operator_type === 'AND'){ $("#andCheckboxCommodities").prop("checked", true); $("#orCheckboxCommodities").prop("checked", false); commodityOperator = ['AND'];}
+            }
+            var operator_type = urlParams.get('earth_science_data_operator');
+            if (operator_type !== null) {
+                if (operator_type === 'OR'){ $("#orCheckboxESD").prop("checked", true); $("#andCheckboxESD").prop("checked", false); esdOperator = ['OR'];}
+                if (operator_type === 'AND'){ $("#andCheckboxESD").prop("checked", true); $("#orCheckboxESD").prop("checked", false); esdOperator = ['AND'];}
+            }
+            var operator_type = urlParams.get('res_format_operator');
+            if (operator_type !== null) {
+                if (operator_type === 'OR'){ $("#orCheckboxFormat").prop("checked", true); $("#andCheckboxFormat").prop("checked", false); dataFormatOperator = ['OR'];}
+                if (operator_type === 'AND'){ $("#andCheckboxFormat").prop("checked", true); $("#orCheckboxFormat").prop("checked", false); dataFormatOperator = ['AND'];}
+            }
+        });
+    </script>
+{% endblock %}

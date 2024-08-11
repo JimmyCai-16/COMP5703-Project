@@ -1,0 +1,321 @@
+<!-- Create task modal -->
+<div class="modal fade" tabindex="-1" id="create_task_modal" data-keyboard="false" data-backdrop="static">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document" id="modal_body">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Create task</h5>
+			</div>
+			<div class="modal-body">
+				<form id="create_task_form" action=""
+						method="POST" enctype="multipart/form-data">
+					{% csrf_token %}
+					<div class="form-group d-flex p-2">
+						<label for="title_input_create" class="input-group-text me-2" style="width: 120px">Title</label>
+						<input id="title_input_create" type="text" class="form-control" name="title"
+								placeholder="Task Title" required>
+					</div>
+					<div class="form-group p-2">
+						<label for="description_create" class="form-label me-2">Description</label>
+						<textarea id="description_create" class="form-control"  rows="3"></textarea>
+					</div>
+					<div class="form-group d-flex p-2">
+						<label for="file_multiple_create" class="input-group-text me-2" style="width: 100px">File
+							Input</label>
+						<input id="file_multiple_create" class="form-control" type="file">
+					</div>
+					<div class="form-group d-flex p-2">
+						<label for="due_date_create" class="input-group-text me-2" style="width: 100px">Due Date</label>
+						<input id="due_date_create" type="date" name="due_date_create">
+					</div>
+					<div class="form-group d-flex p-2">
+						<label for="assignees_select_create" class="input-group-text me-2" style="width: 100px">
+							Assignees</label>
+						<select id="assignees_select_create" class="form-control custom-select" name="assignees"
+								multiple>
+							{% for user in board.members.all %}
+								<option value={{ user.email }}>{{ user.email }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="form-group d-flex p-2">
+						<label for="priority_select_create" class="input-group-text me-2" style="width: 120px">
+							Priority</label>
+						<select id="priority_select_create" class="form-control custom-select" name="priority">
+							<option value="High">High</option>
+							<option value="Medium" aria-selected="true" selected>Medium</option>
+							<option value="Low">Low</option>
+						</select>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" id="btnSubmit"
+								class="btn btn-ofx-green btn-sm rounded-1">
+							Create Task
+						</button>
+						<button type="button" class="btn btn-ofx-blue btn-sm rounded-1" data-bs-dismiss="modal">
+							Cancel
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- View task modal -->
+<div class="modal fade" tabindex="-1" id="view_task_modal" data-keyboard="false" data-backdrop="static">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document" id="modal_body">
+		<div class="modal-content" id="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Task Detail</h5>
+			</div>
+			<div class="modal-body p-2">
+				<form id="edit_task_form" action="" class=" vstack gap-3"
+					method="POST" enctype="multipart/form-data">
+					{% csrf_token %}
+					<div class="form-group d-flex">
+						<label class="input-group-text me-2" style="width: 120px"
+							for="title_input_edit">Title</label>
+						<input id="title_input_edit" type="text" class="form-control" name="title"
+							placeholder="Task Title">
+					</div>
+					<div class="form-group ">
+						<label for="description_edit" class="form-label">Description</label>
+						<textarea id="description_edit" class="form-control" rows="3"></textarea>
+					</div>
+					
+					<div class="form-group d-flex">
+						<label class="input-group-text flex-shrink-1 me-2">Current File</label>
+						<div id="files" style="overflow: hidden; word-wrap: break-word;">
+						</div>
+					</div>
+					<div class="form-group d-flex align-items-center justify-content-center">
+						<label for="file_multiple_edit" class="input-group-text me-2" style="width: 100px">New File</label>
+						<input id="file_multiple_edit" class="form-control" type="file">
+					</div>
+					<div class="form-group d-flex">
+						<label for="due_date_edit" class="input-group-text me-2" style="width: 100px">Due Date</label>
+						<input id="due_date_edit" type="date"name="due_date_edit">
+					</div>
+					<div class="form-group d-flex">
+						<label class="input-group-text me-2" style="width: 100px"
+							for="assignees_select_edit">Assignees</label>
+						<select id="assignees_select_edit" class="form-control custom-select" name="assignees"
+								multiple>
+							{% for user in board.members.all %}
+								<option value={{ user.email }}>{{ user.email }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="form-group d-flex">
+						<label class="input-group-text me-2" style="width: 120px"
+							for="priority_select_edit">Priority</label>
+						<select id="priority_select_edit" class="form-control custom-select" name="priority">
+							<option value="High">High</option>
+							<option selected>Medium</option>
+							<option value="Low">Low</option>
+						</select>
+					</div>
+					<div class="vstack gap-1 pt-2" style="color: gray;">
+						<span style="font-size: small;">Last updated by <span class="user_updated"></span></span>
+						<span class="last_updated" style="font-size: small;"></span>
+					</div>
+					<div class="modal-footer">
+						<button id="update_task" type="submit" data-action="update"
+								class="btn btn-ofx-green btn-sm rounded-1">
+							Save Changes
+						</button>
+						<button id="delete_task" type="submit" data-action="delete"
+								class="btn btn-ofx-red btn-sm rounded-1">
+							Delete
+						</button>
+						<button type="button" class="btn btn-ofx-blue btn-sm rounded-1" data-bs-dismiss="modal">
+							Cancel
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% block extra_body %}
+<script>
+	$(document).ready(() => {
+		$('#create_task_modal').on('show.bs.modal', function (e) {
+			const $modal = $(this)
+			const $form = $modal.find('form')
+
+			const boardId = $modal.data('board-id')
+			$form.data('board-id', boardId)
+		})
+
+		$('#create_task_modal').on('shown.bs.modal', function (e) {
+			$(this).find('input[type="text"]').first().focus()
+		})
+
+		$('#create_task_form').submit(function (e) {
+			e.preventDefault();
+			const $form = $(this)
+			const boardId = $form.data('board-id')
+			const taskID = Math.random().toString(36).slice(2)
+
+			if (boardId == null) return; 
+			if (taskID == null) console.error('Unable to generate taskID')
+
+			// Get Assignee Options
+			var options = [];
+			$('#assignees_select_create > option:selected').each(
+				function () {
+					options.push($(this).text())
+				}
+			);
+			options = options.join(",")
+
+			BoardKanban.addElement(boardId, taskID, {
+				taskID: taskID,
+				title: e.target.elements.title.value,
+				description: e.target.elements.description_create.value,
+				due_date: e.target.elements.due_date_create.value ?? new Date().toISOString(),
+				priority: e.target.elements.priority.value,
+			});
+			var index = $("#" + taskID).index()
+			var fd = new FormData($('#create_task_form').get(0));
+			fd.append("id", boardId);
+			fd.append("taskID", taskID)
+			fd.append("description", e.target.elements.description_create.value)
+			fd.append("due_date", e.target.elements.due_date_create.value)
+			fd.append("assignees", options)
+			fd.append("task_order", index)
+			fd.append("priority", e.target.elements.priority_select_create.value)
+			fd.append("file", $('#file_multiple_create').prop("files")[0])
+
+			let $btn = $(this).find(`button[type="submit"]`);
+			const originalBtnHTML = $btn.html()
+
+			$.ajax({
+				headers: {"X-CSRFToken": csrf_token},
+				url: kanban_url + "task",
+				data: fd,
+				type: "POST",
+				dataType: "json",
+				cache: false,
+				contentType: false,
+				processData: false,
+				beforeSend: function () {
+					$btn.addSpinner()
+				},
+				success: function (data) {
+					$('#create_task_form').unbind()
+					$('#create_task_modal').modal('hide');
+					location.reload();
+				},
+				error: function (data) {
+				},
+				complete: function () {
+					$btn.html(originalBtnHTML)
+				}
+			});
+		});
+
+
+		$('#view_task_modal').on('show.bs.modal', function (e) {
+			const $modal = $(this)
+			const $form = $modal.find('form')
+
+			const taskId = $modal.data('task-id')
+			$form.data('task-id', taskId)
+
+		})
+
+		$('#view_task_modal').on('shown.bs.modal', function (e) {
+			$(this).find('input[type="text"]').first().focus()
+		})
+
+		$('#edit_task_form').submit(function (e) {
+			e.preventDefault();
+
+			let submitButtonId = event.submitter.id;
+			const $form = $(this)
+			const taskId = $form.data('task-id')
+
+			var options = [];
+			$('#assignees_select_edit > option:selected').each(
+				function () {
+					options.push($(this).text())
+				}
+			);
+			options = options.join(",")
+			// BoardKanban.replaceElement(taskId, {
+			// 	taskID: taskId,
+			// 	title: e.target.elements.title_input_edit.value,
+			// 	description: e.target.elements.description_edit.value,
+			// 	priority: e.target.elements.priority.value,
+			// })
+
+
+			var fd = new FormData($('#edit_task_form').get(0))
+			fd.append("taskID", taskId)
+			fd.append("description", e.target.elements.description_edit.value)
+			fd.append("due_date", e.target.elements.due_date_edit.value)
+			fd.append("assignees", options)
+			fd.append("priority", e.target.elements.priority_select_edit.value)
+			fd.append("file", $('#file_multiple_edit').prop("files")[0])
+
+			let $btn = $(this).find(`button[type="submit"]`);
+			const originalBtnHTML = $btn.html()
+
+
+			if (submitButtonId === 'update_task') {
+
+				$.ajax({
+					headers: {"X-CSRFToken": csrf_token},
+					url: kanban_url + "update/task",
+					data: fd,
+					type: "POST",
+					dataType: "json",
+					cache: false,
+					contentType: false,
+					processData: false,
+					beforeSend: function () {
+						$btn.addSpinner()
+					},
+					success: function (data) {
+						$('#edit_task_form').unbind()
+						$('#view_task_modal').modal('hide');
+						location.reload();
+					},
+					error: function (data) {
+					},
+					complete: function () {
+						$btn.html(originalBtnHTML)
+					}
+				});
+			} else if (submitButtonId === 'delete_task') {
+				$.ajax({
+					headers: {"X-CSRFToken": csrf_token},
+					url: kanban_url + "delete/task",
+					data: {
+						taskID: taskId,
+					},
+					type: "POST",
+					dataType: "json",
+					cache: false,
+					beforeSend: function () {
+						$btn.addSpinner()
+					},
+					success: function (data) {
+						$('#edit_task_form').unbind()
+						$('#view_task_modal').modal('hide');
+						location.reload()
+					},
+					error: function (data) {
+					},
+					complete: function () {
+						$btn.html(originalBtnHTML)
+					}
+				})
+			}
+		});
+	})
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% comment %}
+{% for field in form %}
+    <div>
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {% if field.field.widget.input_type != 'hidden' %}
+            {% if field.field.widget.input_type == 'selectmultiple' %}
+                <select name="{{ field.html_name }}" multiple>
+                    {% for value, label in field.field.choices %}
+                        <option value="{{ value }}" {% if value in field.data %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                {{ field }}
+            {% endif %}
+            {% if field.help_text %}
+                <small>{{ field.help_text }}</small>
+            {% endif %}
+            {% if field.errors %}
+                <ul class="errorlist">
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endfor %}
+{% endcomment %}
+
+{% with form.permission as permission %}
+
+    <label for="{{ permission.id_for_label }}">{{ permission.label }}</label>
+            {% for value, label in permission.field.choices %}
+            <div class="row">
+                <div class="col-12">
+                <input type="checkbox" id="id_{{ permission.name }}_{{ forloop.counter }}" name="{{ permission.name }}" value="{{ value }}" {% if value in permission.initial %}checked{% endif %}>
+                <label for="id_{{ form.permission.name }}_{{ forloop.counter }}">{{ label }}</label>
+                </div>
+            </div>
+            {% endfor %}
+{% endwith %}

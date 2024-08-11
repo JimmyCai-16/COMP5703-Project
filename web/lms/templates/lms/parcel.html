@@ -1,0 +1,687 @@
+<!-- {% comment %}
+  FROM URL: {% url 'lms:parcels' slug=project.slug %}
+
+  PARENT FILE: lms_base.html
+  PARENT DIV: id=PARCELS_VIEW
+{% endcomment %} -->
+
+{% load project_tags %} {% load static %} {% block extra_head %}
+
+<link
+  rel="stylesheet"
+  href="{% static 'interactive_map/css/Control.MiniMap.css' %}"
+/>
+<script
+  src="{% static 'interactive_map/js/Control.MiniMap.js' %}"
+  type="text/javascript"
+></script>
+
+{# CSS for Map API and Custom Map CSS #}
+<link rel="stylesheet" href="{% static 'interactive_map/css/api.css' %}" />
+<link rel="stylesheet" href="{% static 'interactive_map/css/map.css' %}" />
+
+{% csrf_token %} {% endblock %}
+<div class="d-flex flex-column">
+  <div
+    style="border: 1px solid var(--ofx-blue); border-radius: 6px"
+    class="d-flex flex-column w-100"
+  >
+    <div
+      class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-end parcel-bar"
+    >
+      <div class="d-flex flex-row align-items-center justify-content-center">
+        <h4 class="ms-1 me-2">Parcels</h4>
+        <span id="page-loading-icon" class="spinner-border mb-1 d-none">
+          <span class="visually-hidden">Loading...</span>
+        </span>
+      </div>
+      <div class="lms-tool-bar">
+        <button
+          id="parcel_map_toggle_btn"
+          onclick="toggleParcelMap()"
+          class="btn-clear-under-hover hover"
+        >
+          Map <i class="fa-solid fa-map"></i>
+        </button>
+        <button
+          id="parcel_list_toggle_btn"
+          onclick="toggleParcelList()"
+          class="btn-clear-under-hover"
+        >
+          List <i class="fa-solid fa-list"></i>
+        </button>
+      </div>
+    </div>
+    <div
+      class=""
+      style="
+        width: 100%;
+        min-height: 200px;
+        height: 500px;
+        max-height: 600px;
+        overflow: hidden;
+      "
+    >
+      <div id="parcels_map" class="map-content d-none"></div>
+      <div id="PARCEL_LIST_CONTENT" class="parcel-list-content d-none">
+        <div
+          class="mb-2 d-flex flex-lg-row flex-sm-column justify-content-between align-items-lg-center"
+        >
+          <div class="parcel-search-div search-div me-2 flex-grow-1">
+            <input
+              type="search"
+              class="form-control search-box"
+              id="parcel-search"
+              placeholder="Search Parcel..."
+              oninput="filterObjects('parcel-search','parcel-item','span', 0)"
+            />
+          </div>
+          <div class="dropdown text-align-center p-0" id="parcelSortDropdown">
+            <button
+              style="color: rgb(117, 117, 117)"
+              class="btn-clear-hover dropdown-toggle mb-1 p-1 py-0"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              sort
+            </button>
+            <ul class="dropdown-menu dropdown-menu-lg-end">
+              <li>
+                <a class="dropdown-item" href="#" id="sortParcelByName">Name</a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="#" id="sortParcelByArea"
+                  >Area Size</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div id="PARCEL_LIST" class="parcel-list">
+          {% for project_parcel in view.project_parcels %}
+          <div
+            class="parcel-item {% if view.instance.parcel.id == project_parcel.parcel_id %} selected {% endif %}"
+            data-id="{{ project_parcel.parcel_id }}"
+            data-url="{% url 'lms:parcel' slug=view.project.slug parcel=project_parcel.parcel_id %}"
+          >
+            <span class="text-break fs-6 parcel-lot-plan"
+              >{{ project_parcel.parcel.lot_plan }}</span
+            >
+            <span>{{ project_parcel.parcel.tenure}}</span>
+            <span class="text-break fs-6"
+              ><b>Area:</b>
+              <span class="parcel-area">{{ project_parcel.parcel.area}}</span
+              >sqm</span
+            >
+            <span><b>Owners:</b> {{ project_parcel.owners_count}}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <h4 style="margin-bottom: -5px" class="text-ofx-blue fw-bold me-2 mt-4">
+    {% if view.instance %} Parcel {{view.instance.parcel.lot_plan}} {% else %}
+    No parcel selected {% endif %}
+  </h4>
+  <div class="">
+    {% if view.instance %} {% with view.instance as project_parcel %}
+    <div class="row">
+      <div
+        class="d-flex flex-column parcel-details col-sm-12 col-lg-5 h-100 py-2 mt-2 text-align-center"
+        style="height: 250px"
+      >
+        <div class="d-flex justify-content-between even">
+          <span class="fw-bold">Tenure</span
+          ><span> {{ view.instance.parcel.tenure}}</span>
+        </div>
+        <div class="d-flex justify-content-between odd">
+          <span class="fw-bold">Area</span>
+          <span id="lot_area"
+            >{{ view.instance.parcel.area }}&nbsp;&nbsp;sqm</span
+          >
+        </div>
+        <div class="d-flex justify-content-between even">
+          <span class="fw-bold">Shire</span
+          ><span>{{ view.instance.parcel.shire_name }} </span>
+        </div>
+        <div class="d-flex justify-content-between odd">
+          <span class="fw-bold">Locality</span
+          ><span>{{ view.instance.parcel.locality }}</span>
+        </div>
+        <div class="d-flex justify-content-between even">
+          <span class="fw-bold">Parcel Type</span
+          ><span>{{ view.instance.parcel.parcel_type }} </span>
+        </div>
+        <div class="d-flex justify-content-between odd">
+          <span class="fw-bold">Cover Type</span
+          ><span>{{ view.instance.parcel.cover_type }} </span>
+        </div>
+      </div>
+
+      <!-- <hr class="mt-2" /> -->
+      <div
+        id="OWNERS_RELATIONSHIP_VIEW"
+        class="mt-1 col-sm-12 col-lg-7"
+        data-url="{% url 'lms:relationships' slug=view.project.slug parcel=project_parcel.parcel.id %}"
+        data-container="owners_relationship"
+      >
+        {% if view.project|is_write:view.member %}
+        <div
+          class="modal fade"
+          id="PARCEL_MAIL_MODAL"
+          tabindex="-1"
+          aria-hidden="true"
+          data-url="{% url 'lms:relationships_mail' slug=view.project.slug parcel=project_parcel.parcel.id %}"
+        >
+          <!-- parcel_mail_modal.html -->
+        </div>
+        {% endif %}
+        <div
+          class="d-flex flex-column flex-md-row justify-content-between mb-2"
+        >
+          <div class="d-flex align-items-center me-md-2 mb-sm-2">
+            <h6
+              class="align-items-center justify-content-center me-2 pe-2"
+              style="color: grey; border-right: 0.6px solid"
+            >
+              Parcel Owners
+            </h6>
+            {% if view.project|is_write:view.member %}
+            <div class="dropdown">
+              <button
+                class="btn btn-ofx-green me-2"
+                data-bs-toggle="dropdown"
+                title="Add LandOwners to Parcel {{ project_parcel.parcel.lot_plan }}"
+              >
+                <i class="fa-solid fa-person-circle-plus"></i>
+                Add owner
+              </button>
+              <div class="dropdown-menu">
+                <button
+                  class="dropdown-item"
+                  data-bs-toggle="modal"
+                  data-bs-target="#newRelationshipModal"
+                  data-action="new"
+                  data-url="{% url 'lms:relationships' slug=view.project.slug parcel=project_parcel.parcel.id %}"
+                  data-modal-content="
+                        <div class='d-flex flex-column'>
+                          <h4>{{parcel.lot_plan}}</h4>
+                          <span><b>Tenture: </b>{{view.instance.parcel.tenure}}</span>
+                          <span><b>Shire: </b>{{view.instance.parcel.shire_name}}</span>
+                          <span><b>Locality: </b>{{view.instance.parcel.locality}}</span>
+                          <span><b>Parcel type: </b>{{view.instance.parcel.parcel_type}}</span>
+                          <span><b>Cover type: </b>{{view.instance.parcel.cover_type}}</span>
+                        </div>
+                      "
+                >
+                  Add Existing Owner
+                </button>
+                <button
+                  class="dropdown-item"
+                  data-bs-toggle="modal"
+                  data-bs-target="#newOwnerRelationshipModal"
+                  data-action="new"
+                  data-url="{% url 'lms:relationships' slug=view.project.slug parcel=project_parcel.parcel.id %}"
+                  {%
+                  with
+                  project_parcel.parcel
+                  as
+                  parcel%}
+                  data-modal-content="
+                        <div class='d-flex flex-column'>
+                          <span><b>Project: </b>{{view.project.name}}</span>
+                          <span><b>Parcel: </b>{{view.instance.parcel.lot_plan}}</span>
+                        </div>
+                      "
+                  {%
+                  endwith
+                  %}
+                >
+                  Add New Owner
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn btn-ofx-green tooltip-wrap h-100"
+              data-bs-toggle="modal"
+              data-bs-target="#PARCEL_MAIL_MODAL"
+              title="Send bulk mail to mail target owners"
+            >
+              <i class="fa-solid fa-envelopes-bulk"></i>
+              Bulk Mail
+            </button>
+            {% endif %}
+          </div>
+          <div class="parcel-owner-search-div p-0 search-div me-3">
+            <input
+              type="search"
+              class="form-control search-box"
+              id="parcel-owner-search"
+              placeholder="Search Parcel Owner..."
+              oninput="filterObjects('parcel-owner-search','relationship-item','span', 0)"
+            />
+          </div>
+        </div>
+
+        <div
+          id="OWNERS_RELATIONSHIP_CONTENT"
+          class="owners-parcel-relationship-view"
+          data-container-content="owners_relationship"
+        >
+          <!-- owner_relationship.html -->
+        </div>
+      </div>
+    </div>
+    {% endwith %} {% endif %}
+  </div>
+</div>
+
+{% block extra_body %}
+<script
+  src="{% static 'interactive_map/js/api.js' %}"
+  type="text/javascript"
+></script>
+
+<script type="text/javascript">
+
+  $(document).ready(function () {
+
+          const map = $('#parcels_map').InteractiveMap({
+              width: '100%',
+              height: '800px',
+							zoomToClickedFeature: false,
+              widgets: ['resetBounds', 'label', 'zoomButton'],
+              layers: [
+                  {# TENEMENT ENDPOINT #}
+                  {
+                      url: "{% url 'interactive_map:project_tenements' slug=view.project.slug %}",
+                      tooltip: (feature) => {
+                          const {
+                              permit_type,
+                              permit_number,
+                              permit_status,
+                              permit_status_display,
+                              date_lodged,
+                              date_expiry,
+                              date_granted,
+                              ahr_name,
+                          } = feature.properties;
+
+                          return `
+                              <table>
+                                  <tbody>
+                                      <tr><th>Permit ID: </th><td>${permit_type} ${permit_number}</td></tr>
+                                      ${date_granted ? `<tr><th>Granted Date: </th><td>${date_granted}</td></tr>
+                                      <tr><th>Expiry Date: </th><td>${date_expiry}</td></tr>` : `<tr><th>Lodged Date</th><td>${date_lodged}</td></tr>`}
+                                      <tr><th>Company Name: </th><td>${ahr_name}</td></tr>
+                                  </tbody>
+                              </table>
+                          `;
+                      },
+                  },
+                  {# PARCEL ENDPOINT #}
+                  {
+                      url: "{% url 'interactive_map:lms_parcels' slug=view.project.slug %}",
+                      collapsed: false,
+                      tooltip: function (feature) {
+                          const {feature_name, lot, plan} = feature.properties;
+                          let tooltipParts = [feature_name] || [];
+                          if (lot && plan) {
+                              tooltipParts.push(`${lot}/${plan}`);
+                          }
+                          return tooltipParts.join(' ') || 'N/A';
+                      },
+                  },
+              ]
+          });
+
+          map.on(InteractiveMap.Event.Layer.created, function (e) {
+              //console.log(e.type, e.detail);
+
+
+              let parcel_id = "{{view.instance.parcel.id}}"
+              let match = false
+              let inner_layer={};
+              let keys =[
+
+              ]
+              if(parcel_id){
+                  if(e.detail._layers && (Object.keys(e.detail._layers).length) >0){
+
+                    keys = Object.keys(e.detail._layers);
+
+                    for (const key of keys) {
+                      inner_layer = e.detail._layers[key];
+
+                      if(inner_layer.feature &&  inner_layer.feature.properties && inner_layer.feature.properties.parcelid){
+                        if(inner_layer.feature.properties.parcelid === parcel_id)    {
+                          match = true;
+                          //map.zoomToFeatureLayers(inner_layer)
+                          let lot = inner_layer.feature.properties.lot
+                          let plan = inner_layer.feature.properties.plan
+                          if(lot && plan){
+                          let similarFeaturesLayers = map.autoSelectFeaturesWithSameProperties(
+                            ["lot","plan"],
+                            {"lot" : lot, "plan" : plan},true,false,false
+                            )
+                            map.selectFeature(similarFeaturesLayers, {
+                              color: '#ffff00',
+                              fillColor: '#ffff00',
+                              weight: 2,
+                              opacity: 0.9,
+                              fillOpacity: 0.9,
+                          }, true)
+                          //map.highlightFeature(inner_layer,0)
+                          }
+                          else{
+                           map.selectFeature(inner_layer)
+                          }
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  if(!match){
+                    if(e.detail._map && e.detail._map._layers && (Object.keys(e.detail._map._layers).length) >0){
+                      keys = Object.keys(e.detail._map._layers);
+
+                      for (const key of keys) {
+                        inner_layer = e.detail._map._layers[key];
+                        if(inner_layer.feature &&  inner_layer.feature.properties && inner_layer.feature.properties.parcelid){
+
+                          if(inner_layer.feature.properties.parcelid=== parcel_id)    {
+                            match = true
+                            let lot = inner_layer.feature.properties.lot
+                          let plan = inner_layer.feature.properties.plan
+                          if(lot && plan){
+                          let similarFeaturesLayers = map.autoSelectFeaturesWithSameProperties(
+                            ["lot","plan"],
+                            {"lot" : lot, "plan" : plan},true,false,false
+                            )
+                            map.selectFeature(similarFeaturesLayers, {
+                              color: '#ffff00',
+                              fillColor: '#ffff00',
+                              weight: 2,
+                              opacity: 0.9,
+                              fillOpacity: 0.9,
+                          }, true)
+                         // map.highlightFeature(inner_layer,0)
+                          }
+                          else{
+                           map.selectFeature(inner_layer)
+                          }
+                            break;
+                          }
+                        }
+                      }
+                    }
+                  }
+                  if(!match){
+                    if(e.detail._map && e.detail._map._targets && (Object.keys(e.detail._map._targets).length) >0){
+                      keys = Object.keys(e.detail._map._targets);
+
+
+                      for (const key of keys) {
+                        inner_layer = e.detail._map._targets[key];
+                        if(inner_layer.feature &&  inner_layer.feature.properties && inner_layer.feature.properties.parcelid){
+
+                          if(inner_layer.feature.properties.parcelid === parcel_id)    {
+                            match = true;
+                            let lot = inner_layer.feature.properties.lot
+                            let plan = inner_layer.feature.properties.plan
+                            if(lot && plan){
+                            let similarFeaturesLayers = map.autoSelectFeaturesWithSameProperties(
+                              ["lot","plan"],
+                              {"lot" : lot, "plan" : plan}, true,false,false
+                              )
+                              map.selectFeature(similarFeaturesLayers, {
+                                color: '#ffff00',
+                                fillColor: '#ffff00',
+                                weight: 2,
+                                opacity: 0.9,
+                                fillOpacity: 0.9,
+                            }, true)
+                            //map.highlightFeature(inner_layer,0)
+                            }
+                            else{
+                             map.selectFeature(inner_layer)
+                            }
+                            break;
+                          }
+                        }
+                      }
+                   }
+                  }
+              }
+
+          }).on(InteractiveMap.Event.Feature.click,  function (e){
+              //console.log(this,e.type, e.detail);
+            /* if(currentParcel.id !== e.detail.target.feature.properties.parcelid){
+              const selectedElement = document.querySelector(`[data-id="${e.detail.target.feature.properties.parcelid}"]`);
+
+              selectedElement.click()
+              map.selectFeature(e.detail.layer)
+              } */
+               map.autoSelectFeaturesWithSameProperties(
+                ["lot","plan"],
+                {"lot" : e.detail.target.feature.properties.lot, "plan" : e.detail.target.feature.properties.plan}
+                )
+
+          }).on(InteractiveMap.Event.Toolbar.selectedFeature, function (e) {
+              console.log(e.type, e.detail);
+
+              const feature = e.detail.target.feature
+              const { permit_id, permit_type, permit_status, permit_number } = feature.properties;
+              if (!permit_id) {
+                  return;
+              }
+              const id = `${permit_type}-${permit_status}`;
+              const table = $(`#${id}-table`).DataTable();
+              const isDuplicate = table.rows().data().toArray().some(row => {
+                  return (row.permit_type === permit_type && row.permit_number === permit_number);
+              });
+              if (!isDuplicate) {
+                  table.row.add(feature.properties).draw();
+              }
+
+          });
+
+              $(document).on("click", "#PARCEL_LIST_CONTENT .parcel-item", function (e) {
+                e.preventDefault()
+                  console.log('Parcel clicked', this)
+
+                  const id = $(this).attr('data-id');
+                  const url = $(this).attr('data-url')
+                 currentParcel.id = id
+                 currentParcel.url = url
+                let parcelLayer = null
+
+             map.config.layers.forEach(layer => {
+
+             if(!layer.url && layer.parcelid === id)
+             parcelLayer = layer
+
+                    })
+
+                    /*if(parcelLayer){
+                              let key = Object.keys(parcelLayer._layers)[0]
+                             map.selectFeature(parcelLayer._layers.key)
+
+
+                    if (PARCELS_VIEW_PROPS.currentParcelToggle === 'list') {
+                      toggleParcelMap()
+                    }
+                    map.resetBounds()
+
+                  } */
+                 handleParcelChanged(id, url)
+
+
+
+              });
+      });
+      function handleParcelChanged(id, url) {
+        currentParcel = {
+          id: id,
+          url: url
+        }
+        $.ajax({
+          type: "GET",
+          url: url,
+          beforeSend: function () {
+            $('#page-loading-icon').removeClass('d-none')
+          },
+          success: function (response) {
+
+            $('#PARCELS_VIEW').html(response.html)
+            init_OWNERS_RELATIONSHIP_VIEW()
+
+            console.log('Parcel changed ' + url );
+
+            if (PARCELS_VIEW_PROPS.currentParcelToggle === 'list') {
+              toggleParcelMap()
+            }
+            /* if (typeof url !== 'undefined') {
+              updateParcelMapOnSelectingParcel(url + '/map', function() {
+                if (PARCELS_VIEW_PROPS.currentParcelToggle === 'list') {
+                  toggleParcelList()
+                }
+              })
+            } */
+
+          }
+        });
+      }
+</script>
+{% comment %}
+<script src="{% static 'lms/js/lms_map.js' %}"></script>
+{% endcomment %}
+<script>
+  console.log("parcel.html ready");
+  $(document).ready(() => {
+    console.log("document ready parcel.js");
+  });
+  if (PARCELS_VIEW_PROPS.currentParcelToggle === "list") {
+    toggleParcelList();
+  } else {
+    toggleParcelMap();
+  }
+
+  $.ajax({
+    url: $("#PARCEL_MAIL_MODAL").data("url"),
+    method: "GET",
+    success: function (response) {
+      $("#PARCEL_MAIL_MODAL").html(response.html);
+    },
+  });
+
+  $LMS.on("click", '[data-bs-target="#PARCEL_MAIL_MODAL"]:first', function (e) {
+    console.log("Parcel modal click");
+    $.ajax({
+      url: $("#PARCEL_MAIL_MODAL").data("url"),
+      method: "GET",
+      success: function (response) {
+        $("#PARCEL_MAIL_MODAL").html(response.html);
+      },
+    });
+  });
+
+  $("#parcel_map_toggle_btn").click((e) => {
+    // parcels_map.invalidateSize()
+
+    toggleParcelMap();
+  });
+
+  $("#parcel_list_toggle_btn").on((e) => {
+    toggleParcelList();
+  });
+
+  function toggleParcelMap() {
+    PARCELS_VIEW_PROPS.currentParcelToggle = "map";
+    $("#parcel_map_toggle_btn").addClass("hover");
+    $("#parcel_list_toggle_btn").removeClass("hover");
+
+    $("#parcels_map").removeClass("d-none").addClass("d-block");
+    $("#PARCEL_LIST_CONTENT").removeClass("d-grid").addClass("d-none");
+
+    //parcels_map.invalidateSize()
+  }
+
+  function toggleParcelList() {
+    PARCELS_VIEW_PROPS.currentParcelToggle = "list";
+    $("#parcel_list_toggle_btn").addClass("hover");
+    $("#parcel_map_toggle_btn").removeClass("hover");
+
+    $("#parcels_map").removeClass("d-block").addClass("d-none");
+    $("#PARCEL_LIST_CONTENT").removeClass("d-none").addClass("d-grid");
+
+    $("#PARCEL_LIST").scrollTop(0);
+
+    const currentItem = $("#PARCEL_LIST .parcel-item.selected").first();
+    const offset = currentItem.offset();
+
+    // $('#PARCEL_LIST').scrollTop(offset.top - $('#PARCEL_LIST').offset().top )
+  }
+</script>
+<script>
+  // Get references to the button, dropdown menu, and task list
+  sortDropdown = document.getElementById("parcelSortDropdown");
+  sortByNameButton = document.getElementById("sortParcelByName");
+  sortByDateButton = document.getElementById("sortParcelByArea");
+  parcelList = document.getElementById("PARCEL_LIST");
+
+  // Add event listener to prevent parcel dropdown from closing when interacting with sort dropdown
+  sortDropdown.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  // Add click event listeners
+  sortByNameButton.addEventListener("click", sortByName);
+  sortByDateButton.addEventListener("click", sortByArea);
+  function sortByName(event) {
+    event.stopPropagation();
+    // Convert the task list items to an array
+    const items = Array.from(parcelList.getElementsByClassName("parcel-item"));
+
+    // Sort the items by their text content (task name)
+    items.sort((a, b) => {
+      const nameA = a.getElementsByClassName("parcel-lot-plan")[0].textContent;
+      const nameB = b.getElementsByClassName("parcel-lot-plan")[0].textContent;
+      return nameA.localeCompare(nameB);
+    });
+
+    // Reattach the sorted items to the task list
+    for (const item of items) {
+      parcelList.appendChild(item);
+    }
+  }
+
+  function sortByArea(event) {
+    event.stopPropagation();
+    // Convert the task list items to an array
+    const items = Array.from(parcelList.getElementsByClassName("parcel-item"));
+
+    // Sort the items by their text content (task date)
+    items.sort((a, b) => {
+      const areaA = a.getElementsByClassName("parcel-area")[0].textContent;
+      const areaB = b.getElementsByClassName("parcel-area")[0].textContent;
+      return areaA - areaB;
+    });
+
+    // Reattach the sorted items to the task list
+    for (const item of items) {
+      parcelList.appendChild(item);
+    }
+  }
+
+  // Helper function to extract date from task item text
+  function extractDate(text) {
+    const regex = /Date: (\d{4}-\d{2}-\d{2})/;
+    const match = regex.exec(text);
+    return match ? new Date(match[1]) : new Date();
+  }
+</script>
+{% endblock %}

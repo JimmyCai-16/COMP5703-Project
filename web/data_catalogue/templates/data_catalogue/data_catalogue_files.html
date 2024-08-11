@@ -1,0 +1,98 @@
+{% extends 'appboard/base.html' %}
+{% load static %}
+{% load modal_tags %}
+{% load json_tags %}
+
+{% block head_title %}
+    {{result.title}}
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/django_autocomplete_light.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/project.css' %}"/>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid  mb-4 content-margin-top-offest">
+
+    <div class="container">
+
+        <div class="breadcrumb">
+            <a href="{% url 'data_catalogue:get_projects' %}" class="breadcrumb-item text-ofx-blue-light">Data Catalogue Index</a>
+            <a href="{% url 'data_catalogue:get_query' slug %}" class="breadcrumb-item text-ofx-blue-light"> {{project_name}} - Data Catalogue</a>
+            <span class="breadcrumb-item">{{result.title}}</span>
+        </div>
+
+        <div id="title-divider" class="mb-4"></div>
+
+        <h4 class="dataset-card-title">{{result.title}}</h4>
+
+        <h5 style="margin-top: 1.5rem;">Description</h5>
+
+        <p style="font-weight: 300;">
+            {{result.notes}}
+        </p>
+
+        <div class="row data-catalogue-row">
+            
+            <div class="row">
+                <div class="files-section">
+                    <h5>Files</h5>
+
+                    {% for file in result.resources %}
+
+                    <div class="file-card d-flex">
+                        <div class="d-flex flex-column" style="flex:1">
+                            <div class="file-type">
+                                <p><b>Title:</b> {{file.name}}</p>
+                            </div>
+                            <div class="file-name">
+                                <p><b>Format:</b> {{file.format}}</p>
+                            </div>
+                        </div>
+                        <div class="file-action-btns">
+                            {% comment %}
+                            <a href="{% url 'data_catalogue:file_preview' %}"><button class="dc-primary-cta-btn">Preview</button></a>
+                            {% endcomment %}
+                            <a target="_blank" href="{{file.url}}" download><button class="btn btn-md btn-ofx-green">Download</button></a>
+                        </div>
+                    </div>
+
+                    {% endfor %}
+                </div>
+            </div>
+
+           <div class="row">
+                <div class="details-section">
+                    <h5 class="details-title" style="margin-top: 2rem;">Details</h5>
+
+                    <table id="dataset-details-table" class="table table-sm dt-responsive w-100">
+                        <tr>
+                            <th>Report type</th>
+                            <td>{{result.type | title}}</td>
+                        </tr>
+                        <tr>
+                            <th>Report period start date</th>
+                            <td>{{result.dataset_start_date}}</td>
+                        </tr>
+                        <tr>
+                            <th>Report end date</th>
+                            <td>{{result.dataset_completion_date}}</td>
+                        </tr>
+                        <tr>
+                            <th>Creator</th>
+                            <td>{{result.creator | title | field_name_to_label}}</td>
+                        </tr>
+                    </table>
+
+                </div>
+           </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
