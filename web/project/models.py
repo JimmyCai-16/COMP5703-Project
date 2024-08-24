@@ -50,6 +50,7 @@ class AustraliaStateChoices(models.TextChoices):
     WA = 'WA', 'Western Australia'
 
 
+# For project-related funcitons -> The DB strats form 'project_'
 class Project(models.Model):
     """The Project Model, it contains Tenements, ProjectMembers and is the general backbone for the PWC
 
