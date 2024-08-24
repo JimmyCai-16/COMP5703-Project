@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+# The Django original authenticate model. Have serval functions like 'authenticate', 'login' and so on.
 
 class IsAuthenticated(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -22,8 +23,8 @@ class IsAdmin(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # Read permissions are allowed to any request,
-        # so we'll always allow GET, HEAD or OPTIONS requests.
-        if request.method in permissions.SAFE_METHODS and request.user and request.user.is_authenticated:
+        # so we'll always allow GET, HEAD or OPTIONS requests. -> this method: 'permissions.SAFE_METHODS'
+        if request.method in permissions.SAFE_METHODS and request.user and request.user.is_authenticated: # 'request.user.is_authenticated' -> is used for check the user is login or not
             return True
 
         # Write permissions are only allowed to the owner of the snippet.

@@ -49,6 +49,9 @@ urlpatterns = [
 
     path('notification/', include('notification.urls'), name='notification'),
     path('data_catalogue/', include('data_catalogue.urls'), name='data_catalogue'),
+
+    # 
+    path('porphyry_deposits/', include('porphyry_deposits.urls'), name="porphyry_deposits")
 ]
 
 if settings.DEBUG:
