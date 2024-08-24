@@ -1,0 +1,18 @@
+{% extends 'appboard/base.html' %}
+
+{% load modal_tags %}
+{% load project_tags %}
+{% load static %}
+{% load humanize %}
+
+{% csrf_token %}
+
+{% block title%}
+    <title>Porphyry Deposits</title>
+{% endblock %}
+
+<!-- Because it's embedded in another page, add the block content -->
+{% block content %}
+    <h1>This page is for Porphyry Deposits detection</h1>
+    <div>{{ name }}</div>
+{% endblock %}
