@@ -8,7 +8,8 @@ from django.contrib.auth.decorators import login_required
 def get_deposits(request):
     content = {
         'name': 'Jimmy',
-        'test': 'TEST2'
+        'test1': 'TEST1',
+         'test2': 'TEST2'
     }
     print("====Hello====")
     return render(request, "deposits_home.html", content)
