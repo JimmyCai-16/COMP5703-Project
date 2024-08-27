@@ -1,6 +1,5 @@
-<<<<<<< HEAD
-=======
-#Envirnment
->>>>>>> 12596decf0ae9f2d6c02209a758d82ed867f5325
+venv_5703/
 venv/
+web/.env
+web/main/settings.py
 requirements.txt
