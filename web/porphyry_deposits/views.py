@@ -9,7 +9,8 @@ def get_deposits(request):
     content = {
         'name': 'Jimmy',
         'test1': 'TEST1',
-         'test2': 'TEST2'
+        'test2': 'TEST2',
+        'test3': 'TEST3'
     }
     print("====Hello====")
     return render(request, "deposits_home.html", content)

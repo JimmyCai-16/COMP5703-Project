@@ -1,2 +1,4 @@
 venv_5703/
 venv/
+web/.env
+web/main/settings.py
