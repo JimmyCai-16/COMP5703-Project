@@ -1,0 +1,53 @@
+{% load static %}
+
+<script src="{% static 'interactive_map/js/api.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        const map = $(`#map-container`).InteractiveMap({
+            viewPort: [-23.9176, 142.7028],  // 昆士兰中心经纬度
+            zoomLevel: 6,  // 初始缩放级别，适合查看整个澳大利亚
+            width: '100%', // Deign the width of the map
+            height: '800px',
+            minZoom: 2,
+            maxZoom: 15,
+            widgets: ['minimap', 'fullscreen', 'scale', 'toolbar', 'resetBounds', 'mouseCoords', 'searchBox'],  // 启用的组件
+            reloadOnPan: true,
+            layers: [
+                {
+                    //url: "localhost:8000/interactive_map/api/endpoint/",  // GeoJSON 数据的 API 端点
+                    interactive: true,  // 允许用户与图层交互
+                    tooltip: (feature) => {
+                        console.log(`City: ${feature.properties.name}`);
+                        //return `City: ${feature.properties.name}`;  // 当鼠标悬停在城市上时显示的提示信息
+                    },
+                    style: {
+                        color: "#ff7800",
+                        weight: 2,
+                        opacity: 1
+                    },
+                    toolbar: {
+                        selectedFeature: function (feature) {
+                            console.log("Selected feature:", feature.properties.name);
+                        }
+                    }
+                }
+            ]
+        });
+
+        // 配置搜索框的行为
+        map.on(InteractiveMap.Event.Search.changed, function (e) {
+            e.detail.widget.filter('name');  // 根据城市名称过滤
+        }).on(InteractiveMap.Event.Search.submit, function (e) {
+            e.detail.widget.search('name');  // 根据城市名称进行搜索并缩放到该城市
+        });
+
+        // 处理绘图工具栏的事件
+        map.on(InteractiveMap.Event.Toolbar.preDraw, function () {
+            console.log("Drawing operation started...");
+        }).on(InteractiveMap.Event.Toolbar.postDraw, function () {
+            console.log("Drawing operation finished.");
+        }).on(InteractiveMap.Event.Toolbar.selectedFeature, function (e) {
+            console.log("Selected feature:", e.detail.target.feature.properties.name);
+        });
+    });
+</script>

@@ -1,0 +1,28 @@
+<!-- No need to extend base.html, is under the deposits_home.html -->
+<!-- This HTML is designed to use to visualize the prediction result -->
+
+<head>
+    <!-- Import HTMX framework -->
+    <script src="https://unpkg.com/htmx.org@2.0.2"></script>
+</head>
+
+<!-- TODO: Remember to use HTMX to implement interactive functions -->
+<div>
+    <div>
+        <h2>Prediction Result</h2>
+    </div>
+
+    <div>
+        <p>Longitude: {{ longitude }}</p>
+        <p>Latitude: {{ latitude }}</p>
+
+        <!-- Return to the PDP -->
+        <a href="{% url 'porphyry_deposits:get_deposits' %}">
+            <button type="button">
+                Back
+            </button>
+        </a>
+    </div>
+
+
+</div>

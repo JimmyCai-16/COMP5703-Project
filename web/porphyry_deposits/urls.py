@@ -8,5 +8,7 @@ app_name = "porphyry_deposits"
 
 urlpatterns = [
     path('get_deposits/', views.get_deposits, name='get_deposits'),
+    path('prediction/', views.prediction, name='prediction'),
+
  
 ]
