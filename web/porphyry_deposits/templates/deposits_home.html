@@ -126,7 +126,7 @@
         var longitudeInput = document.getElementById('longitude');
         var latitudeInput = document.getElementById('latitude');
 
-        // 每次验证前清除错误信息
+        // Clear error messages before each validation
         if (longitudeErrorElement) {
             longitudeErrorElement.innerText = '';
         }
@@ -134,7 +134,7 @@
             latitudeErrorElement.innerText = '';
         }
 
-        // 验证输入是否有效
+        // Verify that the input longitude is valid
         var longitudeError = '';
         var latitudeError = '';
 
@@ -146,7 +146,7 @@
             latitudeError = 'Invalid latitude value.';
         }
 
-        // 如果有错误信息，显示错误信息
+        // Display error messages, if any
         if (longitudeErrorElement) {
             longitudeErrorElement.innerText = longitudeError;
         }
@@ -159,20 +159,20 @@
 
         var submitButton = document.getElementById('submit-button');
         if (longitudeError === '' && latitudeError === '') {
-            submitButton.disabled = false; // 启用按钮
+            submitButton.disabled = false; // Allow to submit
         } else {
-            submitButton.disabled = true; // 禁用按钮
+            submitButton.disabled = true; // Not allow to submit
         }
     }
 
 
-    // 验证输入的经度是否有效
+    // Verify that the input longitude is valid
     function isValidLongitude(longitude) {
         var lon = parseFloat(longitude);
         return !isNaN(lon) && lon >= -180 && lon <= 180;
     }
 
-    // 验证输入的纬度是否有效
+    // Verify that the input latitude is valid
     function isValidLatitude(latitude) {
         var lat = parseFloat(latitude);
         return !isNaN(lat) && lat >= -90 && lat <= 90;
@@ -180,7 +180,7 @@
 
     document.body.addEventListener('htmx:afterSwap', function (event) {
         if (event.detail.target.id === 'longitude-error' || event.detail.target.id === 'latitude-error') {
-            validateForm(); // 每次更新后检查错误信息并更新按钮状态
+            validateForm(); // Check for error messages and update button status after each update
         }
     });
 
@@ -193,7 +193,7 @@
             var value = event.target.value;
 
             if (!numberPattern.test(value)) {
-                // 删除最后一个输入的非数字字符，不允许用户乱输入
+                // Deletes the last non-numeric character entered and does not allow the user to enter it indiscriminately
                 event.target.value = value.slice(0, -1); 
             }
 
