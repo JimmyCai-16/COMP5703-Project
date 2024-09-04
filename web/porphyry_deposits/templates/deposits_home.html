@@ -16,24 +16,43 @@
 <!-- pdp = porphyry deposits prediction -->
 <div id="pdp" style="display: flex; flex-direction: column; height: 100%; width: 100%;">
     <!-- Titile box -->
-    <div id="info-panel" style="height: 50px; padding: 10px;">
+    <div id="info-panel" style="height: 50px; padding-bottom: 10px; padding-bottom: 10px;">
         <!-- Content inside the green box -->
         <h2>Porphyry Deposits Prediction</h2>
     </div>
     <!-- User input box -->
     <div id="user-input">
         <div>
-            <!-- User input function -->
-            <!-- TODO: Design the style -->
-            <form hx-post="{% url 'porphyry_deposits:prediction' %}" hx-target="#pdp" hx-swap="innerHTML"
-                hx-trigger="submit">
-                <input type="text" name="longitude" placeholder="Please input the longitude">
-                <input type="text" name="latitude" placeholder="Please input the latitude">
-                <button type="submit">Get the reuslt</button>
+            <form id="user-input-form" hx-post="{% url 'porphyry_deposits:prediction' %}" hx-target="#pdp"
+                hx-swap="innerHTML" onsubmit="return validateForm()">
+                <div class="input-group">
+                    <div class="input-item">
+
+                        <label>Longitude</label>
+                        <input type="text" id="longitude" name="longitude"
+                            hx-post="{% url 'porphyry_deposits:validate_longitude' %}" hx-trigger="change"
+                            hx-target="#longitude-error" hx-swap="outerHTML">
+                        <!-- eror_message页面中用的是id -->
+                        <div id="longitude-error" class="error-message"></div>
+                    </div>
+
+                    <div class="input-item">
+                        <label>Latitude</label>
+                        <input type="text" id="latitude" name="latitude"
+                            hx-post="{% url 'porphyry_deposits:validate_latitude' %}" hx-trigger="change"
+                            hx-target="#latitude-error" hx-swap="outerHTML">
+                        <div id="latitude-error" class="error-message"></div>
+                    </div>
+
+                    <div class="input-item">
+                        <button type="submit" id="submit-button" disabled>Get the result</button>
+                    </div>
+                </div>
                 {% csrf_token %}
             </form>
+
         </div>
-        <div style="border: solid blue 1px; margin-top: 10px;">
+        <div style="border: solid blue 1px; margin-top: 10px; margin-bottom: 10px;">
             <p style="color: red;">Maybe we will add other funcitons in this area later.</p>
         </div>
     </div>
@@ -44,16 +63,144 @@
 {% endblock %}
 
 {% block extra_head %}
-    {% include 'utils/extra_head.html' %}
+{% include 'utils/extra_head.html' %}
 {% endblock %}
 
 {% block extra_body %}
-    {% include 'utils/extra_body.html' %}
+{% include 'utils/extra_body.html' %}
 
-    <style>
-        #user-input {
-            margin: 20px;
-            height: 100px;
+<style>
+    .input-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        /* 控制输入框之间的间距 */
+    }
+
+    .input-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .error-message {
+        color: red;
+        font-size: 0.85em;
+        margin-top: 5px;
+    }
+
+    .input-item input {
+        padding: 5px;
+        box-shadow: 0 0 3px #ccc;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+    }
+
+    .input-item button {
+        margin-top: 20px;
+        padding: 5px 10px;
+        border-radius: 3px;
+        border: none;
+        background-color: rgb(18, 27, 160);
+        color: rgb(255, 255, 255);
+        cursor: pointer;
+    }
+
+    .input-item button:hover {
+        background-color: #0056b3;
+    }
+
+    #submit-button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+</style>
+
+<script>
+    function validateForm() {
+        var longitudeErrorElement = document.getElementById('longitude-error');
+        var latitudeErrorElement = document.getElementById('latitude-error');
+
+        var longitudeError = longitudeErrorElement ? longitudeErrorElement.innerText.trim() : '';
+        var latitudeError = latitudeErrorElement ? latitudeErrorElement.innerText.trim() : '';
+
+        var longitudeInput = document.getElementById('longitude');
+        var latitudeInput = document.getElementById('latitude');
+
+        // 每次验证前清除错误信息
+        if (longitudeErrorElement) {
+            longitudeErrorElement.innerText = '';
         }
-    </style>
+        if (latitudeErrorElement) {
+            latitudeErrorElement.innerText = '';
+        }
+
+        // 验证输入是否有效
+        var longitudeError = '';
+        var latitudeError = '';
+
+        if (!isValidLongitude(longitudeInput.value.trim())) {
+            longitudeError = 'Invalid longitude value.';
+        }
+
+        if (!isValidLatitude(latitudeInput.value.trim())) {
+            latitudeError = 'Invalid latitude value.';
+        }
+
+        // 如果有错误信息，显示错误信息
+        if (longitudeErrorElement) {
+            longitudeErrorElement.innerText = longitudeError;
+        }
+        if (latitudeErrorElement) {
+            latitudeErrorElement.innerText = latitudeError;
+        }
+
+        console.log("Longitude Error: ", longitudeError);
+        console.log("Latitude Error: ", latitudeError);
+
+        var submitButton = document.getElementById('submit-button');
+        if (longitudeError === '' && latitudeError === '') {
+            submitButton.disabled = false; // 启用按钮
+        } else {
+            submitButton.disabled = true; // 禁用按钮
+        }
+    }
+
+
+    // 验证输入的经度是否有效
+    function isValidLongitude(longitude) {
+        var lon = parseFloat(longitude);
+        return !isNaN(lon) && lon >= -180 && lon <= 180;
+    }
+
+    // 验证输入的纬度是否有效
+    function isValidLatitude(latitude) {
+        var lat = parseFloat(latitude);
+        return !isNaN(lat) && lat >= -90 && lat <= 90;
+    }
+
+    document.body.addEventListener('htmx:afterSwap', function (event) {
+        if (event.detail.target.id === 'longitude-error' || event.detail.target.id === 'latitude-error') {
+            validateForm(); // 每次更新后检查错误信息并更新按钮状态
+        }
+    });
+
+    
+    var numberPattern = /^-?\d*(\.\d*)?$/;
+
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', function () {
+
+            var value = event.target.value;
+
+            if (!numberPattern.test(value)) {
+                // 删除最后一个输入的非数字字符，不允许用户乱输入
+                event.target.value = value.slice(0, -1); 
+            }
+
+            // Validate the user input everytime
+            validateForm();
+        });
+    });
+</script>
+
 {% endblock %}

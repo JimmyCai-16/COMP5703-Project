@@ -18,11 +18,24 @@
 
         <!-- Return to the PDP -->
         <a href="{% url 'porphyry_deposits:get_deposits' %}">
-            <button type="button">
+            <button id="result_button" type="button">
                 Back
             </button>
         </a>
     </div>
-
-
 </div>
+
+{% block extra_body %}
+
+<style>
+    #result_button {
+        padding: 5px 10px;
+        border-radius: 3px;
+        border: none;
+        background-color: rgb(18, 27, 160);
+        color: rgb(255, 255, 255);
+        cursor: pointer;
+    }
+</style>
+
+{% endblock %}
