@@ -1,8 +1,10 @@
 from django.shortcuts import render, HttpResponse, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
 from django.http import JsonResponse
 from typing import Dict
+import json
 
 
 # Create your views here.
@@ -23,7 +25,7 @@ def get_deposits(request):
 @login_required
 @require_POST
 def prediction(request):
-    print(request.method)
+    # print(request.method)
     longitude = request.POST.get('longitude')
     latitude = request.POST.get('latitude')
 
@@ -90,6 +92,43 @@ def prediction_results(request):
     
     return render(request, 'prediction_result.html', context)
 
+# TODO: 不知道为什么，点击一次会发送好多次请求 -> Done 在前端解决了这个问题，防止提交多个layer
+@login_required
+@require_POST
+@csrf_protect
+def get_circle_coordinates(request):
+    
+    # Parsing json data transmitted by the front-end
+    data = request.POST
+    # Retriving the geographic data
+    
+    geo_data = {
+        'latitude': data.get('latitude'),
+        'longitude': data.get('longitude')
+    }
+
+    print("Received coordinates: Latitude=", geo_data['latitude'], "Longitude=", geo_data['longitude'])
+
+    return JsonResponse({'message': 'Coordinates received successfully.', 'geo_data': geo_data})
+
+# Process rectangle drawing
+@login_required
+@require_POST
+@csrf_protect
+def get_rectangle_coordinates(request):
+    
+    # Retriving the data sent from the frontend
+    data = json.loads(request.body.decode('utf-8'))
+    coordinates = data.get('coordinates', {})    
+
+    # Iterate through each point and print out the corresponding coordinates
+    for kv in coordinates:
+        print(kv, ":", "Lat:", coordinates[kv][0], ",", " Lng:", coordinates[kv][1])
+        
+    return JsonResponse({'message': 'Coordinates received successfully.'})
+
+
+    
 
 def is_valid_longitude(value):
     try:

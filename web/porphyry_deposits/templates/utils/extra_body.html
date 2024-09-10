@@ -10,7 +10,7 @@
             height: '800px',
             minZoom: 2,
             maxZoom: 15,
-            widgets: ['createMark','minimap', 'fullscreen', 'scale', 'toolbar', 'resetBounds', 'mouseCoords', 'searchBox'],  // 启用的功能
+            widgets: ['createMark', 'minimap', 'fullscreen', 'scale', 'toolbar', 'resetBounds', 'mouseCoords', 'searchBox'],  // 启用的功能
             reloadOnPan: true,
             layers: [
                 {
@@ -41,31 +41,145 @@
         //     e.detail.widget.search('name');  // 根据城市名称进行搜索并缩放到该城市
         // });
 
-        //点击地图后获得经纬度
-        map.on(InteractiveMap.Event.Mark.created, function (e) {
-            const { marker, lat, lng } = e.detail;
-            console.log("Latitude: " + lat);
-            console.log("Longitude: "+ lng);
-        });
+        //点击地图后获得经纬度 -> Also, sending the geographic data to the backend -> TODO: 点击地图才可以传，如果先选中方法就不可以 -> Fixing
+        // map.on(InteractiveMap.Event.Mark.created, function (e) {
+        //     // console.log(e.detail)
+        //     const { marker, lat, lng } = e.detail;
+
+
+        // });
+
+        // 创建一个新的图层
+        let drawnLayerGroup = new L.FeatureGroup().addTo(map.map);
+        // 用于控制是否正在绘制
+        let isDrawing = false;
+
+
         //获取绘制范围的经纬度
         map.on(InteractiveMap.Event.Toolbar.postDraw, function (e) {
-            // console.log(e.type);
-            // console.log(e.detail);
-            // console.log(e.detail.layerType);
-            var latlngs = e.detail.drawnLayer._latlngs[0];  // 获取 _latlngs 数组中的第一个数组 数组存放所有点坐标
-            latlngs.forEach(function(latlng, index) {
-            console.log("Point " + (index + 1) + ":");
-            console.log("Latitude: " + latlng.lat);
-            console.log("Longitude: " + latlng.lng);
-            });
+
+            // 防止绘制未完成时重复请求
+            if (isDrawing) {
+                console.log("Drawing already in progress. Please wait.");
+                return;
+            }
+
+            // 设置为true，允许绘制 -> 重要！！用于处理重复提交
+            isDrawing = true;
+
+            // 获取当前用户画图的形状
+            let type = e.detail.layerType;
+
+            if (type === "rectangle") {
+                var latlngs = e.detail.drawnLayer._latlngs[0];  // 获取 _latlngs 数组中的第一个数组 数组存放所有点坐标
+
+                // const formData = new FormData();
+                // formData.append('latlngs', latlngs);
+
+
+                // let formData = new FormData();
+                // latlngs.forEach((coord, index) => {
+                //     formData.append(`Point${index + 1}_lat`, coord.lat);
+                //     formData.append(`Point${index + 1}_lng`, coord.lng);
+                // });
+
+                // console.log(formData)
+
+                let coordinatesMap = new Map();
+                latlngs.forEach((coord, index) => {
+                    coordinatesMap.set(`Point${index + 1}`, [coord.lat, coord.lng]);
+                    console.log(coordinatesMap)
+                });
+
+                // 将 Map 转换为普通对象
+                let coordinatesObj = Object.fromEntries(coordinatesMap);
+
+                // Sending data to the backend
+                fetch("{% url 'porphyry_deposits:get_rectangle_coordinates' %}", {
+                    method: 'POST',
+                    headers: getCSRFHeaders(),
+                    body: JSON.stringify({ coordinates: coordinatesObj }) // 无法传Map，只能转换为普通JSON对象来传递
+                }).then(response => { // 此处往下所有的操作只不过是常规处理，后续慢慢修改，肯定不用处理获得的地理信息。
+                    if (response.ok) {
+                        return response.json();  // 解析返回的JSON数据
+                        isDrawing = false;
+                    } else {
+                        throw new Error("Failed to send coordinates");
+                        isDrawing = false;
+                    }
+                }).then(data => {
+                    console.log("Response from server:", data);  // 处理后端返回的数据
+                    isDrawing = false;
+                }).catch(error => {
+                    console.error("Error:", error);
+                    isDrawing = false;
+                });
+            } else if (type === "circle") { // TODO:画圆
+
+            } else if (type === "marker") {
+
+                const { lat, lng } = e.detail.drawnLayer._latlng;
+                // 发送POST请求到后端
+                // const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; // 获取CSRF token
+                const formData = new FormData();
+
+                formData.append("latitude", lat);
+                formData.append("longitude", lng);
+
+                fetch("{% url 'porphyry_deposits:get_circle_coordinates' %}", {
+                    method: "POST",
+                    headers: getCSRFHeaders(),
+                    body: formData // 如果用后端用json手动解析的话需要这样发: JSON.stringify({ latitude: latitude, longitude: longitude })
+                }).then(response => { // 此处往下所有的操作只不过是常规处理，后续慢慢修改，肯定不用处理获得的地理信息。
+                    if (response.ok) {
+                        return response.json();  // 解析返回的JSON数据
+                        isDrawing = false;
+                    } else {
+                        throw new Error("Failed to send coordinates");
+                        isDrawing = false;
+                    }
+                }).then(data => {
+                    console.log("Response from server:", data);  // 处理后端返回的数据
+                    isDrawing = false;
+                }).catch(error => {
+                    console.error("Error:", error);
+                    isDrawing = false;
+                });
+
+            } else if (type === "polyline") { // 每次点一个点，可以圈出一个范围
+                // drawnLayer下的editing下的latlngs是一个数组，点了多少个点数组就有多少个坐标信息
+
+            } else if (type === "polygon") {
+                // 六边形
+            }
         });
 
+        // Create CSRF header
+        function getCSRFHeaders() {
+            // 获取 CSRF 令牌
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // 创建 Headers 对象并设置 CSRF 头
+            const headers = new Headers();
+            headers.append("X-CSRFToken", csrfToken);
+
+            return headers;
+        }
+
+        // Remove old layers
+        function clearLayers() {
+            drawnLayerGroup.clearLayers();
+        }
+
         // 处理绘图工具栏的事件
-        map.on(InteractiveMap.Event.Toolbar.preDraw, function () {
+        map.on(InteractiveMap.Event.Toolbar.preDraw, function (e) {
             console.log("Drawing operation started...");
-        }).on(InteractiveMap.Event.Toolbar.postDraw, function () {
+            console.log("======", e.detail, "======");
+        });
+        map.on(InteractiveMap.Event.Toolbar.postDraw, function () {
             console.log("Drawing operation finished.");
-        }).on(InteractiveMap.Event.Toolbar.selectedFeature, function (e) {
+        });
+        map.on(InteractiveMap.Event.Toolbar.selectedFeature, function (e) {
             console.log("Selected feature:", e.detail.target.feature.properties.name);
         });
     });

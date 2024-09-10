@@ -58,7 +58,7 @@
     </div>
 
     <!-- Map Ccntainer box -->
-    <div id="map-container" style="flex-grow: 1;"></div>
+    <div id="map-container" style="flex-grow: 1;"> </div>
 </div>
 {% endblock %}
 
@@ -116,6 +116,12 @@
 </style>
 
 <script>
+    // Add CSRF token to the request header
+    document.addEventListener('htmx:configRequest', function (event) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        event.detail.headers['X-CSRFToken'] = csrfToken;
+    });
+
     function validateForm() {
         var longitudeErrorElement = document.getElementById('longitude-error');
         var latitudeErrorElement = document.getElementById('latitude-error');
@@ -184,7 +190,7 @@
         }
     });
 
-    
+
     var numberPattern = /^-?\d*(\.\d*)?$/;
 
     document.querySelectorAll('input').forEach(input => {
@@ -194,7 +200,7 @@
 
             if (!numberPattern.test(value)) {
                 // Deletes the last non-numeric character entered and does not allow the user to enter it indiscriminately
-                event.target.value = value.slice(0, -1); 
+                event.target.value = value.slice(0, -1);
             }
 
             // Validate the user input everytime
