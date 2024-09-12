@@ -108,8 +108,33 @@
                         isDrawing = false;
                     }
                 }).then(data => {
-                    console.log("Response from server:", data);  // 处理后端返回的数据
+                    console.log("Response from server:", data.geojson);  // 处理后端返回的数据
                     isDrawing = false;
+
+                    clearLayers()
+                    let geoJsonLayer = L.geoJSON(data.geojson, { // 将 GeoJSON 数据转化为 Leaflet 图层 设置框样式颜色
+                        style: function (feature) {
+                            return {
+                                color: '#FF0000',       // 边框颜色 (红色)
+                                weight: 2,              // 边框线条宽度
+                                fillColor: '#00FF00',   // 填充颜色 (绿色)
+                                fillOpacity: 0.5        // 填充透明度
+                            };
+                        },
+                        onEachFeature: function (feature, layer) {
+                            // 为每个图层绑定一个点击事件，弹出提示框
+                            layer.on('click', function () {
+                                // 可以根据 feature.properties 中的数据展示不同内容
+                                let popupContent = `Feature ID: ${feature.properties.permit_id}<br>
+                                        Name: ${feature.properties.name}`;
+                                layer.bindPopup(popupContent).openPopup();
+                            });
+                        }
+                    });
+                    let myLayer = new L.FeatureGroup();//创建图层
+                    geoJsonLayer.addTo(myLayer); // 将生成的图层添加到 myLayer
+                    console.log(myLayer);
+                    myLayer.addTo(map.map);
                 }).catch(error => {
                     console.error("Error:", error);
                     isDrawing = false;

@@ -13,7 +13,7 @@ urlpatterns = [
     path('validate_longitude/', views.validate_longitude, name='validate_longitude'),
     path('prediction_results/', views.prediction_results, name='prediction_results'),
     path('get_circle_coordinates/', views.get_circle_coordinates, name="get_circle_coordinates"),
-    path('get_rectangle_coordinates/', views.get_rectangle_coordinates, name="get_rectangle_coordinates")
-
+    path('get_rectangle_coordinates/', views.get_rectangle_coordinates, name="get_rectangle_coordinates"),
+    path('send_rectangle_coordinates/', views.send_rectangle_coordinates, name="send_rectangle_coordinates")
  
 ]

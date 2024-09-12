@@ -111,6 +111,7 @@ def get_circle_coordinates(request):
 
     return JsonResponse({'message': 'Coordinates received successfully.', 'geo_data': geo_data})
 
+# global_coordinates = {} #Global variables are used to pass coordinates sent by the map
 # Process rectangle drawing
 @login_required
 @require_POST
@@ -119,16 +120,60 @@ def get_rectangle_coordinates(request):
     
     # Retriving the data sent from the frontend
     data = json.loads(request.body.decode('utf-8'))
-    coordinates = data.get('coordinates', {})    
-
+    coordinates = data.get('coordinates', {})
     # Iterate through each point and print out the corresponding coordinates
     for kv in coordinates:
         print(kv, ":", "Lat:", coordinates[kv][0], ",", " Lng:", coordinates[kv][1])
-        
-    return JsonResponse({'message': 'Coordinates received successfully.'})
+    #print(coordinates['Point1'])
+    response_data = {
+        'message': 'Coordinates received successfully.',
+        'geojson': send_rectangle_coordinates(coordinates)
+    }
+    return JsonResponse(response_data, safe=False)
+    # return JsonResponse({'message': 'Coordinates received successfully.'})
 
-
-    
+# Receive end point cordinates to map system
+def send_rectangle_coordinates(coordinates):
+    Rectangle = {
+        "coordinates": [
+            [
+                # coordinates['Point1'],  # Point 1
+                # coordinates['Point2'],  # Point 2
+                # coordinates['Point3'],  # Point 3
+                # coordinates['Point4'],  # Point 4
+                # coordinates['Point1']  # 闭合多边形回到 Point 1
+                [142.03125000000003, -22.044913300245675],  # Point 1
+                [142.53125000000003, -21.544913300245675],  # Point 2
+                [143.03125000000003, -21.044913300245675],  # Point 3
+                [144.03125000000003, -21.044913300245675],  # Point 4
+                [144.53125000000003, -21.544913300245675],  # Point 5
+                [144.03125000000003, -22.044913300245675],  # Point 6
+                [143.03125000000003, -22.544913300245675],  # Point 7
+                [142.03125000000003, -22.044913300245675]   # 闭合多边形回到 Point 1
+            ]
+        ],
+        "permit_id": "EPM12345",  # 许可 ID
+        "name": "Selected Rectangle"  # 多边形名称
+    }
+    # Construct a FeatureCollection in GeoJSON format
+    geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": Rectangle['coordinates']  # 使用传入的多边形的坐标
+                },
+                "properties": {
+                    "permit_id": Rectangle.get('permit_id', 'Unknown'),  # 可以根据需要添加更多属性
+                    "name": Rectangle.get('name', 'Sample Rectangle'),  # 给多边形一个默认的名称
+                }
+            }
+        ]
+    }
+    # 返回 GeoJSON 格式的响应
+    return geojson
 
 def is_valid_longitude(value):
     try:
