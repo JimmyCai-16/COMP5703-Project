@@ -132,29 +132,73 @@ def get_rectangle_coordinates(request):
     return JsonResponse(response_data, safe=False)
     # return JsonResponse({'message': 'Coordinates received successfully.'})
 
-# Receive end point cordinates to map system
+# # Receive end point cordinates to map system
+# def send_rectangle_coordinates(coordinates):
+#     Rectangle = { # TODO:到时候记得改名，这里是多边形
+#         "coordinates": [
+#             [
+#                 # coordinates['Point1'],  # Point 1
+#                 # coordinates['Point2'],  # Point 2
+#                 # coordinates['Point3'],  # Point 3
+#                 # coordinates['Point4'],  # Point 4
+#                 # coordinates['Point1']  # 闭合多边形回到 Point 1
+#                 [142.03125000000003, -22.044913300245675],  # Point 1
+#                 [142.53125000000003, -21.544913300245675],  # Point 2
+#                 [143.03125000000003, -21.044913300245675],  # Point 3
+#                 [144.03125000000003, -21.044913300245675],  # Point 4
+#                 [144.53125000000003, -21.544913300245675],  # Point 5
+#                 [144.03125000000003, -22.044913300245675],  # Point 6
+#                 [143.03125000000003, -22.544913300245675],  # Point 7
+#                 [142.03125000000003, -22.044913300245675]   # 闭合多边形回到 Point 1
+#             ]
+#         ],
+#         "permit_id": "EPM12345",  # 许可 ID
+#         "name": "Selected Rectangle"  # 多边形名称
+#     }
+#     # Construct a FeatureCollection in GeoJSON format
+#     geojson = {
+#         "type": "FeatureCollection",
+#         "features": [
+#             {
+#                 "type": "Feature",
+#                 "geometry": {
+#                     "type": "Polygon",
+#                     "coordinates": Rectangle['coordinates']  # 使用传入的多边形的坐标
+#                 },
+#                 "properties": {
+#                     "permit_id": Rectangle.get('permit_id', 'Unknown'),  # 可以根据需要添加更多属性
+#                     "name": Rectangle.get('name', 'Sample Rectangle'),  # 给多边形一个默认的名称
+#                 }
+#             }
+#         ]
+#     }
+#     # 返回 GeoJSON 格式的响应
+#     return geojson
+
+# Dynamic obtaining the rectangle geo data 
 def send_rectangle_coordinates(coordinates):
+    
+    # We expect 'coordinates' to contain Point1, Point2, Point3, Point4
+    point1 = coordinates['Point1']  # [lat, lng]
+    point2 = coordinates['Point2']
+    point3 = coordinates['Point3']
+    point4 = coordinates['Point4']
+
+    # Construct the rectangle (polygon) using the four points and ensure it's closed
     Rectangle = {
         "coordinates": [
             [
-                # coordinates['Point1'],  # Point 1
-                # coordinates['Point2'],  # Point 2
-                # coordinates['Point3'],  # Point 3
-                # coordinates['Point4'],  # Point 4
-                # coordinates['Point1']  # 闭合多边形回到 Point 1
-                [142.03125000000003, -22.044913300245675],  # Point 1
-                [142.53125000000003, -21.544913300245675],  # Point 2
-                [143.03125000000003, -21.044913300245675],  # Point 3
-                [144.03125000000003, -21.044913300245675],  # Point 4
-                [144.53125000000003, -21.544913300245675],  # Point 5
-                [144.03125000000003, -22.044913300245675],  # Point 6
-                [143.03125000000003, -22.544913300245675],  # Point 7
-                [142.03125000000003, -22.044913300245675]   # 闭合多边形回到 Point 1
+                [point1[1], point1[0]],  # Point 1 (lng, lat)
+                [point2[1], point2[0]],  # Point 2 (lng, lat)
+                [point3[1], point3[0]],  # Point 3 (lng, lat)
+                [point4[1], point4[0]],  # Point 4 (lng, lat)
+                [point1[1], point1[0]]   # Closing the polygon back to Point 1 (lng, lat)
             ]
         ],
-        "permit_id": "EPM12345",  # 许可 ID
-        "name": "Selected Rectangle"  # 多边形名称
+        "permit_id": "EPM12345", 
+        "name": "Selected Rectangle"  
     }
+
     # Construct a FeatureCollection in GeoJSON format
     geojson = {
         "type": "FeatureCollection",
@@ -163,17 +207,21 @@ def send_rectangle_coordinates(coordinates):
                 "type": "Feature",
                 "geometry": {
                     "type": "Polygon",
-                    "coordinates": Rectangle['coordinates']  # 使用传入的多边形的坐标
+                    "coordinates": Rectangle['coordinates']  # Use the dynamically passed coordinates
                 },
                 "properties": {
-                    "permit_id": Rectangle.get('permit_id', 'Unknown'),  # 可以根据需要添加更多属性
-                    "name": Rectangle.get('name', 'Sample Rectangle'),  # 给多边形一个默认的名称
+                    "permit_id": Rectangle.get('permit_id', 'Unknown'),  
+                    "name": Rectangle.get('name', 'Sample Rectangle') 
                 }
             }
         ]
     }
-    # 返回 GeoJSON 格式的响应
+
+    # Return the GeoJSON formatted data
     return geojson
+    
+    
+
 
 def is_valid_longitude(value):
     try:

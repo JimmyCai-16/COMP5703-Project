@@ -49,7 +49,7 @@
 
         // });
 
-        // 创建一个新的图层
+        // 创建一个新的图层 -> 之后所有新增的图层都在此基础上加
         let drawnLayerGroup = new L.FeatureGroup().addTo(map.map); // 用Interactive_map包装了，正常不需要map.map
         // 用于控制是否正在绘制
         let isDrawing = false;
@@ -109,11 +109,15 @@
                     }
                 }).then(data => {
                     console.log("Response from server:", data.geojson);  // 处理后端返回的数据
+
                     isDrawing = false;
 
+                    // 清楚旧图层
                     clearLayers()
+
                     let geoJsonLayer = L.geoJSON(data.geojson, { // 将 GeoJSON 数据转化为 Leaflet 图层 设置框样式颜色
                         style: function (feature) {
+
                             return {
                                 color: '#FF0000',       // 边框颜色 (红色)
                                 weight: 2,              // 边框线条宽度
@@ -131,10 +135,13 @@
                             });
                         }
                     });
-                    let myLayer = new L.FeatureGroup();//创建图层
-                    geoJsonLayer.addTo(myLayer); // 将生成的图层添加到 myLayer
-                    console.log(myLayer);
-                    myLayer.addTo(map.map);
+
+                    // let myLayer = new L.FeatureGroup();//创建图层
+
+                    geoJsonLayer.addTo(drawnLayerGroup); // 将生成的图层添加到 drawnLayerGroup -> Jimmy作了修改，不是加到myLayer而是加到原始的图层上
+
+                    // console.log(myLayer);
+                    // myLayer.addTo(map.map);
                 }).catch(error => {
                     console.error("Error:", error);
                     isDrawing = false;
@@ -198,6 +205,14 @@
 
         // 处理绘图工具栏的事件
         map.on(InteractiveMap.Event.Toolbar.preDraw, function (e) {
+
+            // // 每次之前都先删除之前的页面
+            // const interactive_layer = document.getElementsByClassName("leaflet-interactive");
+            // if (interactive_layer.length > 0 ) {
+            //     let elementRemove = interactive_layer[0];
+            //     elementRemove.parentNode.removeChild(elementRemove);
+            // }
+
             console.log("Drawing operation started...");
             console.log("======", e.detail, "======");
         });
