@@ -3,6 +3,13 @@
 <!-- Import HTMX framework -->
 <script src="https://unpkg.com/htmx.org@2.0.2"></script>
 
+<!-- Magnetic -->
+<!-- 引入 Plotty -->
+<script src="{% static 'js/plotty.min.js' %}"></script>
+<!-- 引入 Leaflet-Geotiff 和 Leaflet-Geotiff-Plotty -->
+<script src="{% static 'js/leaflet-geotiff.min.js' %}"></script>
+<script src="{% static 'js/leaflet-geotiff-plotty.min.js' %}"></script>
+
 <!-- All these are related to the map interactive functions -->
 {# CSS and JavaScript for MiniMap #}
 <link rel="stylesheet" href="{% static 'interactive_map/css/Control.MiniMap.css' %}" />

@@ -54,159 +54,163 @@
         </div>
         <div style="border: solid blue 1px; margin-top: 10px; margin-bottom: 10px;">
             <p style="color: red;">Maybe we will add other funcitons in this area later.</p>
+            
+            <div>
+                <button id="defaultMap">Normal Map</button>
+                <button id="magneticMap">Magnetic Map</button>
+            </div>
         </div>
+
+        <!-- Map Ccntainer box -->
+        <div id="map-container" style="flex-grow: 1;"> </div>
     </div>
+    {% endblock %}
 
-    <!-- Map Ccntainer box -->
-    <div id="map-container" style="flex-grow: 1;"> </div>
-</div>
-{% endblock %}
+    {% block extra_head %}
+    {% include 'utils/extra_head.html' %}
+    {% endblock %}
 
-{% block extra_head %}
-{% include 'utils/extra_head.html' %}
-{% endblock %}
+    {% block extra_body %}
+    {% include 'utils/extra_body.html' %}
 
-{% block extra_body %}
-{% include 'utils/extra_body.html' %}
-
-<style>
-    .input-group {
-        display: flex;
-        align-items: flex-start;
-        gap: 15px;
-        /* 控制输入框之间的间距 */
-    }
-
-    .input-item {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .error-message {
-        color: red;
-        font-size: 0.85em;
-        margin-top: 5px;
-    }
-
-    .input-item input {
-        padding: 5px;
-        box-shadow: 0 0 3px #ccc;
-        border-radius: 3px;
-        border: 1px solid #ccc;
-    }
-
-    .input-item button {
-        margin-top: 20px;
-        padding: 5px 10px;
-        border-radius: 3px;
-        border: none;
-        background-color: rgb(18, 27, 160);
-        color: rgb(255, 255, 255);
-        cursor: pointer;
-    }
-
-    .input-item button:hover {
-        background-color: #0056b3;
-    }
-
-    #submit-button:disabled {
-        background-color: #cccccc;
-        cursor: not-allowed;
-    }
-</style>
-
-<script>
-    // Add CSRF token to the request header
-    document.addEventListener('htmx:configRequest', function (event) {
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        event.detail.headers['X-CSRFToken'] = csrfToken;
-    });
-
-    function validateForm() {
-        var longitudeErrorElement = document.getElementById('longitude-error');
-        var latitudeErrorElement = document.getElementById('latitude-error');
-
-        var longitudeError = longitudeErrorElement ? longitudeErrorElement.innerText.trim() : '';
-        var latitudeError = latitudeErrorElement ? latitudeErrorElement.innerText.trim() : '';
-
-        var longitudeInput = document.getElementById('longitude');
-        var latitudeInput = document.getElementById('latitude');
-
-        // Clear error messages before each validation
-        if (longitudeErrorElement) {
-            longitudeErrorElement.innerText = '';
-        }
-        if (latitudeErrorElement) {
-            latitudeErrorElement.innerText = '';
+    <style>
+        .input-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            /* 控制输入框之间的间距 */
         }
 
-        // Verify that the input longitude is valid
-        var longitudeError = '';
-        var latitudeError = '';
-
-        if (!isValidLongitude(longitudeInput.value.trim())) {
-            longitudeError = 'Invalid longitude value.';
+        .input-item {
+            display: flex;
+            flex-direction: column;
         }
 
-        if (!isValidLatitude(latitudeInput.value.trim())) {
-            latitudeError = 'Invalid latitude value.';
+        .error-message {
+            color: red;
+            font-size: 0.85em;
+            margin-top: 5px;
         }
 
-        // Display error messages, if any
-        if (longitudeErrorElement) {
-            longitudeErrorElement.innerText = longitudeError;
+        .input-item input {
+            padding: 5px;
+            box-shadow: 0 0 3px #ccc;
+            border-radius: 3px;
+            border: 1px solid #ccc;
         }
-        if (latitudeErrorElement) {
-            latitudeErrorElement.innerText = latitudeError;
+
+        .input-item button {
+            margin-top: 20px;
+            padding: 5px 10px;
+            border-radius: 3px;
+            border: none;
+            background-color: rgb(18, 27, 160);
+            color: rgb(255, 255, 255);
+            cursor: pointer;
         }
 
-        console.log("Longitude Error: ", longitudeError);
-        console.log("Latitude Error: ", latitudeError);
-
-        var submitButton = document.getElementById('submit-button');
-        if (longitudeError === '' && latitudeError === '') {
-            submitButton.disabled = false; // Allow to submit
-        } else {
-            submitButton.disabled = true; // Not allow to submit
+        .input-item button:hover {
+            background-color: #0056b3;
         }
-    }
 
-
-    // Verify that the input longitude is valid
-    function isValidLongitude(longitude) {
-        var lon = parseFloat(longitude);
-        return !isNaN(lon) && lon >= -180 && lon <= 180;
-    }
-
-    // Verify that the input latitude is valid
-    function isValidLatitude(latitude) {
-        var lat = parseFloat(latitude);
-        return !isNaN(lat) && lat >= -90 && lat <= 90;
-    }
-
-    document.body.addEventListener('htmx:afterSwap', function (event) {
-        if (event.detail.target.id === 'longitude-error' || event.detail.target.id === 'latitude-error') {
-            validateForm(); // Check for error messages and update button status after each update
+        #submit-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
-    });
+    </style>
 
+    <script>
+        // Add CSRF token to the request header
+        document.addEventListener('htmx:configRequest', function (event) {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            event.detail.headers['X-CSRFToken'] = csrfToken;
+        });
 
-    var numberPattern = /^-?\d*(\.\d*)?$/;
+        function validateForm() {
+            var longitudeErrorElement = document.getElementById('longitude-error');
+            var latitudeErrorElement = document.getElementById('latitude-error');
 
-    document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', function () {
+            var longitudeError = longitudeErrorElement ? longitudeErrorElement.innerText.trim() : '';
+            var latitudeError = latitudeErrorElement ? latitudeErrorElement.innerText.trim() : '';
 
-            var value = event.target.value;
+            var longitudeInput = document.getElementById('longitude');
+            var latitudeInput = document.getElementById('latitude');
 
-            if (!numberPattern.test(value)) {
-                // Deletes the last non-numeric character entered and does not allow the user to enter it indiscriminately
-                event.target.value = value.slice(0, -1);
+            // Clear error messages before each validation
+            if (longitudeErrorElement) {
+                longitudeErrorElement.innerText = '';
+            }
+            if (latitudeErrorElement) {
+                latitudeErrorElement.innerText = '';
             }
 
-            // Validate the user input everytime
-            validateForm();
-        });
-    });
-</script>
+            // Verify that the input longitude is valid
+            var longitudeError = '';
+            var latitudeError = '';
 
-{% endblock %}
+            if (!isValidLongitude(longitudeInput.value.trim())) {
+                longitudeError = 'Invalid longitude value.';
+            }
+
+            if (!isValidLatitude(latitudeInput.value.trim())) {
+                latitudeError = 'Invalid latitude value.';
+            }
+
+            // Display error messages, if any
+            if (longitudeErrorElement) {
+                longitudeErrorElement.innerText = longitudeError;
+            }
+            if (latitudeErrorElement) {
+                latitudeErrorElement.innerText = latitudeError;
+            }
+
+            console.log("Longitude Error: ", longitudeError);
+            console.log("Latitude Error: ", latitudeError);
+
+            var submitButton = document.getElementById('submit-button');
+            if (longitudeError === '' && latitudeError === '') {
+                submitButton.disabled = false; // Allow to submit
+            } else {
+                submitButton.disabled = true; // Not allow to submit
+            }
+        }
+
+
+        // Verify that the input longitude is valid
+        function isValidLongitude(longitude) {
+            var lon = parseFloat(longitude);
+            return !isNaN(lon) && lon >= -180 && lon <= 180;
+        }
+
+        // Verify that the input latitude is valid
+        function isValidLatitude(latitude) {
+            var lat = parseFloat(latitude);
+            return !isNaN(lat) && lat >= -90 && lat <= 90;
+        }
+
+        document.body.addEventListener('htmx:afterSwap', function (event) {
+            if (event.detail.target.id === 'longitude-error' || event.detail.target.id === 'latitude-error') {
+                validateForm(); // Check for error messages and update button status after each update
+            }
+        });
+
+
+        var numberPattern = /^-?\d*(\.\d*)?$/;
+
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', function () {
+
+                var value = event.target.value;
+
+                if (!numberPattern.test(value)) {
+                    // Deletes the last non-numeric character entered and does not allow the user to enter it indiscriminately
+                    event.target.value = value.slice(0, -1);
+                }
+
+                // Validate the user input everytime
+                validateForm();
+            });
+        });
+    </script>
+
+    {% endblock %}
