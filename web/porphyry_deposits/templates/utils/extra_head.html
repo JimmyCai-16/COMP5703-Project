@@ -4,11 +4,16 @@
 <script src="https://unpkg.com/htmx.org@2.0.2"></script>
 
 <!-- Magnetic -->
-<!-- 引入 Plotty -->
+
+<!-- 用GeoRasterLayer插件 -->
+<script src="https://unpkg.com/georaster"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+
+<!-- 这些都是基于leaflet-geotiff -> 不太行 -->
+<!-- <script src="https://npmcdn.com/geotiff@0.3.6/dist/geotiff.js"></script>
 <script src="{% static 'js/plotty.min.js' %}"></script>
-<!-- 引入 Leaflet-Geotiff 和 Leaflet-Geotiff-Plotty -->
-<script src="{% static 'js/leaflet-geotiff.min.js' %}"></script>
-<script src="{% static 'js/leaflet-geotiff-plotty.min.js' %}"></script>
+<script src="{% static 'js/leaflet-geotiff.js' %}"></script>
+<script src="{% static 'js/leaflet-geotiff-plotty.js' %}"></script> -->
 
 <!-- All these are related to the map interactive functions -->
 {# CSS and JavaScript for MiniMap #}

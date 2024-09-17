@@ -3,9 +3,8 @@
 <script src="{% static 'interactive_map/js/api.js' %}" type="text/javascript"></script>
 <script type="text/javascript">
 
-    let isToolbarActive = false;
-
     $(document).ready(function () {
+
         const map = $(`#map-container`).InteractiveMap({
             viewPort: [-23.9176, 142.7028],  // 昆士兰中心经纬度
             zoomLevel: 6,  // 初始缩放级别，适合查看整个澳大利亚
@@ -13,7 +12,7 @@
             height: '800px',
             minZoom: 2,
             maxZoom: 15,
-            widgets: ['toolbar', 'minimap', 'fullscreen', 'scale',  'resetBounds', 'mouseCoords', 'searchBox'],  // 启用的功能 -> 'toolbar',
+            widgets: ['toolbar', 'minimap', 'fullscreen', 'scale', 'resetBounds', 'mouseCoords', 'searchBox'],  // 启用的功能 -> 'toolbar',
             reloadOnPan: true,
             layers: [
                 {
@@ -39,32 +38,67 @@
 
         // 创建一个新的图层 -> 之后所有新增的图层都在此基础上加
         let drawnLayerGroup = new L.FeatureGroup().addTo(map.map); // 用Interactive_map包装了，正常不需要map.map
+
         // 用于控制是否正在绘制
         let isDrawing = false;
+
+        let magneticLayer;
 
         // 绑定按钮事件，显示默认地图
         document.getElementById('defaultMap').addEventListener('click', function () {
             console.log("进来了-默认")
-            // map.map.removeLayer(magneticLayer);  // 移除磁力图层，显示默认地图
+            // 检查磁力图层是否存在并且已经添加到地图上
+            if (magneticLayer && map.map.hasLayer(magneticLayer)) {
+                map.map.removeLayer(magneticLayer);  // 移除磁力图层
+                magneticLayer = false;
+                console.log("磁力图层已移除");
+            } else {
+                console.log("磁力图层不存在或未添加");
+            }
         });
 
         // 绑定按钮事件，显示磁力地图
         document.getElementById('magneticMap').addEventListener('click', function () {
-            // // 创建磁力图层
-            // let magneticLayer = L.LeafletGeotiff('web/porphyry_deposits/static/Qld_TMI.tif', {
-            //     // renderer: new L.LeafletGeotiff.Plotty({
-            //     //     band: 0,
-            //     //     name: 'Magnetic Map',
-            //     //     domain: [0, 255],  // 根据你的磁力数据调整
-            //     //     colorScale: 'viridis'
-            //     // })
-            // }).addTo(drawnLayerGroup);
+
             console.log("进来了-磁力")
+
+            if (magneticLayer) {
+                drawnLayerGroup.removeLayer(magneticLayer);
+                console.log("======清楚了磁力图层======")
+            } else {
+                console.log("=====准备创建磁力图层=====");
+
+                // TODO: 做个动画，等待的时候转圈圈
+
+                // 得用最原始的.tif文件，至于格式 -> 目前试了4326有效
+                fetch('{% static "geo_file/4326.tif" %}')
+                    .then(response => response.arrayBuffer())
+                    .then(arrayBuffer => {
+                        console.log("arrayBuffer===> ", arrayBuffer)
+                        parseGeoraster(arrayBuffer).then(georaster => {
+                            console.log("georaster:", georaster);
+
+                            magneticLayer = new GeoRasterLayer({
+                                georaster: georaster,
+                                opacity: 0.7,
+                                resolution: 256 // 这个参数是调整像素的
+                            });
+
+                            // Just for testing
+                            console.log("磁力地图的边界: ", magneticLayer.getBounds())
+                            
+                            magneticLayer.addTo(map.map);
+
+                            map.map.fitBounds(magneticLayer.getBounds());
+
+                        });
+                    });
+            }
+
         });
 
         //获取绘制范围的经纬度
         map.on(InteractiveMap.Event.Toolbar.postDraw, function (e) {
-
 
             // 防止绘制未完成时重复请求
             if (isDrawing) {
@@ -144,6 +178,7 @@
                 });
             } else if (type === "circle") { // TODO:画圆
                 console.log(e.detail.drawnLayer)
+
             } else if (type === "marker") {
 
                 const { lat, lng } = e.detail.drawnLayer._latlng;
