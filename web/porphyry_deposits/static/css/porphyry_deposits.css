@@ -1,0 +1,57 @@
+.input-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    /* 控制输入框之间的间距 */
+}
+
+.input-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.error-message {
+    color: red;
+    font-size: 0.85em;
+    margin-top: 5px;
+}
+
+.input-item input {
+    padding: 5px;
+    box-shadow: 0 0 3px #ccc;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+}
+
+.input-item button {
+    margin-top: 20px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    border: none;
+    background-color: rgb(18, 27, 160);
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+}
+
+.input-item button:hover {
+    background-color: #0056b3;
+}
+
+#submit-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* The style of the loading bar */
+#nprogress .bar {
+    height: 15px;
+}
+
+#nprogress .spinner-icon {
+    width: 50px;
+    /* 设置旋转器的宽度，24px */
+    height: 50px;
+    /* 设置旋转器的高度，24px */
+    border-width: 15px;
+    /* 设置旋转器边框的粗细 */
+}

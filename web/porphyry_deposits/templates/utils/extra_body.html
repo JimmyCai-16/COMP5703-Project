@@ -1,7 +1,102 @@
 {% load static %}
-
+<!-- JavaScript for 'interactive_map' moudles -->
 <script src="{% static 'interactive_map/js/api.js' %}" type="text/javascript"></script>
 <script type="text/javascript">
+
+    // Add CSRF token to the request header
+    document.addEventListener('htmx:configRequest', function (event) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        event.detail.headers['X-CSRFToken'] = csrfToken;
+    });
+
+    function validateForm() {
+        var longitudeErrorElement = document.getElementById('longitude-error');
+        var latitudeErrorElement = document.getElementById('latitude-error');
+
+        var longitudeError = longitudeErrorElement ? longitudeErrorElement.innerText.trim() : '';
+        var latitudeError = latitudeErrorElement ? latitudeErrorElement.innerText.trim() : '';
+
+        var longitudeInput = document.getElementById('longitude');
+        var latitudeInput = document.getElementById('latitude');
+
+        // Clear error messages before each validation
+        if (longitudeErrorElement) {
+            longitudeErrorElement.innerText = '';
+        }
+        if (latitudeErrorElement) {
+            latitudeErrorElement.innerText = '';
+        }
+
+        // Verify that the input longitude is valid
+        var longitudeError = '';
+        var latitudeError = '';
+
+        if (!isValidLongitude(longitudeInput.value.trim())) {
+            longitudeError = 'Invalid longitude value.';
+        }
+
+        if (!isValidLatitude(latitudeInput.value.trim())) {
+            latitudeError = 'Invalid latitude value.';
+        }
+
+        // Display error messages, if any
+        if (longitudeErrorElement) {
+            longitudeErrorElement.innerText = longitudeError;
+        }
+        if (latitudeErrorElement) {
+            latitudeErrorElement.innerText = latitudeError;
+        }
+
+        console.log("Longitude Error: ", longitudeError);
+        console.log("Latitude Error: ", latitudeError);
+
+        var submitButton = document.getElementById('submit-button');
+        if (longitudeError === '' && latitudeError === '') {
+            submitButton.disabled = false; // Allow to submit
+        } else {
+            submitButton.disabled = true; // Not allow to submit
+        }
+    }
+
+
+    // Verify that the input longitude is valid
+    function isValidLongitude(longitude) {
+        var lon = parseFloat(longitude);
+        return !isNaN(lon) && lon >= -180 && lon <= 180;
+    }
+
+    // Verify that the input latitude is valid
+    function isValidLatitude(latitude) {
+        var lat = parseFloat(latitude);
+        return !isNaN(lat) && lat >= -90 && lat <= 90;
+    }
+
+    document.querySelectorAll('input[type="text"]').forEach(geoData => {
+        geoData.addEventListener('change', function (event) { // htmx:afterSwap
+            if (event.detail.target.id === 'longitude-error' || event.detail.target.id === 'latitude-error') {
+                validateForm(); // Check for error messages and update button status after each update
+            }
+        });
+    });
+
+    var numberPattern = /^-?\d*(\.\d*)?$/;
+
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', function () {
+
+            var value = event.target.value;
+
+            if (!numberPattern.test(value)) {
+                // Deletes the last non-numeric character entered and does not allow the user to enter it indiscriminately
+                event.target.value = value.slice(0, -1);
+            }
+
+            // Validate the user input everytime
+            validateForm();
+        });
+    });
+
+    // Interctive map related js codes
 
     $(document).ready(function () {
 
@@ -44,6 +139,19 @@
 
         let magneticLayer;
 
+
+        // Get all map related buttons
+        const mapButtons = document.querySelectorAll('.btn-group button');
+
+        mapButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                // Remove all other buttons' active attributes
+                mapButtons.forEach(btn => btn.classList.remove('active'));
+                // Add an active attribute to current button
+                this.classList.add('active');
+            });
+        });
+
         // 绑定按钮事件，显示默认地图
         document.getElementById('defaultMap').addEventListener('click', function () {
             console.log("进来了-默认")
@@ -69,7 +177,8 @@
                 console.log("=====准备创建磁力图层=====");
 
                 // TODO: 做个动画，等待的时候转圈圈
-
+                // Loading bar started
+                NProgress.start();
                 // 得用最原始的.tif文件，至于格式 -> 目前试了4326有效
                 fetch('{% static "geo_file/4326.tif" %}')
                     .then(response => response.arrayBuffer())
@@ -80,18 +189,36 @@
 
                             magneticLayer = new GeoRasterLayer({
                                 georaster: georaster,
-                                opacity: 0.7,
-                                resolution: 256 // 这个参数是调整像素的
+                                opacity: 0.7, // 设置1透明度
+                                resolution: 256, // 这个参数是调整像素的
+                                pixelValuesToColorFn: function (pixelValueTotal) { // 调颜色
+                                    let pixelValue = pixelValueTotal[0];
+                                    // TODO: 这样的效果很差，看看有没有新的.tiff文件
+                                    // 使用 pixelValue 在 0 到 255 之间动态分配颜色
+                                    if (pixelValue === 0) return '#000000'; // Black for minimum values
+                                    if (pixelValue > 0 && pixelValue <= 64) return '#440154'; // Purple
+                                    if (pixelValue > 64 && pixelValue <= 128) return '#31688e'; // Blue
+                                    if (pixelValue > 128 && pixelValue <= 192) return '#35b779'; // Green
+                                    return '#fde725'; // Yellow for high values (192 - 255)
+                                }
                             });
 
                             // Just for testing
                             console.log("磁力地图的边界: ", magneticLayer.getBounds())
-                            
+
                             magneticLayer.addTo(map.map);
 
                             map.map.fitBounds(magneticLayer.getBounds());
 
+                            // Loaidng bar stop
+                            NProgress.done();
+
                         });
+
+                    }).catch(error => {
+                        console.log("Error loading the magnetic map: ", error);
+                        // Loaidng bar stop
+                        NProgress.done();
                     });
             }
 

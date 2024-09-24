@@ -3,17 +3,14 @@
 <!-- Import HTMX framework -->
 <script src="https://unpkg.com/htmx.org@2.0.2"></script>
 
-<!-- Magnetic -->
-
 <!-- 用GeoRasterLayer插件 -->
 <script src="https://unpkg.com/georaster"></script>
 <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
 
-<!-- 这些都是基于leaflet-geotiff -> 不太行 -->
-<!-- <script src="https://npmcdn.com/geotiff@0.3.6/dist/geotiff.js"></script>
-<script src="{% static 'js/plotty.min.js' %}"></script>
-<script src="{% static 'js/leaflet-geotiff.js' %}"></script>
-<script src="{% static 'js/leaflet-geotiff-plotty.js' %}"></script> -->
+{# CSS and JavaScript for NProgress #}
+<!-- https://github.com/rstacruz/nprogress/tree/master -->
+<link rel="stylesheet" href="https://unpkg.com/nprogress/nprogress.css">
+<script src="https://unpkg.com/nprogress/nprogress.js"></script>
 
 <!-- All these are related to the map interactive functions -->
 {# CSS and JavaScript for MiniMap #}
@@ -37,3 +34,6 @@
 {# CSS for Map API and Custom Map CSS #}
 <link rel="stylesheet" href="{% static 'interactive_map/css/api.css' %}" />
 <link rel="stylesheet" href="{% static 'interactive_map/css/map.css' %}" />
+
+{# CSS for the porphyry deposits #}
+<link rel="stylesheet" href="{% static 'css/porphyry_deposits.css' %}">

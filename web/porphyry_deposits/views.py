@@ -190,7 +190,7 @@ def send_rectangle_coordinates(coordinates):
                 [point1[1], point1[0]]   # Closing the polygon back to Point 1 (lng, lat)
             ]
         ],
-        "permit_id": "EPM12345", 
+        "permit_id": "EPM12345",  # TODO: 这里需要修改，根据model获取预测结果再传到前端
         "name": "Selected Rectangle"  
     }
 
