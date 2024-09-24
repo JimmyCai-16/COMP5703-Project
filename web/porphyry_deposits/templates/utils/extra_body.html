@@ -180,8 +180,10 @@
                 // Loading bar started
                 NProgress.start();
                 showSpinner();//调用加载数据时转圈方法
+                // Clear the shapes layer before loading the magnetic map
+                clearLayers();
                 // 得用最原始的.tif文件，至于格式 -> 目前试了4326有效
-                fetch('{% static "geo_file/4326.tif" %}')
+                fetch('{% static "geo_file/GeoTiffColor.tif" %}')
                     .then(response => response.arrayBuffer())
                     .then(arrayBuffer => {
                         console.log("arrayBuffer===> ", arrayBuffer)
@@ -190,18 +192,8 @@
 
                             magneticLayer = new GeoRasterLayer({
                                 georaster: georaster,
-                                opacity: 0.7, // 设置1透明度
+                                opacity: 0.85, // 设置1透明度
                                 resolution: 256, // 这个参数是调整像素的
-                                pixelValuesToColorFn: function (pixelValueTotal) { // 调颜色
-                                    let pixelValue = pixelValueTotal[0];
-                                    // TODO: 这样的效果很差，看看有没有新的.tiff文件
-                                    // 使用 pixelValue 在 0 到 255 之间动态分配颜色
-                                    if (pixelValue === 0) return '#000000'; // Black for minimum values
-                                    if (pixelValue > 0 && pixelValue <= 64) return '#440154'; // Purple
-                                    if (pixelValue > 64 && pixelValue <= 128) return '#31688e'; // Blue
-                                    if (pixelValue > 128 && pixelValue <= 192) return '#35b779'; // Green
-                                    return '#fde725'; // Yellow for high values (192 - 255)
-                                }
                             });
 
                             // Just for testing
@@ -309,7 +301,8 @@
                             layer.on('click', function () {
                                 // 可以根据 feature.properties 中的数据展示不同内容
                                 let popupContent = `Feature ID: ${feature.properties.permit_id}<br>
-                                        Name: ${feature.properties.name}`;
+                                        Name: ${feature.properties.name}<br><br>
+                                        Get more details`;
                                 layer.bindPopup(popupContent).openPopup();
                             });
                         }
