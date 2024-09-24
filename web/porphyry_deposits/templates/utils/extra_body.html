@@ -167,7 +167,7 @@
 
         // 绑定按钮事件，显示磁力地图
         document.getElementById('magneticMap').addEventListener('click', function () {
-
+            NProgress.configure({ showSpinner: false });//隐藏原生的加载数据圈圈
             console.log("进来了-磁力")
 
             if (magneticLayer) {
@@ -179,6 +179,7 @@
                 // TODO: 做个动画，等待的时候转圈圈
                 // Loading bar started
                 NProgress.start();
+                showSpinner();//调用加载数据时转圈方法
                 // 得用最原始的.tif文件，至于格式 -> 目前试了4326有效
                 fetch('{% static "geo_file/4326.tif" %}')
                     .then(response => response.arrayBuffer())
@@ -212,6 +213,7 @@
 
                             // Loaidng bar stop
                             NProgress.done();
+                            removeSpinner();//移除加载数据时转圈
 
                         });
 
@@ -219,10 +221,30 @@
                         console.log("Error loading the magnetic map: ", error);
                         // Loaidng bar stop
                         NProgress.done();
+                        removeSpinner();//移除加载数据时转圈
                     });
             }
 
         });
+
+        // 手动创建 Spinner 并绑定到容器
+        function showSpinner() {
+            var container = document.getElementById('map-container');
+            // 创建一个 Spinner 元素
+            var spinner = document.createElement('div');
+            spinner.classList.add('custom-spinner');
+             // 将 Spinner 添加到容器内
+            container.appendChild(spinner);
+        }
+         // 移除 Spinner
+        function removeSpinner() {
+            var container = document.getElementById('map-container');
+            var spinner = container.querySelector('.custom-spinner');
+            // 移除 Spinner
+            if (spinner) {
+                container.removeChild(spinner);
+            }
+        }
 
         //获取绘制范围的经纬度
         map.on(InteractiveMap.Event.Toolbar.postDraw, function (e) {
