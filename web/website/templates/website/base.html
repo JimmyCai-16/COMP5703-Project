@@ -2,7 +2,7 @@
 
 <!DOCTYPE html>
 <html class="no-js" lang="en">
-    
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,8 +10,8 @@
     <meta name="description" content="">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    
+
+
     <!-- Favicon -->
     <link rel="shortcut icon" href="{% static 'website/images/favicon.ico' %}">
 
@@ -57,7 +57,8 @@
                 opacity: 1 !important;
                 visibility: visible !important;
             }
-            .wow{
+
+            .wow {
                 display: block !important;
                 opacity: 1 !important;
                 visibility: visible !important;
@@ -65,8 +66,9 @@
         </style>
     </noscript>
 </head>
+
 <body>
-    
+
 
 
 
@@ -87,7 +89,7 @@
 
     <!--====================  header area ====================-->
     <div class="header-area header-area--default">
-        
+
 
         <!-- Header Top Wrap Start -->
         {% include 'website/header_top.html' %}
@@ -103,7 +105,8 @@
                             <!-- brand logo -->
                             <div class="header__logo">
                                 <a href="{% url 'website:home' %}">
-                                    <img src="{% static 'website/images/logo/dark-logo.png' %}" class="img-fluid" alt="">
+                                    <img src="{% static 'website/images/logo/dark-logo.png' %}" class="img-fluid"
+                                        alt="">
                                 </a>
                             </div>
 
@@ -159,18 +162,20 @@
 
     <!--====================  footer area ====================-->
     <div class="footer-area-wrapper ">
-        <div class="footer-area section-space--ptb_120 bg-img bg-cover-center blue-bg--overlay-8" 
-        data-bg="{% static 'website/images/bg/29.jpg' %}">
+        <div class="footer-area section-space--ptb_120 bg-img bg-cover-center blue-bg--overlay-8"
+            data-bg="{% static 'website/images/bg/29.jpg' %}">
             <div class="container">
                 <div class="row footer-widget-wrapper">
                     <div class="col-lg-4 col-md-12 col-sm-12 footer-widget">
                         <div class="footer-widget__logo mb-30">
-                            <img style="height: 37px;" src="{% static 'website/images/logo/white-logo.png' %}" class="img-fluid" alt="">
+                            <img style="height: 37px;" src="{% static 'website/images/logo/white-logo.png' %}"
+                                class="img-fluid" alt="">
                         </div>
                         <div class="footer-widget-dic">
 
-                            <p class="footer-dec">We’re OreFox. 
-                                We provide artificial intelligence-based geological data analytics to mining and exploration companies
+                            <p class="footer-dec">We’re OreFox.
+                                We provide artificial intelligence-based geological data analytics to mining and
+                                exploration companies
                             </p>
 
                             <!-- <div class="newsletter-footer-wrap mt-20">
@@ -259,7 +264,7 @@
     </div>
     <!--====================  End of footer area  ====================-->
 
-    
+
 
 
 
@@ -296,7 +301,8 @@
                             <!-- logo -->
                             <div class="logo">
                                 <a href="index.html">
-                                    <img src="{% static 'website/images/logo/dark-logo.png' %}" class="img-fluid" alt="">
+                                    <img src="{% static 'website/images/logo/dark-logo.png' %}" class="img-fluid"
+                                        alt="">
                                 </a>
                             </div>
                         </div>
@@ -333,6 +339,9 @@
 
     <!-- JS
     ============================================ -->
+    <!-- Import HTMX framework -->
+    <script src="https://unpkg.com/htmx.org@2.0.2"></script>
+
     <!-- Modernizer JS -->
     <script src="{% static 'website/js/vendor/modernizr-2.8.3.min.js' %}"></script>
 
@@ -381,8 +390,9 @@
 
     <!-- Main JS -->
     <script src="{% static 'website/js/main.js' %}"></script>
-    
+
     {% block extra_body %}
     {% endblock %}
 </body>
+
 </html>

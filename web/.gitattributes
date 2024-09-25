@@ -1,1 +1,0 @@
-GeoTiffColor.tif filter=lfs diff=lfs merge=lfs -text

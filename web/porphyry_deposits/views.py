@@ -88,7 +88,6 @@ def prediction_results(request):
     }
     
     # TODO: Write a new method to handle the AI-model, and then send the result to 'prediction_result.html' 
-
     
     return render(request, 'prediction_result.html', context)
 
