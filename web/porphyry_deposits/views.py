@@ -215,24 +215,24 @@ def send_rectangle_coordinates(coordinates):
     # Return the GeoJSON formatted data
     return geojson
 
-@login_required
-def get_magnetic_map(request):
-    google_drive_file_id = '15DnUh39zr-kMh_0iK67Z8Kjnd1HZWJQ9'
-    google_drive_url = f'https://drive.google.com/uc?export=download&id={google_drive_file_id}'
+# @login_required
+# def get_magnetic_map(request):
+#     google_drive_file_id = '15DnUh39zr-kMh_0iK67Z8Kjnd1HZWJQ9'
+#     google_drive_url = f'https://drive.google.com/uc?export=download&id={google_drive_file_id}'
 
-    # 使用 requests 来请求 Google Drive 文件
-    try:
-        response = requests.get(google_drive_url)
-        response.raise_for_status()  # 检查是否有错误
+#     # 使用 requests 来请求 Google Drive 文件
+#     try:
+#         response = requests.get(google_drive_url)
+#         response.raise_for_status()  # 检查是否有错误
 
-        # 创建一个 HttpResponse，将文件的内容返回给前端
-        file_response = HttpResponse(response.content, content_type='application/octet-stream')
-        file_response['Content-Disposition'] = 'attachment; filename="downloaded_file.tif"'
-        print("=====", file_response, "=====")
-        return file_response
+#         # 创建一个 HttpResponse，将文件的内容返回给前端
+#         file_response = HttpResponse(response.content, content_type='application/octet-stream')
+#         file_response['Content-Disposition'] = 'attachment; filename="downloaded_file.tif"'
+#         print("=====", file_response, "=====")
+#         return file_response
 
-    except requests.exceptions.RequestException as e:
-        return HttpResponse(f"Error fetching the file: {str(e)}", status=500)
+#     except requests.exceptions.RequestException as e:
+#         return HttpResponse(f"Error fetching the file: {str(e)}", status=500)
     
 
 

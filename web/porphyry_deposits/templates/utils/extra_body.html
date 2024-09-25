@@ -183,7 +183,6 @@
                 // Clear the shapes layer before loading the magnetic map
                 clearLayers();
                 // 得用最原始的.tif文件，至于格式 -> 目前试了4326有效
-                // fetch("{% url 'porphyry_deposits:get_magnetic_map' %}")
                 fetch("{% static 'geo_file/GeoTiffColor.tif' %}")
                     .then(response => response.arrayBuffer())
                     .then(arrayBuffer => {
