@@ -183,7 +183,8 @@
                 // Clear the shapes layer before loading the magnetic map
                 clearLayers();
                 // 得用最原始的.tif文件，至于格式 -> 目前试了4326有效
-                fetch('{% static "geo_file/GeoTiffColor.tif" %}')
+                // fetch("{% url 'porphyry_deposits:get_magnetic_map' %}")
+                fetch("{% static 'geo_file/GeoTiffColor.tif' %}")
                     .then(response => response.arrayBuffer())
                     .then(arrayBuffer => {
                         console.log("arrayBuffer===> ", arrayBuffer)
@@ -225,10 +226,10 @@
             // 创建一个 Spinner 元素
             var spinner = document.createElement('div');
             spinner.classList.add('custom-spinner');
-             // 将 Spinner 添加到容器内
+            // 将 Spinner 添加到容器内
             container.appendChild(spinner);
         }
-         // 移除 Spinner
+        // 移除 Spinner
         function removeSpinner() {
             var container = document.getElementById('map-container');
             var spinner = container.querySelector('.custom-spinner');

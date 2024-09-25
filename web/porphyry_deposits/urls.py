@@ -14,6 +14,8 @@ urlpatterns = [
     path('prediction_results/', views.prediction_results, name='prediction_results'),
     path('get_marker_coordinates/', views.get_marker_coordinates, name="get_marker_coordinates"),
     path('get_rectangle_coordinates/', views.get_rectangle_coordinates, name="get_rectangle_coordinates"),
-    path('send_rectangle_coordinates/', views.send_rectangle_coordinates, name="send_rectangle_coordinates")
+    path('send_rectangle_coordinates/', views.send_rectangle_coordinates, name="send_rectangle_coordinates"),
+    path('get_magnetic_map/', views.get_magnetic_map, name="get_magnetic_map")
+    
  
 ]
