@@ -165,25 +165,22 @@
             }
         });
 
-        // 绑定按钮事件，显示磁力地图
+        // Bind button event to show magnetic map
         document.getElementById('magneticMap').addEventListener('click', function () {
-            NProgress.configure({ showSpinner: false });//隐藏原生的加载数据圈圈
-            console.log("进来了-磁力")
+            NProgress.configure({ showSpinner: false });//Hide native loading data circles
 
             if (magneticLayer) {
                 drawnLayerGroup.removeLayer(magneticLayer);
-                console.log("======清楚了磁力图层======")
             } else {
-                console.log("=====准备创建磁力图层=====");
-
-                // TODO: 做个动画，等待的时候转圈圈
                 // Loading bar started
                 NProgress.start();
                 showSpinner();//调用加载数据时转圈方法
                 // Clear the shapes layer before loading the magnetic map
                 clearLayers();
-                // 得用最原始的.tif文件，至于格式 -> 目前试了4326有效
-                fetch("{% static 'geo_file/GeoTiffColor.tif' %}")
+                // Gotta use the original .tif file, as for the format -> tried 4326 so far and it works!
+                // GeoTiffColor.tif -> 磁力
+                // NEW_COLOR.tif -> 概率
+                fetch("{% static 'geo_file/NEW_COLOR.tif' %}")
                     .then(response => response.arrayBuffer())
                     .then(arrayBuffer => {
                         console.log("arrayBuffer===> ", arrayBuffer)
@@ -192,12 +189,12 @@
 
                             magneticLayer = new GeoRasterLayer({
                                 georaster: georaster,
-                                opacity: 0.85, // 设置1透明度
-                                resolution: 256, // 这个参数是调整像素的
+                                opacity: 0.85,
+                                resolution: 256,
                             });
 
                             // Just for testing
-                            console.log("磁力地图的边界: ", magneticLayer.getBounds())
+                            // console.log("磁力地图的边界: ", magneticLayer.getBounds())
 
                             magneticLayer.addTo(map.map);
 
@@ -205,7 +202,7 @@
 
                             // Loaidng bar stop
                             NProgress.done();
-                            removeSpinner();//移除加载数据时转圈
+                            removeSpinner();// Remove spinning when loading data
 
                         });
 
