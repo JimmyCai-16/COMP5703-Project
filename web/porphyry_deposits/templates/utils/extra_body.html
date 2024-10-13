@@ -297,7 +297,7 @@
                             // 为每个图层绑定一个点击事件，弹出提示框
                             layer.on('click', function () {
                                 // 可以根据 feature.properties 中的数据展示不同内容
-                                let popupContent = `Feature ID: ${feature.properties.permit_id}<br>
+                                let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br>
                                         Name: ${feature.properties.name}<br><br>
                                         Get more details`;
                                 layer.bindPopup(popupContent).openPopup();
@@ -349,12 +349,22 @@
 
                     let geoJsonLayer = L.geoJSON(data.geojson, {
                         onEachFeature: function (feature, layer) {
-                            if (feature.geometry.type === "Point") {
-                                let popupContent = `Feature ID: ${feature.properties.permit_id}<br>
-                                            Name: ${feature.properties.name}`;
-                                layer.bindPopup(popupContent).openPopup();  // 显示 Popup 信息
-                            }
+                            // 为每个图层绑定一个点击事件，弹出提示框
+                            layer.on('click', function () {
+                                // 可以根据 feature.properties 中的数据展示不同内容
+                                let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br>
+                                        Name: ${feature.properties.name}<br><br>
+                                        Get more details`;
+                                layer.bindPopup(popupContent).openPopup();
+                            });
                         }
+                        // onEachFeature: function (feature, layer) {
+                        //     if (feature.geometry.type === "Point") {
+                        //         let popupContent = `Feature ID: ${feature.properties.permit_id}<br>
+                        //                     Name: ${feature.properties.name}`;
+                        //         layer.bindPopup(popupContent).openPopup();  // 显示 Popup 信息
+                        //     }
+                        // }
                     });
 
                     // 将生成的 Marker 添加到 drawnLayerGroup
