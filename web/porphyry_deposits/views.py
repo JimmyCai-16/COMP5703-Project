@@ -7,6 +7,10 @@ from typing import Dict
 import requests
 import json
 
+from .models import PredictionData #导入预测结果数据模型
+from django.db.models import Avg, Value,F,Func  # 从 django.db.models 导入
+from django.db.models.functions import Cast,Coalesce
+from django.db import models
 
 # Create your views here.
 
@@ -121,10 +125,24 @@ def send_marker_coordinates(coordinates):
     latitude = coordinates['latitude']
     longitude = coordinates['longitude']
     
+    epsilon = 0.001 #0.0000000000001 #浮动范围
+    # 从 coordinates 字典中提取纬度和经度，并转换为浮点数
+    latitude_f = float(coordinates['latitude'])
+    longitude_f = float(coordinates['longitude'])
+    # 查询匹配某个误差范围内的记录
+    # 生成四个角点
+    # 生成四个角点（边界框的四个角）
+    point1 = (latitude_f - epsilon, longitude_f - epsilon)  # 左下角
+    point2 = (latitude_f + epsilon, longitude_f - epsilon)  # 左上角
+    point3 = (latitude_f + epsilon, longitude_f + epsilon)  # 右上角
+    point4 = (latitude_f - epsilon, longitude_f + epsilon)  # 右下角
+    
+    probabilityDict = get_rectangle_probability(point1,point2,point3,point4)
+    
     # Construct the Marker (polygon) using the four points and ensure it's closed
     Marker = {
         "coordinates": [longitude, latitude],  
-        "permit_id": "EPM12345", 
+        "probability": probabilityDict['predicted_probabilities__avg'], 
         "name": "Selected Marker"  
     }
 
@@ -139,7 +157,7 @@ def send_marker_coordinates(coordinates):
                     "coordinates": Marker['coordinates']  # Use the dynamically passed coordinates
                 },
                 "properties": {
-                    "permit_id": Marker.get('permit_id', 'Unknown'),  
+                    "probability": Marker.get('probability', 'Unknown'),  
                     "name": Marker.get('name', 'Sample Marker') 
                 }
             }
@@ -148,6 +166,23 @@ def send_marker_coordinates(coordinates):
 
     # Return the GeoJSON formatted data
     return geojson
+
+#搜索点的概率 改用领域 废弃该函数
+# def get_marker_probability(coordinates):
+#     # 查询匹配这个点的记录 全取小数到8位 避免尾数不同的影响
+#     # 将字符串转换为浮点数，然后再四舍五入
+#     rounded_latitude = round(float(coordinates['latitude']), 8)
+#     rounded_longitude = round(float(coordinates['longitude']), 8)
+    
+#     # 使用 Cast() 将 x 和 y 转换为 DecimalField，并使用 Coalesce() 处理可能的空值
+#     try:
+#         point_data = PredictionData.objects.get(x=rounded_longitude, y=rounded_latitude)
+#         predicted_probability = point_data.predicted_probabilities
+#         return predicted_probability
+
+#     except PredictionData.DoesNotExist:
+#         return 0
+
 
 # global_coordinates = {} #Global variables are used to pass coordinates sent by the map
 # Process rectangle drawing
@@ -178,7 +213,9 @@ def send_rectangle_coordinates(coordinates):
     point2 = coordinates['Point2']
     point3 = coordinates['Point3']
     point4 = coordinates['Point4']
-
+    
+    probabilityDict = get_rectangle_probability(point1,point2,point3,point4)#计算矩形的概率
+    
     # Construct the rectangle (polygon) using the four points and ensure it's closed
     Rectangle = {
         "coordinates": [
@@ -190,7 +227,7 @@ def send_rectangle_coordinates(coordinates):
                 [point1[1], point1[0]]   # Closing the polygon back to Point 1 (lng, lat)
             ]
         ],
-        "permit_id": "EPM12345",  # TODO: 这里需要修改，根据model获取预测结果再传到前端
+        "average_predicted_probability":probabilityDict['predicted_probabilities__avg'],  
         "name": "Selected Rectangle"  
     }
 
@@ -205,7 +242,7 @@ def send_rectangle_coordinates(coordinates):
                     "coordinates": Rectangle['coordinates']  # Use the dynamically passed coordinates
                 },
                 "properties": {
-                    "permit_id": Rectangle.get('permit_id', 'Unknown'),  
+                    "average_predicted_probability": Rectangle.get('average_predicted_probability', 'Unknown'), #默认值Unknow
                     "name": Rectangle.get('name', 'Sample Rectangle') 
                 }
             }
@@ -215,6 +252,22 @@ def send_rectangle_coordinates(coordinates):
     # Return the GeoJSON formatted data
     return geojson
 
+#计算矩形的概率
+def get_rectangle_probability(point1,point2,point3,point4):
+        # 提取所有点的纬度（lat）和经度（lng）
+    latitudes = [point1[0], point2[0], point3[0], point4[0]]
+    longitudes = [point1[1], point2[1], point3[1], point4[1]]
+    # 计算纬度范围和经度范围
+    lat_min = min(latitudes)
+    lat_max = max(latitudes)
+    lng_min = min(longitudes)
+    lng_max = max(longitudes)
+
+    # 查询 lng_min <= x <= lng_max 且 lat_min <= y <= lat_max 的记录并计算 predicted_probabilities 的平均值
+    #aggregate() 方法返回的结果是一个字典average_probability，字典的键名是 predicted_probabilities__avg
+    average_probability = PredictionData.objects.filter(x__gte=lng_min, x__lte=lng_max, y__gte=lat_min,y__lte=lat_max).aggregate(Avg('predicted_probabilities'))
+    return average_probability
+    
 # @login_required
 # def get_magnetic_map(request):
 #     google_drive_file_id = '15DnUh39zr-kMh_0iK67Z8Kjnd1HZWJQ9'
