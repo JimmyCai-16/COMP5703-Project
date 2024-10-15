@@ -1,9 +1,12 @@
 from django.shortcuts import render, HttpResponse, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from math import radians, cos, sin, sqrt, atan2
+from django.db.models import Avg
 from django.http import JsonResponse
 from typing import Dict
+import time
 import requests
 import json
 
@@ -26,21 +29,6 @@ def get_deposits(request):
     print("====Hello====")
     return render(request, "deposits_home.html", content)
     # return HttpResponse("This is the home view")
-
-@login_required
-@require_POST
-def prediction(request):
-    # print(request.method)
-    longitude = request.POST.get('longitude')
-    latitude = request.POST.get('latitude')
-
-    # Send the parameters to the model
-    params = {
-        'longitude': longitude,
-        'latitude': latitude
-    }
-    
-    return render(request, 'prediction_result.html', params)
 
 # Validate the user input form
 # Dual authentication to prevent users from overstepping front-end authentication
@@ -81,20 +69,18 @@ def validate_longitude(request):
 
     return render(request, 'utils/error_message.html', context)
 
-@login_required
-def prediction_results(request):
+# @login_required
+# def prediction_results(request):
     
-    longitude = request.POST.get('longitude')
-    latitude = request.POST.get('latitude')
+#     longitude = request.POST.get('longitude')
+#     latitude = request.POST.get('latitude')
 
-    context = {
-        'longitude': longitude,
-        'latitude': latitude,
-    }
+#     context = {
+#         'longitude': longitude,
+#         'latitude': latitude,
+#     }
     
-    # TODO: Write a new method to handle the AI-model, and then send the result to 'prediction_result.html' 
-    
-    return render(request, 'prediction_result.html', context)
+#     return render(request, 'prediction_result.html', context)
 
 @login_required
 @require_POST
@@ -138,6 +124,7 @@ def send_marker_coordinates(coordinates):
     point4 = (latitude_f - epsilon, longitude_f + epsilon)  # 右下角
     
     probabilityDict = get_rectangle_probability(point1,point2,point3,point4)
+
     
     # Construct the Marker (polygon) using the four points and ensure it's closed
     Marker = {
@@ -167,22 +154,115 @@ def send_marker_coordinates(coordinates):
     # Return the GeoJSON formatted data
     return geojson
 
-#搜索点的概率 改用领域 废弃该函数
-# def get_marker_probability(coordinates):
-#     # 查询匹配这个点的记录 全取小数到8位 避免尾数不同的影响
-#     # 将字符串转换为浮点数，然后再四舍五入
-#     rounded_latitude = round(float(coordinates['latitude']), 8)
-#     rounded_longitude = round(float(coordinates['longitude']), 8)
+
+# For the circle function
+@login_required
+@require_POST
+@csrf_protect
+def get_circle_coordinates(request):
+
+    # Retrieving the data sent from the frontend
+    print("圆形被call")
+    data = request.POST
+    center_lat = float(data.get('latitude'))
+    center_lng = float(data.get('longitude'))
+    radius = float(data.get('radius')) 
+
+    print("Circle Center:", center_lat, center_lng, "Radius:", radius)
     
-#     # 使用 Cast() 将 x 和 y 转换为 DecimalField，并使用 Coalesce() 处理可能的空值
-#     try:
-#         point_data = PredictionData.objects.get(x=rounded_longitude, y=rounded_latitude)
-#         predicted_probability = point_data.predicted_probabilities
-#         return predicted_probability
+    # Calculate the processing time
+    start_time = time.time()
+    
+    # Calculate probabilities based on circular ranges and return data in GeoJSON format
+    response_data = {
+        'message': 'Coordinates received successfully.',
+        'geojson': send_circle_coordinates(center_lat, center_lng, radius)
+    }
+    
+    print(f"Bounding box query time: {time.time() - start_time} seconds")
 
-#     except PredictionData.DoesNotExist:
-#         return 0
+    return JsonResponse(response_data, safe=False)
 
+
+# Calculating probabilities based on circular ranges
+def send_circle_coordinates(center_lat, center_lng, radius):
+
+    # Convert radius to kilometers (meters coming from the front end)
+    radius_in_km = radius / 1000  
+    
+    # 1 degree latitude is about 111 kilometers
+    lat_diff = radius_in_km / 111  
+    # Longitude gap depends on latitude
+    lng_diff = radius_in_km / (111 * cos(radians(center_lat)))
+
+    lat_min = center_lat - lat_diff
+    lat_max = center_lat + lat_diff
+    lng_min = center_lng - lng_diff
+    lng_max = center_lng + lng_diff
+
+    # Filter points within the bounding box first
+    points_in_box = PredictionData.objects.filter(
+        x__gte=lng_min, x__lte=lng_max,
+        y__gte=lat_min, y__lte=lat_max
+    )
+
+    points_in_circle = []
+
+    for point in points_in_box:
+        # Convert x, y coordinates in the database to floating point numbers for calculations
+        point_lat = float(point.y)  # Latitude stored in 'y'
+        point_lng = float(point.x)  # Longitude stored in 'x'
+        
+        # point.y and point.x are the stored latitude and longitude
+        distance = haversine(center_lat, center_lng, point.y, point.x)  
+        if distance <= radius_in_km:
+            points_in_circle.append(point)
+
+    # If the points within the circle are found, calculate their probability averages
+    if points_in_circle:
+        average_probability = sum([point.predicted_probabilities for point in points_in_circle]) / len(points_in_circle)
+    else:
+        average_probability = 0
+    
+    Circle = {
+        "coordinates": [center_lng, center_lat],  # CENTER POINT
+        "radius": radius_in_km,
+        "average_predicted_probability": average_probability,
+        # "average_predicted_probability": 0,
+        "name": "Selected Circle"
+    }
+
+    geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",  # Doesn't support type of circle
+                    "coordinates": Circle['coordinates']
+                },
+                "properties": {
+                    "average_predicted_probability": Circle['average_predicted_probability'],
+                    "name": Circle.get('name', 'Sample Circle'),
+                    "radius": radius
+                }
+            }
+        ]
+    }
+
+    return geojson
+
+# The Haversine formula is used to calculate the distance between two points
+def haversine(lat1, lon1, lat2, lon2):
+    # Radius of the Earth in kilometers
+    R = 6371.0  
+
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    
+    return R * c  
 
 # global_coordinates = {} #Global variables are used to pass coordinates sent by the map
 # Process rectangle drawing
@@ -197,7 +277,6 @@ def get_rectangle_coordinates(request):
     # Iterate through each point and print out the corresponding coordinates
     for kv in coordinates:
         print(kv, ":", "Lat:", coordinates[kv][0], ",", " Lng:", coordinates[kv][1])
-    #print(coordinates['Point1'])
     response_data = {
         'message': 'Coordinates received successfully.',
         'geojson': send_rectangle_coordinates(coordinates)
@@ -267,6 +346,9 @@ def get_rectangle_probability(point1,point2,point3,point4):
     #aggregate() 方法返回的结果是一个字典average_probability，字典的键名是 predicted_probabilities__avg
     average_probability = PredictionData.objects.filter(x__gte=lng_min, x__lte=lng_max, y__gte=lat_min,y__lte=lat_max).aggregate(Avg('predicted_probabilities'))
     return average_probability
+
+
+
     
 # @login_required
 # def get_magnetic_map(request):

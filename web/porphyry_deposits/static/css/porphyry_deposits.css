@@ -1,8 +1,30 @@
+.leaflet-draw-draw-polygon {
+    display: none !important;
+}
+
+.leaflet-draw-draw-polyline {
+    display: none !important;
+}
+
+.leaflet-draw-draw-circlemarker {
+    display: none !important;
+}
+
+/* 隐藏编辑按钮 */
+.leaflet-draw-edit-edit {
+    display: none !important;
+}
+
+/* 隐藏删除按钮 */
+.leaflet-draw-edit-remove {
+    display: none !important;
+}
+
 .input-group {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 15px;
-    /* 控制输入框之间的间距 */
 }
 
 .input-item {
@@ -24,7 +46,7 @@
 }
 
 .input-item button {
-    margin-top: 20px;
+    margin-top: 25px;
     padding: 5px 10px;
     border-radius: 3px;
     border: none;
@@ -49,11 +71,8 @@
 
 #nprogress .spinner-icon {
     width: 50px;
-    /* 设置旋转器的宽度，24px */
     height: 50px;
-    /* 设置旋转器的高度，24px */
     border-width: 15px;
-    /* 设置旋转器边框的粗细 */
 }
 
 /* 自定义 Spinner 样式 */
@@ -67,13 +86,46 @@
     border-top: 10px solid #3498db;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    transform: translate(-50%, -50%); /* 居中 Spinner */
-    z-index: 100000; /* 确保 Spinner 浮在容器内容之上 */
+    transform: translate(-50%, -50%);
+    z-index: 100000;
 }
 
 
 /* 旋转动画 */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#map-container {
+    flex-grow: 1;
+    position: relative;
+    height: 100vh;
+    margin-bottom: 30px;
+}
+
+#prediction-history table {
+    width: 100%;
+    max-height: 400px;
+    overflow-y: auto;
+    display: block;
+}
+
+#prediction-history tbody {
+    display: block;
+    max-height: 300px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+#prediction-history thead,
+#prediction-history tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
 }

@@ -9,6 +9,7 @@
         event.detail.headers['X-CSRFToken'] = csrfToken;
     });
 
+    // Validate the input form
     function validateForm() {
         var longitudeErrorElement = document.getElementById('longitude-error');
         var latitudeErrorElement = document.getElementById('latitude-error');
@@ -56,8 +57,8 @@
         } else {
             submitButton.disabled = true; // Not allow to submit
         }
-    }
 
+    }
 
     // Verify that the input longitude is valid
     function isValidLongitude(longitude) {
@@ -100,6 +101,8 @@
 
     $(document).ready(function () {
 
+        updatePredictionTable();
+
         const map = $(`#map-container`).InteractiveMap({
             viewPort: [-23.9176, 142.7028],  // 昆士兰中心经纬度
             zoomLevel: 6,  // 初始缩放级别，适合查看整个澳大利亚
@@ -115,21 +118,6 @@
                 }
             ]
         });
-
-        // 配置搜索框的行为
-        // map.on(InteractiveMap.Event.Search.changed, function (e) {
-        //     e.detail.widget.filter('name');  // 根据城市名称过滤
-        // }).on(InteractiveMap.Event.Search.submit, function (e) {
-        //     e.detail.widget.search('name');  // 根据城市名称进行搜索并缩放到该城市
-        // });
-
-        //点击地图后获得经纬度 -> Also, sending the geographic data to the backend -> TODO: 点击地图才可以传，如果先选中方法就不可以 -> Fixing
-        // map.on(InteractiveMap.Event.Mark.created, function (e) {
-        //     // console.log(e.detail)
-        //     const { marker, lat, lng } = e.detail;
-
-
-        // });
 
         // 创建一个新的图层 -> 之后所有新增的图层都在此基础上加
         let drawnLayerGroup = new L.FeatureGroup().addTo(map.map); // 用Interactive_map包装了，正常不需要map.map
@@ -193,9 +181,6 @@
                                 resolution: 256,
                             });
 
-                            // Just for testing
-                            // console.log("磁力地图的边界: ", magneticLayer.getBounds())
-
                             magneticLayer.addTo(map.map);
 
                             map.map.fitBounds(magneticLayer.getBounds());
@@ -215,6 +200,12 @@
             }
 
         });
+
+        // Clear all layers
+        // document.getElementById('clearLayers').addEventListener('click', function () {
+        //     console.log("进来了-清楚图层");
+        //     clearLayers();
+        // });
 
         // 手动创建 Spinner 并绑定到容器
         function showSpinner() {
@@ -252,6 +243,7 @@
 
             if (type === "rectangle") {
                 var latlngs = e.detail.drawnLayer._latlngs[0];  // 获取 _latlngs 数组中的第一个数组 数组存放所有点坐标
+                console.log("长方形的格式: ", latlngs);
 
                 let coordinatesMap = new Map();
                 latlngs.forEach((coord, index) => {
@@ -283,6 +275,8 @@
                     // 清楚旧图层
                     clearLayers()
 
+                    storePredictionToHistory('rectangle', data.geojson.features[0].properties.average_predicted_probability, latlngs);
+
                     let geoJsonLayer = L.geoJSON(data.geojson, { // 将 GeoJSON 数据转化为 Leaflet 图层 设置框样式颜色
                         style: function (feature) {
 
@@ -297,6 +291,7 @@
                             // 为每个图层绑定一个点击事件，弹出提示框
                             layer.on('click', function () {
                                 // 可以根据 feature.properties 中的数据展示不同内容
+                                console.log("Come in and allow pop-up boxes - rectangle");
                                 let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br>
                                         Name: ${feature.properties.name}<br><br>
                                         Get more details`;
@@ -315,8 +310,74 @@
                     console.error("Error:", error);
                     isDrawing = false;
                 });
-            } else if (type === "circle") { // TODO:画圆
+            } else if (type === "circle") {
                 console.log(e.detail.drawnLayer)
+                // Get the center of the circle
+                const { lat, lng } = e.detail.drawnLayer._latlng;
+                const radius = e.detail.drawnLayer._mRadius;
+                console.log("经纬度: ", lat, lng, "半径: ", radius);
+
+                const formData = new FormData();
+                formData.append("latitude", lat);
+                formData.append("longitude", lng);
+                formData.append("radius", radius);
+
+                showSpinner();
+
+                fetch("{% url 'porphyry_deposits:get_circle_coordinates' %}", {
+                    method: "POST",
+                    headers: getCSRFHeaders(),
+                    body: formData
+                }).then(response => {
+                    if (response.ok) { // Successed
+                        return response.json();
+                        isDrawing = false;
+                    } else { // Failed
+                        throw new Error("Failed to get circle probability: ", response);
+                        isDrawing = false;
+                    }
+                }).then(data => { // Process the geojson
+                    console.log("圆形结果: ", data.geojson)
+
+                    isDrawing = false;
+
+                    clearLayers();
+
+                    storePredictionToHistory('circle', data.geojson.features[0].properties.average_predicted_probability, [lat, lng, radius]);
+
+                    let geoJsonLayer = L.geoJSON(data.geojson, {
+
+                        pointToLayer: function (feature, latlng) {
+                            // For Point type in GeoJSON, create a circle using L.circle
+                            return L.circle(latlng, {
+                                color: '#FF0000',
+                                fillColor: '#00FF00',
+                                fillOpacity: 0.5,
+                                radius: feature.properties.radius
+                            });
+                        },
+                        onEachFeature: function (feature, layer) {
+                            // Bind a click event to each layer to bring up the alert box
+                            layer.on('click', function () {
+                                // Different content can be displayed depending on the data in feature.properties
+                                console.log("Come in and allow pop-up boxes - rectangle");
+                                let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br>
+                                        Name: ${feature.properties.name}<br><br>
+                                        Get more details`;
+                                layer.bindPopup(popupContent).openPopup();
+                            });
+                        }
+
+                    });
+
+                    NProgress.done();
+                    removeSpinner();// Remove spinning when loading data
+
+                    geoJsonLayer.addTo(drawnLayerGroup);
+
+                }).catch(error => {
+                    console.log("Error -> 圆形: ", error);
+                });
 
             } else if (type === "marker") {
 
@@ -327,6 +388,10 @@
 
                 formData.append("latitude", lat);
                 formData.append("longitude", lng);
+
+                // Loading bar
+                // NProgress.start();
+                showSpinner();//调用加载数据时转圈方法
 
                 fetch("{% url 'porphyry_deposits:get_marker_coordinates' %}", {
                     method: "POST",
@@ -340,32 +405,39 @@
                         throw new Error("Failed to send coordinates");
                         isDrawing = false;
                     }
-                }).then(data => {
-                    console.log("Response from server:", data.geojson);  // 处理后端返回的数据
+                }).then(data => { // Process the geojson
 
                     isDrawing = false;
 
-                    clearLayers()
+                    clearLayers();
+
+                    // 在 then() 处理 response 的时候调用
+                    storePredictionToHistory('marker', data.geojson.features[0].properties.probability, [lat, lng]);
 
                     let geoJsonLayer = L.geoJSON(data.geojson, {
+
+
                         onEachFeature: function (feature, layer) {
-                            // 为每个图层绑定一个点击事件，弹出提示框
+                            // Bind a click event to each layer to bring up the alert box
                             layer.on('click', function () {
+                                console.log("Come in and allow pop-up boxes - marker", feature);
                                 // 可以根据 feature.properties 中的数据展示不同内容
                                 let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br>
                                         Name: ${feature.properties.name}<br><br>
                                         Get more details`;
+                                if (layer.getPopup()) {
+                                    // If there is an old popup, remove it.
+                                    layer.unbindPopup();
+                                }
                                 layer.bindPopup(popupContent).openPopup();
                             });
                         }
-                        // onEachFeature: function (feature, layer) {
-                        //     if (feature.geometry.type === "Point") {
-                        //         let popupContent = `Feature ID: ${feature.properties.permit_id}<br>
-                        //                     Name: ${feature.properties.name}`;
-                        //         layer.bindPopup(popupContent).openPopup();  // 显示 Popup 信息
-                        //     }
-                        // }
+
                     });
+
+                    // Loaidng bar stop
+                    NProgress.done();
+                    removeSpinner();// Remove spinning when loading data
 
                     // 将生成的 Marker 添加到 drawnLayerGroup
                     geoJsonLayer.addTo(drawnLayerGroup);
@@ -384,6 +456,87 @@
 
         });
 
+        // Process input form
+        document.getElementById('user-input-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var longitude = document.getElementById('longitude').value;
+            var latitude = document.getElementById('latitude').value;
+
+            // 生成表单数据
+            const formData = new FormData();
+            formData.append("longitude", longitude);
+            formData.append("latitude", latitude);
+
+            showSpinner();//调用加载数据时转圈方法
+
+            fetch("{% url 'porphyry_deposits:get_marker_coordinates' %}", {
+                method: "POST",
+                headers: getCSRFHeaders(),
+                body: formData // 如果用后端用json手动解析的话需要这样发: JSON.stringify({ latitude: latitude, longitude: longitude })
+            }).then(response => { // 此处往下所有的操作只不过是常规处理，后续慢慢修改，肯定不用处理获得的地理信息。
+
+                if (response.ok) {
+                    return response.json();  // 解析返回的JSON数据
+                    isDrawing = false;
+                } else {
+                    throw new Error("Failed to send coordinates");
+                    isDrawing = false;
+                }
+            }).then(data => {
+
+                isDrawing = false;
+
+                clearLayers();
+
+                let geoJsonLayer = L.geoJSON(data.geojson, {
+
+
+                    onEachFeature: function (feature, layer) {
+                        // Bind a click event to each layer to bring up the alert box
+                        layer.on('click', function () {
+                            console.log("Come in and allow pop-up boxes - marker", feature);
+                            // 可以根据 feature.properties 中的数据展示不同内容
+                            let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br>
+                            Name: ${feature.properties.name}<br><br>
+                            Get more details`;
+                            if (layer.getPopup()) {
+                                // If there is an old popup, remove it.
+                                layer.unbindPopup();
+                            }
+                            layer.bindPopup(popupContent).openPopup();
+                        });
+                    }
+
+                });
+
+                // Loaidng bar stop
+                NProgress.done();
+                removeSpinner();// Remove spinning when loading data
+
+                // 将生成的 Marker 添加到 drawnLayerGroup
+                geoJsonLayer.addTo(drawnLayerGroup);
+
+            }).catch(error => {
+                console.error("Error:", error);
+                isDrawing = false;
+            });
+        })
+
+        // Clear input form
+        document.getElementById("clear-button").addEventListener('click', function () {
+            // 清空经度和纬度的输入框
+            document.getElementById('longitude').value = '';
+            document.getElementById('latitude').value = '';
+
+            // 隐藏错误信息
+            document.getElementById('longitude-error').innerText = '';
+            document.getElementById('latitude-error').innerText = '';
+
+            // 禁用提交按钮
+            document.getElementById('submit-button').disabled = true;
+        })
+
         // Create CSRF header
         function getCSRFHeaders() {
             // 获取 CSRF 令牌
@@ -399,6 +552,207 @@
         // Remove old layers
         function clearLayers() {
             drawnLayerGroup.clearLayers();
+        }
+
+        // Clear all layers
+        document.getElementById('clearLayer').addEventListener('click', function () {
+            if (magneticLayer && map.map.hasLayer(magneticLayer)) {
+                map.map.removeLayer(magneticLayer);
+                magneticLayer = null;
+            }
+
+            drawnLayerGroup.clearLayers();
+
+            map.map.eachLayer(function (layer) {
+                if (layer instanceof L.Marker || layer instanceof L.Rectangle || layer instanceof L.Polygon || layer instanceof L.Circle) {
+                    map.map.removeLayer(layer);
+                }
+            });
+
+            isDrawing = false;
+        });
+
+        // Storage the prediction results
+        function storePredictionToHistory(shapes, probability, inputCoordinates) {
+
+            var coordinates;
+
+            if (shapes === 'marker') {
+                coordinates = {
+                    lat: inputCoordinates[0],
+                    lng: inputCoordinates[1]
+                };
+            } else if (shapes === 'circle') {
+                const radius = inputCoordinates[2];
+                coordinates = {
+                    center_point: {
+                        lat: inputCoordinates[0],
+                        lng: inputCoordinates[1]
+                    },
+                    radius: radius
+                };
+            } else if (shapes === 'rectangle') {
+
+                console.log("长方形记录的格式: ", inputCoordinates);
+
+                coordinates = {
+                    point1: { lat: inputCoordinates[0].lat, lng: inputCoordinates[0].lng },
+                    point2: { lat: inputCoordinates[1].lat, lng: inputCoordinates[1].lng },
+                    point3: { lat: inputCoordinates[2].lat, lng: inputCoordinates[2].lng },
+                    point4: { lat: inputCoordinates[3].lat, lng: inputCoordinates[3].lng }
+                };
+            }
+
+            const newPrediction = {
+                shape: shapes,
+                probability: probability,
+                coordinates: coordinates
+            };
+
+            // Get previous history
+            const previousPredictionHistory = getPredictionHistory();
+
+            // Add a new forecast record
+            previousPredictionHistory.push(newPrediction);
+
+            console.log("记录: ", previousPredictionHistory);
+
+            // Save updated prediction history back to cookie (JSON stringified)
+            setCookie('predictionHistory', JSON.stringify(previousPredictionHistory), 7);
+
+            // Update form
+            updatePredictionTable();
+        }
+
+        // Get prediction history
+        function getPredictionHistory() {
+            const cookieValue = getCookie('predictionHistory');
+            return cookieValue ? JSON.parse(cookieValue) : [];
+        }
+
+        // Set Cookie
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        // Get Cookie
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        // 更新表格
+        function updatePredictionTable() {
+            const predictionHistory = getPredictionHistory();
+            const tableBody = document.querySelector("#prediction-history tbody");
+
+            // 清空表格
+            tableBody.innerHTML = "";
+
+            // 遍历预测历史并添加到表格
+            predictionHistory.forEach((prediction, index) => {
+                const row = document.createElement("tr");
+
+                let coordinatesDisplay;
+
+                // 根据shape类型格式化坐标的展示方式
+                if (prediction.shape === 'marker') {
+                    coordinatesDisplay = `Lat: ${prediction.coordinates.lat}, Lng: ${prediction.coordinates.lng}`;
+                } else if (prediction.shape === 'circle') {
+                    coordinatesDisplay = `Center: (${prediction.coordinates.center_point.lat}, ${prediction.coordinates.center_point.lng}), Radius: ${prediction.coordinates.radius}m`;
+                } else if (prediction.shape === 'rectangle') {
+                    coordinatesDisplay = `
+                Point1: (${prediction.coordinates.point1.lat}, ${prediction.coordinates.point1.lng}),
+                Point2: (${prediction.coordinates.point2.lat}, ${prediction.coordinates.point2.lng}),
+                Point3: (${prediction.coordinates.point3.lat}, ${prediction.coordinates.point3.lng}),
+                Point4: (${prediction.coordinates.point4.lat}, ${prediction.coordinates.point4.lng})
+            `;
+                }
+
+                // 动态填充表格行
+                row.innerHTML = `
+            <th scope="row">${index + 1}</th>
+            <td>${prediction.shape}</td>
+            <td>${(prediction.probability * 100).toFixed(2)}%</td>
+            <td>${coordinatesDisplay}</td>
+            <td><button type="button" class="btn btn-primary re-predict-button" data-index="${index}">Once again</button></td>
+        `;
+
+                // 添加事件监听到 RePredict 按钮
+                row.querySelector('.re-predict-button').addEventListener('click', function () {
+                    const prediction = predictionHistory[index];  // 获取当前索引对应的预测记录
+                    rePredict(prediction);  // 调用重绘方法
+                });
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        // 初始加载时更新表格
+        document.addEventListener("DOMContentLoaded", updatePredictionTable);
+
+        // Re Predict
+        function rePredict(prediction) {
+            // Clear previous layers
+            drawnLayerGroup.clearLayers();
+
+            if (prediction.shape === 'marker') {
+                const lat = prediction.coordinates.lat;
+                const lng = prediction.coordinates.lng;
+
+                let marker = L.marker([lat, lng]).addTo(drawnLayerGroup);
+
+                // Bind a click event to the marker to display a popup box.
+                marker.on('click', function () {
+                    let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
+                                Coordinates: Lat: ${lat}, Lng: ${lng}`;
+                    if (marker.getPopup()) {
+                        marker.unbindPopup();
+                    }
+                    marker.bindPopup(popupContent).openPopup();
+                });
+
+            } else if (prediction.shape === 'circle') {
+                const lat = prediction.coordinates.center_point.lat;
+                const lng = prediction.coordinates.center_point.lng;
+                const radius = prediction.coordinates.radius;
+
+                let circle = L.circle([lat, lng], { radius: radius, color: '#FF0000', fillColor: '#00FF00', fillOpacity: 0.5 }).addTo(drawnLayerGroup);
+
+                // 为 circle 绑定点击事件，显示弹出框
+                circle.on('click', function () {
+                    let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
+                                Center: Lat: ${lat}, Lng: ${lng}, Radius: ${radius}m`;
+                    if (circle.getPopup()) {
+                        circle.unbindPopup();  // 移除旧的弹出框绑定
+                    }
+                    circle.bindPopup(popupContent).openPopup();
+                });
+
+            } else if (prediction.shape === 'rectangle') {
+                const latlngs = [
+                    [prediction.coordinates.point1.lat, prediction.coordinates.point1.lng],
+                    [prediction.coordinates.point2.lat, prediction.coordinates.point2.lng],
+                    [prediction.coordinates.point3.lat, prediction.coordinates.point3.lng],
+                    [prediction.coordinates.point4.lat, prediction.coordinates.point4.lng]
+                ];
+
+                let polygon = L.polygon(latlngs, { color: '#FF0000', fillColor: '#00FF00', fillOpacity: 0.5 }).addTo(drawnLayerGroup);
+
+                // 为 polygon 绑定点击事件，显示弹出框
+                polygon.on('click', function () {
+                    let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
+                                Coordinates: ${JSON.stringify(latlngs)}`;
+                    if (polygon.getPopup()) {
+                        polygon.unbindPopup();  // 移除旧的弹出框绑定
+                    }
+                    polygon.bindPopup(popupContent).openPopup();
+                });
+            }
         }
 
         // 处理绘图工具栏的事件

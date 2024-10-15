@@ -12,62 +12,84 @@
 <!-- Because it's embedded in another page, add the block content -->
 {% block content %}
 
-<!-- TODO: Design the style -->
-<!-- pdp = porphyry deposits prediction -->
+
+<!-- Main Container -->
 <div id="pdp" style="display: flex; flex-direction: column; height: 100%; width: 100%;">
-    <!-- Titile box -->
-    <div id="info-panel" style="height: 50px; padding-bottom: 10px; padding-bottom: 10px;">
-        <!-- Content inside the green box -->
+
+    <!-- Section: Title -->
+    <section id="info-panel" style="height: 50px; padding-bottom: 10px;">
         <h2>Porphyry Deposits Prediction</h2>
-    </div>
-    <!-- User input box -->
-    <div id="user-input">
-        <div>
-            <form id="user-input-form" hx-post="{% url 'porphyry_deposits:prediction' %}" hx-target="#pdp"
-                hx-swap="innerHTML" onsubmit="return validateForm()">
-                <div class="input-group">
-                    <div class="input-item">
+    </section>
 
-                        <label>Longitude</label>
-                        <input type="text" id="longitude" name="longitude"
-                            hx-post="{% url 'porphyry_deposits:validate_longitude' %}" hx-trigger="blur"
-                            hx-target="#longitude-error" hx-swap="outerHTML">
-                        <!-- eror_message页面中用的是id -->
-                        <div id="longitude-error" class="error-message"></div>
-                    </div>
-
-                    <div class="input-item">
-                        <label>Latitude</label>
-                        <input type="text" id="latitude" name="latitude"
-                            hx-post="{% url 'porphyry_deposits:validate_latitude' %}" hx-trigger="blur"
-                            hx-target="#latitude-error" hx-swap="outerHTML">
-                        <div id="latitude-error" class="error-message"></div>
-                    </div>
-
-                    <div class="input-item">
-                        <button type="submit" id="submit-button" disabled>Get the result</button>
-                    </div>
+    <!-- TODO: 点击get后查询 -->
+    <!-- Section: User Input -->
+    <section id="user-input">
+        <!-- hx-post="{% url 'porphyry_deposits:get_marker_coordinates' %}" -->
+        <form id="user-input-form" hx-post="{% url 'porphyry_deposits:get_marker_coordinates' %}" hx-swap="none">
+            <div class="input-group">
+                <div class="input-item">
+                    <label>Longitude</label>
+                    <!-- hx-post="{% url 'porphyry_deposits:validate_longitude' %}" -->
+                    <!-- hx-trigger="blur" -->
+                    <input type="text" id="longitude" name="longitude" oninput="validateForm()" autocomplete="off">
+                    <div id="longitude-error" class="error-message"></div>
                 </div>
-                {% csrf_token %}
-            </form>
 
-        </div>
-        <div style="margin: 10px;">
+                <div class="input-item">
+                    <label>Latitude</label>
+                    <!-- hx-post="{% url 'porphyry_deposits:validate_latitude' %}" -->
+                    <!-- hx-trigger="blur" -->
+                    <input type="text" id="latitude" name="latitude" oninput="validateForm()" autocomplete="off">
+                    <div id="latitude-error" class="error-message"></div>
+                </div>
 
-            <div class="d-flex justify-content-end">
-                <div class="btn-group" id="mapButton" role="group" aria-label="Basic radio toggle button group">
-                    <button type="button" class="btn btn-outline-primary active" id="defaultMap">Normal Map</button>
-                    <button type="button" class="btn btn-outline-primary" id="magneticMap">Magnetic Map</button>
+                <div class="input-item input-button">
+                    <button type="submit" id="submit-button" disabled>Get the result</button>
+                </div>
+                <div class="input-item input-button">
+                    <button type="button" id="clear-button" class="btn btn-primary">Clear</button>
                 </div>
             </div>
+            {% csrf_token %}
+        </form>
+    </section>
 
+    <!-- Section: Map and Clear Layers Button -->
+    <section style="margin: 10px;">
+        <div class="d-flex justify-content-between align-items-center">
+            <button type="button" class="btn btn-outline-primary" id="clearLayer">Clear Layers</button>
+
+            <div class="btn-group" id="mapButton" role="group" aria-label="Map toggle button group">
+                <button type="button" class="btn btn-outline-primary active" id="defaultMap">Normal Map</button>
+                <button type="button" class="btn btn-outline-primary" id="magneticMap">Magnetic Map</button>
+            </div>
         </div>
+    </section>
 
-    </div>
+    <!-- Section: Map Container -->
+    <section id="map-container"></section>
 
-    <!-- Map Ccntainer box -->
-    <div id="map-container" style="flex-grow: 1; position: relative; height: 100vh;"> </div>
+    <section id="prediction-history">
+
+        <h2>Prediction History</h2>
+
+        <table class="table">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Shapes</th>
+                    <th scope="col">probability</th>
+                    <th scope="col">coordinates</th>
+                    <th scope="col">Operation</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            </tbody>
+        </table>
+    </section>
 </div>
+
 {% endblock %}
 
 {% block extra_head %}
