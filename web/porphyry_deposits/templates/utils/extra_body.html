@@ -104,13 +104,13 @@
         updatePredictionTable();
 
         const map = $(`#map-container`).InteractiveMap({
-            viewPort: [-23.9176, 142.7028],  // 昆士兰中心经纬度
+            viewPort: [-23.9176, 142.7028],  // Queensland Centre Latitude and Longitude
             zoomLevel: 6,  // 初始缩放级别，适合查看整个澳大利亚
             width: '100%', // Deign the width of the map
             height: '800px',
             minZoom: 2,
             maxZoom: 15,
-            widgets: ['toolbar', 'minimap', 'fullscreen', 'scale', 'resetBounds', 'mouseCoords', 'searchBox'],  // 启用的功能 -> 'toolbar',
+            widgets: ['toolbar', 'minimap', 'fullscreen', 'scale', 'mouseCoords'],  // 启用的功能 -> 'toolbar',
             reloadOnPan: true,
             layers: [
                 {
@@ -118,6 +118,7 @@
                 }
             ]
         });
+
 
         // 创建一个新的图层 -> 之后所有新增的图层都在此基础上加
         let drawnLayerGroup = new L.FeatureGroup().addTo(map.map); // 用Interactive_map包装了，正常不需要map.map
@@ -254,6 +255,7 @@
                 // 将 Map 转换为普通对象
                 let coordinatesObj = Object.fromEntries(coordinatesMap);
 
+                showSpinner();
                 // Sending data to the backend
                 fetch("{% url 'porphyry_deposits:get_rectangle_coordinates' %}", {
                     method: 'POST',
@@ -272,6 +274,7 @@
 
                     isDrawing = false;
 
+                    removeSpinner();
                     // 清楚旧图层
                     clearLayers()
 
