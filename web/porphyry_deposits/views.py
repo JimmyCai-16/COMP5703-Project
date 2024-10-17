@@ -10,8 +10,8 @@ import time
 import requests
 import json
 
-from .models import PredictionData #导入预测结果数据模型
-from django.db.models import Avg, Value,F,Func  # 从 django.db.models 导入
+from .models import PredictionData #Import of the predictive results data model
+from django.db.models import Avg, Value,F,Func  # Import from django.db.models
 from django.db.models.functions import Cast,Coalesce
 from django.db import models
 
@@ -19,16 +19,9 @@ from django.db import models
 
 @login_required
 def get_deposits(request):
-    content = {
-        'name': 'Jimmy',
-        'test1': 'TEST1',
-        'test2': 'TEST2',
-        'test3': 'TEST3',
-        'test4': 'TEST4'
-    }
     print("====Hello====")
-    return render(request, "deposits_home.html", content)
-    # return HttpResponse("This is the home view")
+    return render(request, "deposits_home.html")
+#     return HttpResponse("This is the home view")
 
 # Validate the user input form
 # Dual authentication to prevent users from overstepping front-end authentication
@@ -111,17 +104,16 @@ def send_marker_coordinates(coordinates):
     latitude = coordinates['latitude']
     longitude = coordinates['longitude']
     
-    epsilon = 0.001 #0.0000000000001 #浮动范围
-    # 从 coordinates 字典中提取纬度和经度，并转换为浮点数
+    epsilon = 0.001  #Permissible range of deviation up, down, left and right for a single coordinate point
+    # Extract latitude and longitude from the coordinates dictionary and convert to floats
     latitude_f = float(coordinates['latitude'])
     longitude_f = float(coordinates['longitude'])
-    # 查询匹配某个误差范围内的记录
-    # 生成四个角点
-    # 生成四个角点（边界框的四个角）
-    point1 = (latitude_f - epsilon, longitude_f - epsilon)  # 左下角
-    point2 = (latitude_f + epsilon, longitude_f - epsilon)  # 左上角
-    point3 = (latitude_f + epsilon, longitude_f + epsilon)  # 右上角
-    point4 = (latitude_f - epsilon, longitude_f + epsilon)  # 右下角
+    # Query to match records within a certain error range
+    # Generate four corner points (the four corners of the bounding box）
+    point1 = (latitude_f - epsilon, longitude_f - epsilon)  # lower left corner
+    point2 = (latitude_f + epsilon, longitude_f - epsilon)  # upper left corner
+    point3 = (latitude_f + epsilon, longitude_f + epsilon)  # upper right corner
+    point4 = (latitude_f - epsilon, longitude_f + epsilon)  # lower right corner
     
     probabilityDict = get_rectangle_probability(point1,point2,point3,point4)
 
@@ -162,7 +154,6 @@ def send_marker_coordinates(coordinates):
 def get_circle_coordinates(request):
 
     # Retrieving the data sent from the frontend
-    print("圆形被call")
     data = request.POST
     center_lat = float(data.get('latitude'))
     center_lng = float(data.get('longitude'))
@@ -331,19 +322,19 @@ def send_rectangle_coordinates(coordinates):
     # Return the GeoJSON formatted data
     return geojson
 
-#计算矩形的概率
+#Calculate the probability of rectangle
 def get_rectangle_probability(point1,point2,point3,point4):
-        # 提取所有点的纬度（lat）和经度（lng）
+        # Extract latitude (lat) and longitude (lng) of all points
     latitudes = [point1[0], point2[0], point3[0], point4[0]]
     longitudes = [point1[1], point2[1], point3[1], point4[1]]
-    # 计算纬度范围和经度范围
+    # Calculate latitude range and longitude range
     lat_min = min(latitudes)
     lat_max = max(latitudes)
     lng_min = min(longitudes)
     lng_max = max(longitudes)
 
-    # 查询 lng_min <= x <= lng_max 且 lat_min <= y <= lat_max 的记录并计算 predicted_probabilities 的平均值
-    #aggregate() 方法返回的结果是一个字典average_probability，字典的键名是 predicted_probabilities__avg
+    # Query the records with lng_min <= x <= lng_max and lat_min <= y <= lat_max and compute the average of predicted_probabilities.
+    # The result returned by the aggregate() method is a dictionary average_probability with the key predicted_probabilities__avg
     average_probability = PredictionData.objects.filter(x__gte=lng_min, x__lte=lng_max, y__gte=lat_min,y__lte=lat_max).aggregate(Avg('predicted_probabilities'))
     return average_probability
 

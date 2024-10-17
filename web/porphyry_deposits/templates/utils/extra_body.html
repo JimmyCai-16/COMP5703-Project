@@ -105,25 +105,25 @@
 
         const map = $(`#map-container`).InteractiveMap({
             viewPort: [-23.9176, 142.7028],  // Queensland Centre Latitude and Longitude
-            zoomLevel: 6,  // 初始缩放级别，适合查看整个澳大利亚
+            zoomLevel: 6,  // Initial zoom level
             width: '100%', // Deign the width of the map
             height: '800px',
             minZoom: 2,
             maxZoom: 15,
-            widgets: ['toolbar', 'minimap', 'fullscreen', 'scale', 'mouseCoords'],  // 启用的功能 -> 'toolbar',
+            widgets: ['toolbar', 'minimap', 'fullscreen', 'scale', 'mouseCoords'],
             reloadOnPan: true,
             layers: [
                 {
-                    interactive: true,  // 允许用户与图层交互
+                    interactive: true,
                 }
             ]
         });
 
 
-        // 创建一个新的图层 -> 之后所有新增的图层都在此基础上加
-        let drawnLayerGroup = new L.FeatureGroup().addTo(map.map); // 用Interactive_map包装了，正常不需要map.map
+        // Create a new layer -> all new layers added after that are added on top of this one
+        let drawnLayerGroup = new L.FeatureGroup().addTo(map.map); 
 
-        // 用于控制是否正在绘制
+        // Used to control whether or not drawing is in progress
         let isDrawing = false;
 
         let magneticLayer;
@@ -141,16 +141,15 @@
             });
         });
 
-        // 绑定按钮事件，显示默认地图
+        // Bind button event to show default map
         document.getElementById('defaultMap').addEventListener('click', function () {
             console.log("进来了-默认")
-            // 检查磁力图层是否存在并且已经添加到地图上
+            // Check that the magnetic layer exists and has been added to the map
             if (magneticLayer && map.map.hasLayer(magneticLayer)) {
-                map.map.removeLayer(magneticLayer);  // 移除磁力图层
+                map.map.removeLayer(magneticLayer);  // Remove the magnetic layer
                 magneticLayer = false;
-                console.log("磁力图层已移除");
             } else {
-                console.log("磁力图层不存在或未添加");
+                console.log("Magnet layer does not exist or has not been added");
             }
         });
 
@@ -163,12 +162,12 @@
             } else {
                 // Loading bar started
                 NProgress.start();
-                showSpinner();//调用加载数据时转圈方法
+                showSpinner();//Calling the spin while loading data method
                 // Clear the shapes layer before loading the magnetic map
                 clearLayers();
                 // Gotta use the original .tif file, as for the format -> tried 4326 so far and it works!
-                // GeoTiffColor.tif -> 磁力
-                // NEW_COLOR.tif -> 概率
+                // GeoTiffColor.tif -> magnetically
+                // NEW_COLOR.tif -> probability
                 fetch("{% static 'geo_file/NEW_COLOR.tif' %}")
                     .then(response => response.arrayBuffer())
                     .then(arrayBuffer => {
@@ -196,7 +195,7 @@
                         console.log("Error loading the magnetic map: ", error);
                         // Loaidng bar stop
                         NProgress.done();
-                        removeSpinner();//移除加载数据时转圈
+                        removeSpinner();//Remove spinning when loading data
                     });
             }
 
@@ -204,55 +203,50 @@
 
         // Clear all layers
         // document.getElementById('clearLayers').addEventListener('click', function () {
-        //     console.log("进来了-清楚图层");
         //     clearLayers();
         // });
 
-        // 手动创建 Spinner 并绑定到容器
+        // Creating a Spinner Manually and Binding to a Container
         function showSpinner() {
             var container = document.getElementById('map-container');
-            // 创建一个 Spinner 元素
+            // Creating a Spinner Element
             var spinner = document.createElement('div');
             spinner.classList.add('custom-spinner');
-            // 将 Spinner 添加到容器内
+            // Adding a Spinner to a Container
             container.appendChild(spinner);
         }
-        // 移除 Spinner
+        // Remove Spinner
         function removeSpinner() {
             var container = document.getElementById('map-container');
             var spinner = container.querySelector('.custom-spinner');
-            // 移除 Spinner
+            // Remove Spinner
             if (spinner) {
                 container.removeChild(spinner);
             }
         }
 
-        //获取绘制范围的经纬度
+        //Get the latitude and longitude of the plotted range
         map.on(InteractiveMap.Event.Toolbar.postDraw, function (e) {
 
-            // 防止绘制未完成时重复请求
+            // Prevents repeat requests when drawing is not complete
             if (isDrawing) {
                 console.log("Drawing already in progress. Please wait.");
                 return;
             }
 
-            // 设置为true，允许绘制 -> 重要！！用于处理重复提交
+            // Set to true to allow drawing -> Important! For handling duplicate submissions
             isDrawing = true;
 
-            // 获取当前用户画图的形状
+            // Get the shape of the current user drawing
             let type = e.detail.layerType;
 
             if (type === "rectangle") {
-                var latlngs = e.detail.drawnLayer._latlngs[0];  // 获取 _latlngs 数组中的第一个数组 数组存放所有点坐标
-                console.log("长方形的格式: ", latlngs);
-
+                var latlngs = e.detail.drawnLayer._latlngs[0];  // Get the first array in the _latlngs array The array holds all the point coordinates.
                 let coordinatesMap = new Map();
                 latlngs.forEach((coord, index) => {
                     coordinatesMap.set(`Point${index + 1}`, [coord.lat, coord.lng]);
-                    console.log(coordinatesMap)
                 });
 
-                // 将 Map 转换为普通对象
                 let coordinatesObj = Object.fromEntries(coordinatesMap);
 
                 showSpinner();
@@ -260,52 +254,48 @@
                 fetch("{% url 'porphyry_deposits:get_rectangle_coordinates' %}", {
                     method: 'POST',
                     headers: getCSRFHeaders(),
-                    body: JSON.stringify({ coordinates: coordinatesObj }) // 无法传Map，只能转换为普通JSON对象来传递
-                }).then(response => { // 此处往下所有的操作只不过是常规处理，后续慢慢修改，肯定不用处理获得的地理信息。
+                    body: JSON.stringify({ coordinates: coordinatesObj }) 
+                }).then(response => { 
                     if (response.ok) {
-                        return response.json();  // 解析返回的JSON数据
+                        return response.json();  // Parsing the returned JSON data
                         isDrawing = false;
                     } else {
                         throw new Error("Failed to send coordinates");
                         isDrawing = false;
                     }
                 }).then(data => {
-                    console.log("Response from server:", data.geojson);  // 处理后端返回的数据
+                    console.log("Response from server:", data.geojson);  // Processing data returned from the backend
 
                     isDrawing = false;
 
                     removeSpinner();
-                    // 清楚旧图层
+                    // Remove old layers
                     clearLayers()
 
                     storePredictionToHistory('rectangle', data.geojson.features[0].properties.average_predicted_probability, latlngs);
 
-                    let geoJsonLayer = L.geoJSON(data.geojson, { // 将 GeoJSON 数据转化为 Leaflet 图层 设置框样式颜色
+                    let geoJsonLayer = L.geoJSON(data.geojson, { // Converting GeoJSON data into Leaflet layers Setting box style colours
                         style: function (feature) {
 
                             return {
-                                color: '#FF0000',       // 边框颜色 (红色)
-                                weight: 2,              // 边框线条宽度
-                                fillColor: '#00FF00',   // 填充颜色 (绿色)
-                                fillOpacity: 0.5        // 填充透明度
+                                color: '#FF0000',       // Border colour (red)
+                                weight: 2,              // Border line width
+                                fillColor: '#00FF00',   // Fill colour (green)
+                                fillOpacity: 0.5        // Fill transparency
                             };
                         },
                         onEachFeature: function (feature, layer) {
-                            // 为每个图层绑定一个点击事件，弹出提示框
-                            layer.on('click', function () {
-                                // 可以根据 feature.properties 中的数据展示不同内容
-                                console.log("Come in and allow pop-up boxes - rectangle");
-                                let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br>
-                                        Name: ${feature.properties.name}<br><br>
-                                        Get more details`;
-                                layer.bindPopup(popupContent).openPopup();
+                            //pop-up box
+                                let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br><br>
+                                        Name: ${feature.properties.name}<br>`;
+                                layer.bindPopup(popupContent);
+                                // Automatically pops up alert boxes on the map
+                                layer.on('add', function () {
+                                layer.openPopup();
                             });
                         }
                     });
-
-                    // let myLayer = new L.FeatureGroup();//创建图层
-
-                    geoJsonLayer.addTo(drawnLayerGroup); // 将生成的图层添加到 drawnLayerGroup -> Jimmy作了修改，不是加到myLayer而是加到原始的图层上
+                    geoJsonLayer.addTo(drawnLayerGroup); 
 
                     // console.log(myLayer);
                     // myLayer.addTo(map.map);
@@ -314,11 +304,9 @@
                     isDrawing = false;
                 });
             } else if (type === "circle") {
-                console.log(e.detail.drawnLayer)
                 // Get the center of the circle
                 const { lat, lng } = e.detail.drawnLayer._latlng;
                 const radius = e.detail.drawnLayer._mRadius;
-                console.log("经纬度: ", lat, lng, "半径: ", radius);
 
                 const formData = new FormData();
                 formData.append("latitude", lat);
@@ -340,7 +328,6 @@
                         isDrawing = false;
                     }
                 }).then(data => { // Process the geojson
-                    console.log("圆形结果: ", data.geojson)
 
                     isDrawing = false;
 
@@ -360,17 +347,15 @@
                             });
                         },
                         onEachFeature: function (feature, layer) {
-                            // Bind a click event to each layer to bring up the alert box
-                            layer.on('click', function () {
-                                // Different content can be displayed depending on the data in feature.properties
-                                console.log("Come in and allow pop-up boxes - rectangle");
-                                let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br>
-                                        Name: ${feature.properties.name}<br><br>
-                                        Get more details`;
-                                layer.bindPopup(popupContent).openPopup();
+                            //pop-up box
+                                let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br><br>
+                                        Name: ${feature.properties.name}<br>`;
+                                layer.bindPopup(popupContent);
+                                // Automatically pops up alert boxes on the map
+                                layer.on('add', function () {
+                                layer.openPopup();
                             });
                         }
-
                     });
 
                     NProgress.done();
@@ -385,7 +370,7 @@
             } else if (type === "marker") {
 
                 const { lat, lng } = e.detail.drawnLayer._latlng;
-                // 发送POST请求到后端
+                // Send a POST request to the backend
                 // const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; // 获取CSRF token
                 const formData = new FormData();
 
@@ -394,15 +379,15 @@
 
                 // Loading bar
                 // NProgress.start();
-                showSpinner();//调用加载数据时转圈方法
+                showSpinner();//Calling the spin while loading data method
 
                 fetch("{% url 'porphyry_deposits:get_marker_coordinates' %}", {
                     method: "POST",
                     headers: getCSRFHeaders(),
-                    body: formData // 如果用后端用json手动解析的话需要这样发: JSON.stringify({ latitude: latitude, longitude: longitude })
-                }).then(response => { // 此处往下所有的操作只不过是常规处理，后续慢慢修改，肯定不用处理获得的地理信息。
+                    body: formData
+                }).then(response => {
                     if (response.ok) {
-                        return response.json();  // 解析返回的JSON数据
+                        return response.json();  // Parsing the returned JSON data
                         isDrawing = false;
                     } else {
                         throw new Error("Failed to send coordinates");
@@ -414,35 +399,40 @@
 
                     clearLayers();
 
-                    // 在 then() 处理 response 的时候调用
+                    // Called when then() handles the response.
                     storePredictionToHistory('marker', data.geojson.features[0].properties.probability, [lat, lng]);
 
                     let geoJsonLayer = L.geoJSON(data.geojson, {
-
-
                         onEachFeature: function (feature, layer) {
-                            // Bind a click event to each layer to bring up the alert box
-                            layer.on('click', function () {
-                                console.log("Come in and allow pop-up boxes - marker", feature);
-                                // 可以根据 feature.properties 中的数据展示不同内容
-                                let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br>
-                                        Name: ${feature.properties.name}<br><br>
-                                        Get more details`;
-                                if (layer.getPopup()) {
-                                    // If there is an old popup, remove it.
-                                    layer.unbindPopup();
-                                }
-                                layer.bindPopup(popupContent).openPopup();
+                            //pop-up box
+                                let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br><br>
+                                        Name: ${feature.properties.name}<br>`;
+                                layer.bindPopup(popupContent);
+                                // Automatically pops up alert boxes on the map
+                                layer.on('add', function () {
+                                layer.openPopup();
                             });
                         }
-
+                        // onEachFeature: function (feature, layer) {
+                        //     // Bind a click event to each layer to bring up the alert box
+                        //     layer.on('click', function () {
+                        //         console.log("Come in and allow pop-up boxes - marker", feature);
+                        //         let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br>
+                        //                 Name: ${feature.properties.name}<br><br>
+                        //                 Get more details`;
+                        //         if (layer.getPopup()) {
+                        //             // If there is an old popup, remove it.
+                        //             layer.unbindPopup();
+                        //         }
+                        //         layer.bindPopup(popupContent).openPopup();
+                        //     });
+                        // }
                     });
 
                     // Loaidng bar stop
                     NProgress.done();
                     removeSpinner();// Remove spinning when loading data
 
-                    // 将生成的 Marker 添加到 drawnLayerGroup
                     geoJsonLayer.addTo(drawnLayerGroup);
 
                 }).catch(error => {
@@ -450,13 +440,7 @@
                     isDrawing = false;
                 });
 
-            } else if (type === "polyline") { // 每次点一个点，可以圈出一个范围
-                // drawnLayer下的editing下的latlngs是一个数组，点了多少个点数组就有多少个坐标信息
-
-            } else if (type === "polygon") {
-                // 六边形
             }
-
         });
 
         // Process input form
@@ -466,21 +450,21 @@
             var longitude = document.getElementById('longitude').value;
             var latitude = document.getElementById('latitude').value;
 
-            // 生成表单数据
+            // Generate form data
             const formData = new FormData();
             formData.append("longitude", longitude);
             formData.append("latitude", latitude);
 
-            showSpinner();//调用加载数据时转圈方法
+            showSpinner();//Calling the spin while loading data method
 
             fetch("{% url 'porphyry_deposits:get_marker_coordinates' %}", {
                 method: "POST",
                 headers: getCSRFHeaders(),
-                body: formData // 如果用后端用json手动解析的话需要这样发: JSON.stringify({ latitude: latitude, longitude: longitude })
-            }).then(response => { // 此处往下所有的操作只不过是常规处理，后续慢慢修改，肯定不用处理获得的地理信息。
+                body: formData
+            }).then(response => {
 
                 if (response.ok) {
-                    return response.json();  // 解析返回的JSON数据
+                    return response.json();  // Parsing the returned JSON data
                     isDrawing = false;
                 } else {
                     throw new Error("Failed to send coordinates");
@@ -499,10 +483,8 @@
                         // Bind a click event to each layer to bring up the alert box
                         layer.on('click', function () {
                             console.log("Come in and allow pop-up boxes - marker", feature);
-                            // 可以根据 feature.properties 中的数据展示不同内容
-                            let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br>
-                            Name: ${feature.properties.name}<br><br>
-                            Get more details`;
+                            let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br><br>
+                            Name: ${feature.properties.name}<br>`;
                             if (layer.getPopup()) {
                                 // If there is an old popup, remove it.
                                 layer.unbindPopup();
@@ -517,7 +499,7 @@
                 NProgress.done();
                 removeSpinner();// Remove spinning when loading data
 
-                // 将生成的 Marker 添加到 drawnLayerGroup
+                // Adds the generated Marker to the drawnLayerGroup.
                 geoJsonLayer.addTo(drawnLayerGroup);
 
             }).catch(error => {
@@ -528,24 +510,24 @@
 
         // Clear input form
         document.getElementById("clear-button").addEventListener('click', function () {
-            // 清空经度和纬度的输入框
+            // Clear the input boxes for longitude and latitude
             document.getElementById('longitude').value = '';
             document.getElementById('latitude').value = '';
 
-            // 隐藏错误信息
+            // Hide error messages
             document.getElementById('longitude-error').innerText = '';
             document.getElementById('latitude-error').innerText = '';
 
-            // 禁用提交按钮
+            // Disable the submit button
             document.getElementById('submit-button').disabled = true;
         })
 
         // Create CSRF header
         function getCSRFHeaders() {
-            // 获取 CSRF 令牌
+            // Getting a CSRF Token
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-            // 创建 Headers 对象并设置 CSRF 头
+            // Creating the Headers object and setting the CSRF header
             const headers = new Headers();
             headers.append("X-CSRFToken", csrfToken);
 
@@ -596,7 +578,7 @@
                 };
             } else if (shapes === 'rectangle') {
 
-                console.log("长方形记录的格式: ", inputCoordinates);
+                
 
                 coordinates = {
                     point1: { lat: inputCoordinates[0].lat, lng: inputCoordinates[0].lng },
@@ -618,7 +600,7 @@
             // Add a new forecast record
             previousPredictionHistory.push(newPrediction);
 
-            console.log("记录: ", previousPredictionHistory);
+            
 
             // Save updated prediction history back to cookie (JSON stringified)
             setCookie('predictionHistory', JSON.stringify(previousPredictionHistory), 7);
@@ -648,21 +630,21 @@
             if (parts.length === 2) return parts.pop().split(';').shift();
         }
 
-        // 更新表格
+        // Update Forms
         function updatePredictionTable() {
             const predictionHistory = getPredictionHistory();
             const tableBody = document.querySelector("#prediction-history tbody");
 
-            // 清空表格
+            // Empty the form
             tableBody.innerHTML = "";
 
-            // 遍历预测历史并添加到表格
+            // Loop through forecast history and add to table
             predictionHistory.forEach((prediction, index) => {
                 const row = document.createElement("tr");
 
                 let coordinatesDisplay;
 
-                // 根据shape类型格式化坐标的展示方式
+                //Presentation of coordinates formatted according to shape type
                 if (prediction.shape === 'marker') {
                     coordinatesDisplay = `Lat: ${prediction.coordinates.lat}, Lng: ${prediction.coordinates.lng}`;
                 } else if (prediction.shape === 'circle') {
@@ -676,7 +658,7 @@
             `;
                 }
 
-                // 动态填充表格行
+                // Dynamically populate table rows
                 row.innerHTML = `
             <th scope="row">${index + 1}</th>
             <td>${prediction.shape}</td>
@@ -685,17 +667,17 @@
             <td><button type="button" class="btn btn-primary re-predict-button" data-index="${index}">Once again</button></td>
         `;
 
-                // 添加事件监听到 RePredict 按钮
+                // Add event listener to RePredict button
                 row.querySelector('.re-predict-button').addEventListener('click', function () {
-                    const prediction = predictionHistory[index];  // 获取当前索引对应的预测记录
-                    rePredict(prediction);  // 调用重绘方法
+                    const prediction = predictionHistory[index];  // Get the prediction record corresponding to the current index
+                    rePredict(prediction);  // Call the redraw method
                 });
 
                 tableBody.appendChild(row);
             });
         }
 
-        // 初始加载时更新表格
+        // Update table on initial load
         document.addEventListener("DOMContentLoaded", updatePredictionTable);
 
         // Re Predict
@@ -708,16 +690,13 @@
                 const lng = prediction.coordinates.lng;
 
                 let marker = L.marker([lat, lng]).addTo(drawnLayerGroup);
-
-                // Bind a click event to the marker to display a popup box.
-                marker.on('click', function () {
-                    let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
-                                Coordinates: Lat: ${lat}, Lng: ${lng}`;
-                    if (marker.getPopup()) {
-                        marker.unbindPopup();
-                    }
-                    marker.bindPopup(popupContent).openPopup();
-                });
+                // pop-up automatically
+                let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>Coordinates: Lat: ${lat}, Lng: ${lng}`;
+                // if (marker.getPopup()) {
+                //         marker.unbindPopup();
+                // }
+                map.map.setView([lat, lng], 7);//Ensure that the view contains this marker
+                marker.bindPopup(popupContent).openPopup();
 
             } else if (prediction.shape === 'circle') {
                 const lat = prediction.coordinates.center_point.lat;
@@ -726,16 +705,14 @@
 
                 let circle = L.circle([lat, lng], { radius: radius, color: '#FF0000', fillColor: '#00FF00', fillOpacity: 0.5 }).addTo(drawnLayerGroup);
 
-                // 为 circle 绑定点击事件，显示弹出框
-                circle.on('click', function () {
-                    let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
+                // pop-up automatically
+                let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
                                 Center: Lat: ${lat}, Lng: ${lng}, Radius: ${radius}m`;
-                    if (circle.getPopup()) {
-                        circle.unbindPopup();  // 移除旧的弹出框绑定
-                    }
-                    circle.bindPopup(popupContent).openPopup();
-                });
-
+                    // if (circle.getPopup()) {
+                    //     circle.unbindPopup();  // Remove old popup box binding
+                    // }
+                map.map.setView([lat, lng], 6);//Ensure that the view contains this marker
+                circle.bindPopup(popupContent).openPopup();
             } else if (prediction.shape === 'rectangle') {
                 const latlngs = [
                     [prediction.coordinates.point1.lat, prediction.coordinates.point1.lng],
@@ -746,34 +723,35 @@
 
                 let polygon = L.polygon(latlngs, { color: '#FF0000', fillColor: '#00FF00', fillOpacity: 0.5 }).addTo(drawnLayerGroup);
 
-                // 为 polygon 绑定点击事件，显示弹出框
-                polygon.on('click', function () {
+                // pop-up automatically
                     let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
                                 Coordinates: ${JSON.stringify(latlngs)}`;
-                    if (polygon.getPopup()) {
-                        polygon.unbindPopup();  // 移除旧的弹出框绑定
-                    }
+                    // if (polygon.getPopup()) {
+                    //     polygon.unbindPopup();  // Remove old popup box binding
+                    // }
                     polygon.bindPopup(popupContent).openPopup();
-                });
+                // Calculate the center coordinates of the rectangle
+                let bounds = polygon.getBounds();
+                let center = bounds.getCenter();
+                map.map.setView(center, 7);
             }
         }
 
-        // 处理绘图工具栏的事件
-        map.on(InteractiveMap.Event.Toolbar.preDraw, function (e) {
-            // // 每次之前都先删除之前的页面
-            // const interactive_layer = document.getElementsByClassName("leaflet-interactive");
-            // if (interactive_layer.length > 0 ) {
-            //     let elementRemove = interactive_layer[0];
-            //     elementRemove.parentNode.removeChild(elementRemove);
-            // }
-            console.log("Drawing operation started...");
-            console.log("======", e.detail, "======");
-        });
-        map.on(InteractiveMap.Event.Toolbar.postDraw, function () {
-            console.log("Drawing operation finished.");
-        });
-        map.on(InteractiveMap.Event.Toolbar.selectedFeature, function (e) {
-            console.log("Selected feature:", e.detail.target.feature.properties.name);
-        });
+        // Handle drawing toolbar events
+        // map.on(InteractiveMap.Event.Toolbar.preDraw, function (e) {
+        //     // const interactive_layer = document.getElementsByClassName("leaflet-interactive");
+        //     // if (interactive_layer.length > 0 ) {
+        //     //     let elementRemove = interactive_layer[0];
+        //     //     elementRemove.parentNode.removeChild(elementRemove);
+        //     // }
+        //     console.log("Drawing operation started...");
+        //     console.log("======", e.detail, "======");
+        // });
+        // map.on(InteractiveMap.Event.Toolbar.postDraw, function () {
+        //     console.log("Drawing operation finished.");
+        // });
+        // map.on(InteractiveMap.Event.Toolbar.selectedFeature, function (e) {
+        //     console.log("Selected feature:", e.detail.target.feature.properties.name);
+        // });
     });
 </script>
