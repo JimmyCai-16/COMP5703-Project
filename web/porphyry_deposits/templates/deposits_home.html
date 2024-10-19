@@ -71,22 +71,27 @@
 
     <section id="prediction-history">
 
-        <h2>Prediction History</h2>
+        <div class="d-flex history-title">
+            <h2>Prediction History</h2>
+            <button type="button" id="clear-history-button" class="btn btn-primary ms-auto">Clear History</button>
+        </div>
 
-        <table class="table">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Shapes</th>
-                    <th scope="col">probability</th>
-                    <th scope="col">coordinates</th>
-                    <th scope="col">Operation</th>
-                </tr>
-            </thead>
+        <section>
+            <table class="table">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col" style="width: 5%;">#</th>
+                        <th scope="col" style="width: 15%;">Shapes</th>
+                        <th scope="col" style="width: 15%;">probability</th>
+                        <th scope="col" style="width: 50%;">coordinates</th>
+                        <th scope="col" style="width: 15%;">Operation</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-            </tbody>
-        </table>
+                <tbody>
+                </tbody>
+            </table>
+        </section>
     </section>
 </div>
 

@@ -121,7 +121,7 @@
 
 
         // Create a new layer -> all new layers added after that are added on top of this one
-        let drawnLayerGroup = new L.FeatureGroup().addTo(map.map); 
+        let drawnLayerGroup = new L.FeatureGroup().addTo(map.map);
 
         // Used to control whether or not drawing is in progress
         let isDrawing = false;
@@ -254,8 +254,8 @@
                 fetch("{% url 'porphyry_deposits:get_rectangle_coordinates' %}", {
                     method: 'POST',
                     headers: getCSRFHeaders(),
-                    body: JSON.stringify({ coordinates: coordinatesObj }) 
-                }).then(response => { 
+                    body: JSON.stringify({ coordinates: coordinatesObj })
+                }).then(response => {
                     if (response.ok) {
                         return response.json();  // Parsing the returned JSON data
                         isDrawing = false;
@@ -286,16 +286,16 @@
                         },
                         onEachFeature: function (feature, layer) {
                             //pop-up box
-                                let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br><br>
+                            let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br><br>
                                         Name: ${feature.properties.name}<br>`;
-                                layer.bindPopup(popupContent);
-                                // Automatically pops up alert boxes on the map
-                                layer.on('add', function () {
+                            layer.bindPopup(popupContent);
+                            // Automatically pops up alert boxes on the map
+                            layer.on('add', function () {
                                 layer.openPopup();
                             });
                         }
                     });
-                    geoJsonLayer.addTo(drawnLayerGroup); 
+                    geoJsonLayer.addTo(drawnLayerGroup);
 
                     // console.log(myLayer);
                     // myLayer.addTo(map.map);
@@ -348,11 +348,11 @@
                         },
                         onEachFeature: function (feature, layer) {
                             //pop-up box
-                                let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br><br>
+                            let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br><br>
                                         Name: ${feature.properties.name}<br>`;
-                                layer.bindPopup(popupContent);
-                                // Automatically pops up alert boxes on the map
-                                layer.on('add', function () {
+                            layer.bindPopup(popupContent);
+                            // Automatically pops up alert boxes on the map
+                            layer.on('add', function () {
                                 layer.openPopup();
                             });
                         }
@@ -405,11 +405,11 @@
                     let geoJsonLayer = L.geoJSON(data.geojson, {
                         onEachFeature: function (feature, layer) {
                             //pop-up box
-                                let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br><br>
+                            let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br><br>
                                         Name: ${feature.properties.name}<br>`;
-                                layer.bindPopup(popupContent);
-                                // Automatically pops up alert boxes on the map
-                                layer.on('add', function () {
+                            layer.bindPopup(popupContent);
+                            // Automatically pops up alert boxes on the map
+                            layer.on('add', function () {
                                 layer.openPopup();
                             });
                         }
@@ -578,8 +578,6 @@
                 };
             } else if (shapes === 'rectangle') {
 
-                
-
                 coordinates = {
                     point1: { lat: inputCoordinates[0].lat, lng: inputCoordinates[0].lng },
                     point2: { lat: inputCoordinates[1].lat, lng: inputCoordinates[1].lng },
@@ -600,10 +598,10 @@
             // Add a new forecast record
             previousPredictionHistory.push(newPrediction);
 
-            
+            localStorage.setItem('predictionHistory', JSON.stringify(previousPredictionHistory));
 
-            // Save updated prediction history back to cookie (JSON stringified)
-            setCookie('predictionHistory', JSON.stringify(previousPredictionHistory), 7);
+            // // Save updated prediction history back to cookie (JSON stringified)
+            // setCookie('predictionHistory', JSON.stringify(previousPredictionHistory), 7);
 
             // Update form
             updatePredictionTable();
@@ -611,23 +609,12 @@
 
         // Get prediction history
         function getPredictionHistory() {
-            const cookieValue = getCookie('predictionHistory');
-            return cookieValue ? JSON.parse(cookieValue) : [];
+            const history = localStorage.getItem('predictionHistory');
+            return history ? JSON.parse(history) : [];
         }
 
-        // Set Cookie
-        function setCookie(name, value, days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            const expires = "expires=" + date.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/";
-        }
-
-        // Get Cookie
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
+        function formatCoordinate(value) {
+            return value.toFixed(4);
         }
 
         // Update Forms
@@ -646,25 +633,25 @@
 
                 //Presentation of coordinates formatted according to shape type
                 if (prediction.shape === 'marker') {
-                    coordinatesDisplay = `Lat: ${prediction.coordinates.lat}, Lng: ${prediction.coordinates.lng}`;
+                    coordinatesDisplay = `Lat: ${formatCoordinate(prediction.coordinates.lat)}, Lng: ${formatCoordinate(prediction.coordinates.lng)}`;
                 } else if (prediction.shape === 'circle') {
-                    coordinatesDisplay = `Center: (${prediction.coordinates.center_point.lat}, ${prediction.coordinates.center_point.lng}), Radius: ${prediction.coordinates.radius}m`;
+                    coordinatesDisplay = `Center: (${formatCoordinate(prediction.coordinates.center_point.lat)}, ${formatCoordinate(prediction.coordinates.center_point.lng)}), <br> Radius: ${prediction.coordinates.radius} m`;
                 } else if (prediction.shape === 'rectangle') {
                     coordinatesDisplay = `
-                Point1: (${prediction.coordinates.point1.lat}, ${prediction.coordinates.point1.lng}),
-                Point2: (${prediction.coordinates.point2.lat}, ${prediction.coordinates.point2.lng}),
-                Point3: (${prediction.coordinates.point3.lat}, ${prediction.coordinates.point3.lng}),
-                Point4: (${prediction.coordinates.point4.lat}, ${prediction.coordinates.point4.lng})
+                Point1: (${formatCoordinate(prediction.coordinates.point1.lat)}, ${formatCoordinate(prediction.coordinates.point1.lng)}),
+                Point2: (${formatCoordinate(prediction.coordinates.point2.lat)}, ${formatCoordinate(prediction.coordinates.point2.lng)}), <br>
+                Point3: (${formatCoordinate(prediction.coordinates.point3.lat)}, ${formatCoordinate(prediction.coordinates.point3.lng)}),
+                Point4: (${formatCoordinate(prediction.coordinates.point4.lat)}, ${formatCoordinate(prediction.coordinates.point4.lng)})
             `;
                 }
 
                 // Dynamically populate table rows
                 row.innerHTML = `
-            <th scope="row">${index + 1}</th>
-            <td>${prediction.shape}</td>
-            <td>${(prediction.probability * 100).toFixed(2)}%</td>
-            <td>${coordinatesDisplay}</td>
-            <td><button type="button" class="btn btn-primary re-predict-button" data-index="${index}">Once again</button></td>
+            <th scope="row" style="width: 5%">${index + 1}</th>
+            <td style="width: 15%">${prediction.shape}</td>
+            <td style="width: 15%">${(prediction.probability * 100).toFixed(2)}%</td>
+            <td style="width: 50%">${coordinatesDisplay}</td>
+            <td style="width: 15%"><button type="button" class="btn btn-primary re-predict-button" data-index="${index}">Once again</button></td>
         `;
 
                 // Add event listener to RePredict button
@@ -675,7 +662,15 @@
 
                 tableBody.appendChild(row);
             });
-        }
+        };
+
+        // Clear the history information
+        document.getElementById('clear-history-button').addEventListener('click', function () {
+            localStorage.removeItem('predictionHistory');
+            updatePredictionTable();
+        })
+
+
 
         // Update table on initial load
         document.addEventListener("DOMContentLoaded", updatePredictionTable);
@@ -708,9 +703,9 @@
                 // pop-up automatically
                 let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
                                 Center: Lat: ${lat}, Lng: ${lng}, Radius: ${radius}m`;
-                    // if (circle.getPopup()) {
-                    //     circle.unbindPopup();  // Remove old popup box binding
-                    // }
+                // if (circle.getPopup()) {
+                //     circle.unbindPopup();  // Remove old popup box binding
+                // }
                 map.map.setView([lat, lng], 6);//Ensure that the view contains this marker
                 circle.bindPopup(popupContent).openPopup();
             } else if (prediction.shape === 'rectangle') {
@@ -724,12 +719,12 @@
                 let polygon = L.polygon(latlngs, { color: '#FF0000', fillColor: '#00FF00', fillOpacity: 0.5 }).addTo(drawnLayerGroup);
 
                 // pop-up automatically
-                    let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
+                let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
                                 Coordinates: ${JSON.stringify(latlngs)}`;
-                    // if (polygon.getPopup()) {
-                    //     polygon.unbindPopup();  // Remove old popup box binding
-                    // }
-                    polygon.bindPopup(popupContent).openPopup();
+                // if (polygon.getPopup()) {
+                //     polygon.unbindPopup();  // Remove old popup box binding
+                // }
+                polygon.bindPopup(popupContent).openPopup();
                 // Calculate the center coordinates of the rectangle
                 let bounds = polygon.getBounds();
                 let center = bounds.getCenter();
