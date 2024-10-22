@@ -5,7 +5,7 @@
 
 This README.md file includes all the introduction about web applicaiton and the porphryr deposits prediction model.
 
-## Web application
+# Web application
 
 ### PROJECT OVERVIEW
     This project aims to develop a sophisticated AI-driven Python application that leverages machine-learning techniques to identify potential porphyry copper deposits from magnetic and gravity data. The application will utilise advanced data processing, feature extraction, and predictive modelling to enhance mineral exploration efficiency.
@@ -53,4 +53,53 @@ This README.md file includes all the introduction about web applicaiton and the 
     - Magnetic map layer: Put the new TIF file into the [geo_file](../../web/porphyry_deposits/static/geo_file/) folder, and modified the link in [extra_body](../porphyry_deposits/templates/utils/extra_body.html) file.
     - Prediction model: Import the new prediction model CSV file into the <strong>porphyry_deposits_predictiondata</strong> database table, noting that the elements contained in the csv file need to be consistent.
 
-## Prediction Model
+<br>
+<hr>
+<br>
+
+<br>
+
+# Prediction Model
+
+The project demonstrates a machine learning pipeline for a porphyry copper deposits classification based on Gravity and Magnetic data using Python. And the libraries like `pandas`, `gdal`, `scikit-learn`, and `matplotlib` are used in this project. It covers data preprocessing, model training, evaluation, and visualization of results. For the sample dataset collection, the copper sample was annotated and extracted by QGIS. The cleaned sample dataset can be directly used in the model development of this project.
+
+## Table of Contents
+- [Usage](#usage)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+
+## Usage
+
+1. Open the Jupyter Notebook:
+   ```bash
+   jupyter notebook W6-Copy.ipynb
+   ```
+2. Follow the instructions within the notebook to execute each cell sequentially. The notebook includes:
+   - Data loading and preprocessing
+   - Model training 
+   - Evaluation using accuracy, confusion matrix, and ROC curve
+   - Visualizations for performance analysis
+
+3. Ensure you have the necessary dataset available in the expected path or update the code to point to your dataset.
+
+## Features
+
+- **Data Preprocessing**: Handles missing values and outliers, and splits the dataset into training and testing sets.
+- **Model Training**: Implements a logistic regression model to classify data points.
+- **Model Evaluation**: Evaluates the model using metrics like accuracy, confusion matrix, and ROC-AUC score.
+- **Visualization**: Generates visualizations such as ROC curves to provide insights into model performance.
+
+## Project Structure
+
+- `W6-Copy.ipynb`: The main Jupyter Notebook containing the entire code pipeline.
+- `requirements.txt`: The list of dependencies required for the project.
+
+## Contributing
+
+We welcome contributions! Please follow these steps:
+1. Fork this repository.
+2. Create a new branch (`git checkout -b feature-branch`).
+3. Make your changes and commit (`git commit -m "Add feature"`).
+4. Push to the branch (`git push origin feature-branch`).
+5. Create a Pull Request.
