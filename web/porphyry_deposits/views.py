@@ -115,14 +115,13 @@ def send_marker_coordinates(coordinates):
     point3 = (latitude_f + epsilon, longitude_f + epsilon)  # upper right corner
     point4 = (latitude_f - epsilon, longitude_f + epsilon)  # lower right corner
     
-    probabilityDict = get_rectangle_probability(point1,point2,point3,point4)
+    probabilityDict, totalPoints = get_rectangle_probability(point1,point2,point3,point4)
 
-    
     # Construct the Marker (polygon) using the four points and ensure it's closed
     Marker = {
         "coordinates": [longitude, latitude],  
         "probability": probabilityDict['predicted_probabilities__avg'], 
-        "name": "Selected Marker"  
+        "name": "Selected Point"  
     }
 
     # Construct a FeatureCollection in GeoJSON format
@@ -137,7 +136,7 @@ def send_marker_coordinates(coordinates):
                 },
                 "properties": {
                     "probability": Marker.get('probability', 'Unknown'),  
-                    "name": Marker.get('name', 'Sample Marker') 
+                    "name": Marker.get('name', 'Sample Marker')
                 }
             }
         ]
@@ -209,6 +208,8 @@ def send_circle_coordinates(center_lat, center_lng, radius):
         if distance <= radius_in_km:
             points_in_circle.append(point)
 
+    total_points = len(points_in_circle)
+
     # If the points within the circle are found, calculate their probability averages
     if points_in_circle:
         average_probability = sum([point.predicted_probabilities for point in points_in_circle]) / len(points_in_circle)
@@ -219,8 +220,8 @@ def send_circle_coordinates(center_lat, center_lng, radius):
         "coordinates": [center_lng, center_lat],  # CENTER POINT
         "radius": radius_in_km,
         "average_predicted_probability": average_probability,
-        # "average_predicted_probability": 0,
-        "name": "Selected Circle"
+        "name": "Selected Circle",
+        "total_points": total_points,
     }
 
     geojson = {
@@ -235,7 +236,9 @@ def send_circle_coordinates(center_lat, center_lng, radius):
                 "properties": {
                     "average_predicted_probability": Circle['average_predicted_probability'],
                     "name": Circle.get('name', 'Sample Circle'),
-                    "radius": radius
+                    "radius": radius,
+                    "total_points": Circle['total_points'],
+                    "center_point": Circle['coordinates']
                 }
             }
         ]
@@ -284,7 +287,7 @@ def send_rectangle_coordinates(coordinates):
     point3 = coordinates['Point3']
     point4 = coordinates['Point4']
     
-    probabilityDict = get_rectangle_probability(point1,point2,point3,point4)#计算矩形的概率
+    probabilityDict, total_points = get_rectangle_probability(point1,point2,point3,point4)#计算矩形的概率
     
     # Construct the rectangle (polygon) using the four points and ensure it's closed
     Rectangle = {
@@ -298,7 +301,7 @@ def send_rectangle_coordinates(coordinates):
             ]
         ],
         "average_predicted_probability":probabilityDict['predicted_probabilities__avg'],  
-        "name": "Selected Rectangle"  
+        "name": "Selected Rectangle",
     }
 
     # Construct a FeatureCollection in GeoJSON format
@@ -313,7 +316,8 @@ def send_rectangle_coordinates(coordinates):
                 },
                 "properties": {
                     "average_predicted_probability": Rectangle.get('average_predicted_probability', 'Unknown'), #默认值Unknow
-                    "name": Rectangle.get('name', 'Sample Rectangle') 
+                    "name": Rectangle.get('name', 'Sample Rectangle'),
+                    "total_points": total_points 
                 }
             }
         ]
@@ -333,33 +337,15 @@ def get_rectangle_probability(point1,point2,point3,point4):
     lng_min = min(longitudes)
     lng_max = max(longitudes)
 
+    points_within_area = PredictionData.objects.filter(x__gte=lng_min, x__lte=lng_max, y__gte=lat_min,y__lte=lat_max)
+
     # Query the records with lng_min <= x <= lng_max and lat_min <= y <= lat_max and compute the average of predicted_probabilities.
     # The result returned by the aggregate() method is a dictionary average_probability with the key predicted_probabilities__avg
-    average_probability = PredictionData.objects.filter(x__gte=lng_min, x__lte=lng_max, y__gte=lat_min,y__lte=lat_max).aggregate(Avg('predicted_probabilities'))
-    return average_probability
-
-
-
+    average_probability = points_within_area.aggregate(Avg('predicted_probabilities'))
     
-# @login_required
-# def get_magnetic_map(request):
-#     google_drive_file_id = '15DnUh39zr-kMh_0iK67Z8Kjnd1HZWJQ9'
-#     google_drive_url = f'https://drive.google.com/uc?export=download&id={google_drive_file_id}'
-
-#     # 使用 requests 来请求 Google Drive 文件
-#     try:
-#         response = requests.get(google_drive_url)
-#         response.raise_for_status()  # 检查是否有错误
-
-#         # 创建一个 HttpResponse，将文件的内容返回给前端
-#         file_response = HttpResponse(response.content, content_type='application/octet-stream')
-#         file_response['Content-Disposition'] = 'attachment; filename="downloaded_file.tif"'
-#         print("=====", file_response, "=====")
-#         return file_response
-
-#     except requests.exceptions.RequestException as e:
-#         return HttpResponse(f"Error fetching the file: {str(e)}", status=500)
+    total_points = points_within_area.count()
     
+    return average_probability, total_points
 
 
 def is_valid_longitude(value):

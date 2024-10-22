@@ -119,7 +119,6 @@
             ]
         });
 
-
         // Create a new layer -> all new layers added after that are added on top of this one
         let drawnLayerGroup = new L.FeatureGroup().addTo(map.map);
 
@@ -285,10 +284,24 @@
                             };
                         },
                         onEachFeature: function (feature, layer) {
+
+                            const formattedCoordinates = feature.geometry.coordinates[0]
+                                .map(coord => `<li>Lat: ${coord[1]}, Lng: ${coord[0]}</li>`)
+                                .join(' ');
+
+                            document.getElementById('modal-title').innerText = feature.properties.name;
+                            document.getElementById('modal-body').innerHTML = `
+                                    <p><strong>Probability:</strong> ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%</p>
+                                    <p><strong>Total Points:</strong> ${feature.properties.total_points}</p>
+                                    <p><strong>Exact Coordinates:</strong></p>
+                                    <ul>${formattedCoordinates}</ul>`;
+
                             //pop-up box
-                            let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br><br>
-                                        Name: ${feature.properties.name}<br>`;
+                            let popupContent = `Probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br><br>
+                                        Name: ${feature.properties.name}<br><br>
+                                        <a href="#" style="color: white" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#detailsModal">Get more details</a>`;
                             layer.bindPopup(popupContent);
+
                             // Automatically pops up alert boxes on the map
                             layer.on('add', function () {
                                 layer.openPopup();
@@ -338,6 +351,17 @@
                     let geoJsonLayer = L.geoJSON(data.geojson, {
 
                         pointToLayer: function (feature, latlng) {
+
+                            console.log(feature.properties)
+
+                            document.getElementById('modal-title').innerText = feature.properties.name;
+                            document.getElementById('modal-body').innerHTML = `
+                                <p><strong>Probability:</strong> ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%</p>
+                                <p><strong>Total Points:</strong> ${feature.properties.total_points}</p>
+                                <p><strong>Center Point</strong> ${feature.properties.center_point}</p>
+                                <p><strong>Radius:</strong> ${feature.properties.radius} meters</p>
+                            `;
+
                             // For Point type in GeoJSON, create a circle using L.circle
                             return L.circle(latlng, {
                                 color: '#FF0000',
@@ -349,7 +373,11 @@
                         onEachFeature: function (feature, layer) {
                             //pop-up box
                             let popupContent = `Average predicted probability: ${(feature.properties.average_predicted_probability * 100).toFixed(2)}%<br><br>
-                                        Name: ${feature.properties.name}<br>`;
+                                        Name: ${feature.properties.name}<br>
+                                        <a href="#" style="color: white" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#detailsModal">
+                                        Get more details
+                                    </a>`;
+
                             layer.bindPopup(popupContent);
                             // Automatically pops up alert boxes on the map
                             layer.on('add', function () {
@@ -364,7 +392,7 @@
                     geoJsonLayer.addTo(drawnLayerGroup);
 
                 }).catch(error => {
-                    console.log("Error -> 圆形: ", error);
+                    throw new Error(`Circle processing failed: ${error.message}`)
                 });
 
             } else if (type === "marker") {
@@ -404,29 +432,25 @@
 
                     let geoJsonLayer = L.geoJSON(data.geojson, {
                         onEachFeature: function (feature, layer) {
+
+                            document.getElementById('modal-title').innerText = feature.properties.name;
+                            document.getElementById('modal-body').innerHTML = `
+                                <p><strong>Probability:</strong> ${(feature.properties.probability * 100).toFixed(2)}%</p>
+                                <p><strong>Selected Point</strong> ${lat}, ${lng}</p>
+                            `;
+
                             //pop-up box
                             let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br><br>
-                                        Name: ${feature.properties.name}<br>`;
+                                        Name: ${feature.properties.name}<br><br>
+                                        <a href="#" style="color: white" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#detailsModal">
+                                        Get more details
+                                    </a>`;
                             layer.bindPopup(popupContent);
                             // Automatically pops up alert boxes on the map
                             layer.on('add', function () {
                                 layer.openPopup();
                             });
                         }
-                        // onEachFeature: function (feature, layer) {
-                        //     // Bind a click event to each layer to bring up the alert box
-                        //     layer.on('click', function () {
-                        //         console.log("Come in and allow pop-up boxes - marker", feature);
-                        //         let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br>
-                        //                 Name: ${feature.properties.name}<br><br>
-                        //                 Get more details`;
-                        //         if (layer.getPopup()) {
-                        //             // If there is an old popup, remove it.
-                        //             layer.unbindPopup();
-                        //         }
-                        //         layer.bindPopup(popupContent).openPopup();
-                        //     });
-                        // }
                     });
 
                     // Loaidng bar stop
@@ -600,9 +624,6 @@
 
             localStorage.setItem('predictionHistory', JSON.stringify(previousPredictionHistory));
 
-            // // Save updated prediction history back to cookie (JSON stringified)
-            // setCookie('predictionHistory', JSON.stringify(previousPredictionHistory), 7);
-
             // Update form
             updatePredictionTable();
         }
@@ -685,11 +706,30 @@
                 const lng = prediction.coordinates.lng;
 
                 let marker = L.marker([lat, lng]).addTo(drawnLayerGroup);
+
+                document.addEventListener('click', function () {
+
+                    document.getElementById('modal-title').innerText = prediction.shape;
+                    document.getElementById('modal-body').innerHTML = `
+                <p><strong>Probability:</strong> ${(prediction.probability * 100).toFixed(2)}%</p>
+                <p><strong>Coordinates:</strong></p>
+                <ul>
+                    ${Object.entries(prediction.coordinates).map(([key, value]) => {
+                        if (typeof value === 'object') {
+                            return `<li>${key}: Lat: ${value.lat}, Lng: ${value.lng}</li>`;
+                        } else {
+                            return `<li>${key}: ${value}</li>`;
+                        }
+                    }).join('')}
+                </ul>`;
+                });
+
                 // pop-up automatically
-                let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>Coordinates: Lat: ${lat}, Lng: ${lng}`;
-                // if (marker.getPopup()) {
-                //         marker.unbindPopup();
-                // }
+                let popupContent = `Probability: ${(prediction.probability * 100).toFixed(2)}%<br><br>
+                    <a href="#" style="color: white" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#detailsModal">
+                                            Get more details
+                                        </a>`;
+
                 map.map.setView([lat, lng], 7);//Ensure that the view contains this marker
                 marker.bindPopup(popupContent).openPopup();
 
@@ -700,12 +740,31 @@
 
                 let circle = L.circle([lat, lng], { radius: radius, color: '#FF0000', fillColor: '#00FF00', fillOpacity: 0.5 }).addTo(drawnLayerGroup);
 
+                document.addEventListener('click', function () {
+                    
+                    document.getElementById('modal-title').innerText = prediction.shape;
+                    document.getElementById('modal-body').innerHTML = `
+                <p><strong>Probability:</strong> ${(prediction.probability * 100).toFixed(2)}%</p>
+                <p><strong>Coordinates:</strong></p>
+                <ul>
+                    ${Object.entries(prediction.coordinates).map(([key, value]) => {
+                        if (typeof value === 'object') {
+                            return `<li>${key}: Lat: ${value.lat}, Lng: ${value.lng}</li>`;
+                        } else {
+                            return `<li>${key}: ${value}</li>`;
+                        }
+                    }).join('')}
+                </ul>`;
+                });
+
+
                 // pop-up automatically
                 let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
-                                Center: Lat: ${lat}, Lng: ${lng}, Radius: ${radius}m`;
-                // if (circle.getPopup()) {
-                //     circle.unbindPopup();  // Remove old popup box binding
-                // }
+                                <br><br>
+                                <a href="#" style="color: white" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#detailsModal">
+                                        Get more details
+                                    </a>`;
+
                 map.map.setView([lat, lng], 6);//Ensure that the view contains this marker
                 circle.bindPopup(popupContent).openPopup();
             } else if (prediction.shape === 'rectangle') {
@@ -718,12 +777,29 @@
 
                 let polygon = L.polygon(latlngs, { color: '#FF0000', fillColor: '#00FF00', fillOpacity: 0.5 }).addTo(drawnLayerGroup);
 
+                document.addEventListener('click', function () {
+                    
+                    document.getElementById('modal-title').innerText = prediction.shape;
+                    document.getElementById('modal-body').innerHTML = `
+                <p><strong>Probability:</strong> ${(prediction.probability * 100).toFixed(2)}%</p>
+                <p><strong>Coordinates:</strong></p>
+                <ul>
+                    ${Object.entries(prediction.coordinates).map(([key, value]) => {
+                        if (typeof value === 'object') {
+                            return `<li>${key}: Lat: ${value.lat}, Lng: ${value.lng}</li>`;
+                        } else {
+                            return `<li>${key}: ${value}</li>`;
+                        }
+                    }).join('')}
+                </ul>`;
+                });
+
                 // pop-up automatically
-                let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br>
-                                Coordinates: ${JSON.stringify(latlngs)}`;
-                // if (polygon.getPopup()) {
-                //     polygon.unbindPopup();  // Remove old popup box binding
-                // }
+                let popupContent = `Predicted probability: ${(prediction.probability * 100).toFixed(2)}%<br><br>
+                                <a href="#" style="color: white" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#detailsModal">
+                                        Get more details
+                                    </a>`;
+
                 polygon.bindPopup(popupContent).openPopup();
                 // Calculate the center coordinates of the rectangle
                 let bounds = polygon.getBounds();
@@ -731,22 +807,5 @@
                 map.map.setView(center, 7);
             }
         }
-
-        // Handle drawing toolbar events
-        // map.on(InteractiveMap.Event.Toolbar.preDraw, function (e) {
-        //     // const interactive_layer = document.getElementsByClassName("leaflet-interactive");
-        //     // if (interactive_layer.length > 0 ) {
-        //     //     let elementRemove = interactive_layer[0];
-        //     //     elementRemove.parentNode.removeChild(elementRemove);
-        //     // }
-        //     console.log("Drawing operation started...");
-        //     console.log("======", e.detail, "======");
-        // });
-        // map.on(InteractiveMap.Event.Toolbar.postDraw, function () {
-        //     console.log("Drawing operation finished.");
-        // });
-        // map.on(InteractiveMap.Event.Toolbar.selectedFeature, function (e) {
-        //     console.log("Selected feature:", e.detail.target.feature.properties.name);
-        // });
     });
 </script>
