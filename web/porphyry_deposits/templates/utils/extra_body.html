@@ -285,7 +285,7 @@
                         },
                         onEachFeature: function (feature, layer) {
 
-                            const formattedCoordinates = feature.geometry.coordinates[0]
+                            const formattedCoordinates = feature.properties.return_coordinates
                                 .map(coord => `<li>Lat: ${coord[1]}, Lng: ${coord[0]}</li>`)
                                 .join(' ');
 
@@ -468,7 +468,7 @@
         });
 
         // Process input form
-        document.getElementById('user-input-form').addEventListener('submit', function (event) {
+        document.getElementById('user-input-form').addEventListener('submit', function (event) { // TODO: 在这里添加进入history
             event.preventDefault();
 
             var longitude = document.getElementById('longitude').value;
@@ -500,14 +500,22 @@
 
                 clearLayers();
 
-                let geoJsonLayer = L.geoJSON(data.geojson, {
+                console.log(data)
 
+                storePredictionToHistory('marker', data.geojson.features[0].properties.probability, [latitude, longitude]);
+
+                let geoJsonLayer = L.geoJSON(data.geojson, {
 
                     onEachFeature: function (feature, layer) {
                         // Bind a click event to each layer to bring up the alert box
                         layer.on('click', function () {
-                            console.log("Come in and allow pop-up boxes - marker", feature);
-                            let popupContent = `Predicted probability: ${(feature.properties.probability * 100).toFixed(2)}%<br><br>
+
+                            const probability = feature.properties.probability;
+                            const validProbability = (typeof probability === 'number' && probability !== null)
+                                ? (probability * 100).toFixed(2)
+                                : '0.00';
+
+                            let popupContent = `Predicted probability: ${validProbability}%<br><br>
                             Name: ${feature.properties.name}<br>`;
                             if (layer.getPopup()) {
                                 // If there is an old popup, remove it.
@@ -635,7 +643,13 @@
         }
 
         function formatCoordinate(value) {
-            return value.toFixed(4);
+
+            const numericValue = parseFloat(value);
+            if (isNaN(numericValue)) {
+                console.warn(`Invalid coordinate: ${value}, setting default to 0.0000`);
+                return '0.0000';
+            }
+            return numericValue.toFixed(4);
         }
 
         // Update Forms
@@ -659,11 +673,11 @@
                     coordinatesDisplay = `Center: (${formatCoordinate(prediction.coordinates.center_point.lat)}, ${formatCoordinate(prediction.coordinates.center_point.lng)}), <br> Radius: ${prediction.coordinates.radius} m`;
                 } else if (prediction.shape === 'rectangle') {
                     coordinatesDisplay = `
-                Point1: (${formatCoordinate(prediction.coordinates.point1.lat)}, ${formatCoordinate(prediction.coordinates.point1.lng)}),
-                Point2: (${formatCoordinate(prediction.coordinates.point2.lat)}, ${formatCoordinate(prediction.coordinates.point2.lng)}), <br>
-                Point3: (${formatCoordinate(prediction.coordinates.point3.lat)}, ${formatCoordinate(prediction.coordinates.point3.lng)}),
-                Point4: (${formatCoordinate(prediction.coordinates.point4.lat)}, ${formatCoordinate(prediction.coordinates.point4.lng)})
-            `;
+                        Point1: (${formatCoordinate(prediction.coordinates.point1.lat)}, ${formatCoordinate(prediction.coordinates.point1.lng)}),
+                        Point2: (${formatCoordinate(prediction.coordinates.point2.lat)}, ${formatCoordinate(prediction.coordinates.point2.lng)}), <br>
+                        Point3: (${formatCoordinate(prediction.coordinates.point3.lat)}, ${formatCoordinate(prediction.coordinates.point3.lng)}),
+                        Point4: (${formatCoordinate(prediction.coordinates.point4.lat)}, ${formatCoordinate(prediction.coordinates.point4.lng)})
+                    `;
                 }
 
                 // Dynamically populate table rows
@@ -672,7 +686,7 @@
             <td style="width: 15%">${prediction.shape}</td>
             <td style="width: 15%">${(prediction.probability * 100).toFixed(2)}%</td>
             <td style="width: 50%">${coordinatesDisplay}</td>
-            <td style="width: 15%"><button type="button" class="btn btn-primary re-predict-button" data-index="${index}">Once again</button></td>
+            <td style="width: 15%"><button type="button" class="btn btn-primary re-predict-button" data-index="${index}">Refresh</button></td>
         `;
 
                 // Add event listener to RePredict button
@@ -690,8 +704,6 @@
             localStorage.removeItem('predictionHistory');
             updatePredictionTable();
         })
-
-
 
         // Update table on initial load
         document.addEventListener("DOMContentLoaded", updatePredictionTable);
@@ -741,7 +753,7 @@
                 let circle = L.circle([lat, lng], { radius: radius, color: '#FF0000', fillColor: '#00FF00', fillOpacity: 0.5 }).addTo(drawnLayerGroup);
 
                 document.addEventListener('click', function () {
-                    
+
                     document.getElementById('modal-title').innerText = prediction.shape;
                     document.getElementById('modal-body').innerHTML = `
                 <p><strong>Probability:</strong> ${(prediction.probability * 100).toFixed(2)}%</p>
@@ -778,7 +790,7 @@
                 let polygon = L.polygon(latlngs, { color: '#FF0000', fillColor: '#00FF00', fillOpacity: 0.5 }).addTo(drawnLayerGroup);
 
                 document.addEventListener('click', function () {
-                    
+
                     document.getElementById('modal-title').innerText = prediction.shape;
                     document.getElementById('modal-body').innerHTML = `
                 <p><strong>Probability:</strong> ${(prediction.probability * 100).toFixed(2)}%</p>

@@ -118,11 +118,14 @@ def send_marker_coordinates(coordinates):
     probabilityDict, totalPoints = get_rectangle_probability(point1,point2,point3,point4)
 
     # Construct the Marker (polygon) using the four points and ensure it's closed
+    
     Marker = {
         "coordinates": [longitude, latitude],  
         "probability": probabilityDict['predicted_probabilities__avg'], 
         "name": "Selected Point"  
     }
+    
+    print("==========", Marker)
 
     # Construct a FeatureCollection in GeoJSON format
     geojson = {
@@ -302,6 +305,12 @@ def send_rectangle_coordinates(coordinates):
         ],
         "average_predicted_probability":probabilityDict['predicted_probabilities__avg'],  
         "name": "Selected Rectangle",
+        "return_coordinates": [
+            [point1[1], point1[0]],  # Point 1 (lng, lat)
+            [point2[1], point2[0]],  # Point 2 (lng, lat)
+            [point3[1], point3[0]],  # Point 3 (lng, lat)
+            [point4[1], point4[0]],  # Point 4 (lng, lat)
+        ]
     }
 
     # Construct a FeatureCollection in GeoJSON format
@@ -317,7 +326,8 @@ def send_rectangle_coordinates(coordinates):
                 "properties": {
                     "average_predicted_probability": Rectangle.get('average_predicted_probability', 'Unknown'), #默认值Unknow
                     "name": Rectangle.get('name', 'Sample Rectangle'),
-                    "total_points": total_points 
+                    "total_points": total_points,
+                    "return_coordinates": Rectangle['return_coordinates']
                 }
             }
         ]
