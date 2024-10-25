@@ -80,12 +80,12 @@ The project demonstrates a machine learning pipeline for a porphyry copper depos
 
 1. Open the Jupyter Notebook:
    ```bash
-   jupyter notebook W6-Copy.ipynb
+   jupyter notebook Model.ipynb
    ```
 2. Follow the instructions within the notebook to execute each cell sequentially. The notebook includes:
    - Data loading and preprocessing
    - Model training 
-   - Evaluation using accuracy, confusion matrix, and ROC curve
+   - Evaluation using accuracy and ROC curve
    - Visualizations for performance analysis
 
 3. Ensure you have the necessary dataset available in the expected path or update the code to point to your dataset.
@@ -94,13 +94,12 @@ The project demonstrates a machine learning pipeline for a porphyry copper depos
 
 - **Data Preprocessing**: Handles missing values and outliers, and splits the dataset into training and testing sets.
 - **Model Training**: Implements a logistic regression model to classify data points.
-- **Model Evaluation**: Evaluates the model using metrics like accuracy, confusion matrix, and ROC-AUC score.
+- **Model Evaluation**: Evaluates the model using metrics like accuracy and ROC-AUC score.
 - **Visualization**: Generates visualizations such as ROC curves to provide insights into model performance.
 
 ## Project Structure
 
-- `W6-Copy.ipynb`: The main Jupyter Notebook containing the entire code pipeline.
-- `requirements.txt`: The list of dependencies required for the project.
+- `Model.ipynb`: The main Jupyter Notebook containing the entire code pipeline.
 
 ## Contributing
 
