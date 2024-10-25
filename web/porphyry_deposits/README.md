@@ -51,7 +51,7 @@ This README.md file includes all the introduction about web applicaiton and the 
 
 
 3. Video demo
-    1. [Notion demo video]() -> TODO: Link to the Notion
+    1. [Final product demo video](https://unisydneyedu-my.sharepoint.com/:v:/g/personal/kshe0325_uni_sydney_edu_au/ETAXWI5hSyJPpTqitk47ZxYBp6pb8QPdNl2Y-3Xf9joV9A?e=2mzyx5)
 
 ### IMPORTANT NOTES
 1. Get familiar with the [Leaflet.js](https://leafletjs.com/) and the [interactive_map](../interactive_map/) module, the important features of this module are implemented based on the plugin Leaflet.js. Also, the [interactive_map](../interactive_map/) module encapsulated some of the APIs so some of the Leaflet.js original APIs might dont't work.
